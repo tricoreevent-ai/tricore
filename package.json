@@ -1,31 +1,30 @@
 {
   "name": "tricore-events",
-  "private": true,
   "version": "1.0.0",
-  "workspaces": [
-    "server",
-    "client"
-  ],
+  "private": true,
+  "type": "module",
+  "main": "server.js",
   "scripts": {
     "atlas:dev-ip": "node scripts/ensure-atlas-dev-access.mjs --wait",
-    "dev": "npm run atlas:dev-ip && concurrently \"npm run dev --workspace server\" \"node scripts/wait-for-port.mjs 127.0.0.1 5000 30000 && npm run dev --workspace client\"",
-    "server": "npm run dev --workspace server",
-    "client": "npm run dev --workspace client",
-    "build": "npm run build --workspace client",
-    "build:client": "npm run build --workspace client",
+    "dev": "npm run atlas:dev-ip && concurrently \"npm --prefix server run dev\" \"node scripts/wait-for-port.mjs 127.0.0.1 5000 30000 && npm --prefix client run dev\"",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "build:client": "npm --prefix client run build",
     "start": "npm run start:server",
-    "start:server": "npm run start --workspace server",
+    "start:server": "npm --prefix server run start",
     "validate:workflow": "node server/scripts/run-validation-suite.js",
     "deploy": "npm run build:client && npm run start:server",
-    "lint": "npm run lint --workspace client"
+    "lint": "npm --prefix client run lint",
+    "postinstall": "npm --prefix server install && npm --prefix client install"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
   },
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "claude-ai": "^1.2.3"
   }
 }
