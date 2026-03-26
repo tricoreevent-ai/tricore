@@ -22,7 +22,8 @@ const googleClientIds = Array.from(
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   host: process.env.HOST || '0.0.0.0',
-  port: Number(process.env.PORT || 5000),
+  // Hostinger typically proxies to PORT 3000; default to 3000 when not set.
+  port: Number(process.env.PORT || 3000),
   mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/tricore-events',
   mongoAllowMemoryFallback: process.env.MONGODB_ALLOW_MEMORY_FALLBACK === 'true',
   mongoServerSelectionTimeoutMs: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 10000),
