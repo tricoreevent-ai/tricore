@@ -13,7 +13,13 @@ import {
   homePageContentFallback
 } from '../../data/siteContent.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
-import { isUpcomingOrOngoingEvent, sortEventsByStartDate } from '../../utils/eventTimeline.js';
+import {
+  isRegistrationOpenForEvent,
+  isUpcomingOrOngoingEvent,
+  isVisiblePublicEvent,
+  sortEventsByStartDate,
+  sortPublicUpcomingEvents
+} from '../../utils/eventTimeline.js';
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
@@ -32,13 +38,22 @@ export default function HomePage() {
         ]);
 
         if (eventsResult.status === 'fulfilled') {
-          const upcomingEvents = sortEventsByStartDate(eventsResult.value)
-            .filter((event) => isUpcomingOrOngoingEvent(event))
-            .slice(0, 3);
+          const visibleEvents = Array.isArray(eventsResult.value)
+            ? eventsResult.value.filter((event) => isVisiblePublicEvent(event))
+            : [];
+          const upcomingEvents = sortPublicUpcomingEvents(
+            visibleEvents.filter((event) => isUpcomingOrOngoingEvent(event))
+          );
+          const openRegistrationEvents = upcomingEvents.filter((event) =>
+            isRegistrationOpenForEvent(event)
+          );
 
-          const featuredEvents = upcomingEvents.length
-            ? upcomingEvents
+          const featuredEvents = openRegistrationEvents.length
+            ? openRegistrationEvents.slice(0, 3)
+            : upcomingEvents.length
+              ? upcomingEvents.slice(0, 3)
             : [...eventsResult.value]
+                .filter((event) => isVisiblePublicEvent(event))
                 .sort(
                   (left, right) =>
                     new Date(right.updatedAt || right.createdAt).getTime() -

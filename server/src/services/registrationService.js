@@ -3,7 +3,11 @@ import { Event } from '../models/Event.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export const getOpenEvent = async (eventId) => {
-  const event = await Event.findOne({ _id: eventId, isDeleted: false, isHidden: false });
+  const event = await Event.findOne({
+    _id: eventId,
+    isDeleted: false,
+    $or: [{ isHidden: false }, { isHidden: { $exists: false } }]
+  });
 
   if (!event) {
     throw new ApiError(404, 'Event not found.');

@@ -5,7 +5,13 @@ import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import EventCard from '../../components/events/EventCard.jsx';
 import { eventsContent } from '../../data/siteContent.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
-import { isPastEvent, isUpcomingOrOngoingEvent, sortEventsByStartDate } from '../../utils/eventTimeline.js';
+import {
+  isPastEvent,
+  isUpcomingOrOngoingEvent,
+  isVisiblePublicEvent,
+  sortEventsByStartDate,
+  sortPublicUpcomingEvents
+} from '../../utils/eventTimeline.js';
 
 const sportTypes = ['All', 'Cricket', 'Football', 'Badminton', 'Swimming'];
 
@@ -14,8 +20,11 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState('All');
   const [error, setError] = useState('');
-  const upcomingEvents = sortEventsByStartDate(events).filter((event) => isUpcomingOrOngoingEvent(event));
-  const pastEvents = sortEventsByStartDate(events)
+  const publicEvents = events.filter((event) => isVisiblePublicEvent(event));
+  const upcomingEvents = sortPublicUpcomingEvents(
+    publicEvents.filter((event) => isUpcomingOrOngoingEvent(event))
+  );
+  const pastEvents = sortEventsByStartDate(publicEvents)
     .filter((event) => isPastEvent(event))
     .reverse();
 

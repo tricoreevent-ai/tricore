@@ -26,6 +26,10 @@ const disableEventCaching = (res) => {
   });
 };
 
+const visibleEventCondition = {
+  $or: [{ isHidden: false }, { isHidden: { $exists: false } }]
+};
+
 const getEventUsageCounts = async (eventId) => {
   const [paymentCount, registrationCount, transactionCount] = await Promise.all([
     Payment.countDocuments({ eventId }),
@@ -72,14 +76,15 @@ const buildEventMatchStage = (query = {}, user = null) => {
     query.includeHidden === 'true' && hasAdminPortalAccess(user);
 
   if (!includeHidden) {
-    matchStage.isHidden = false;
+    Object.assign(matchStage, visibleEventCondition);
   }
 
   if (query.visibility === 'visible') {
-    matchStage.isHidden = false;
+    Object.assign(matchStage, visibleEventCondition);
   }
 
   if (query.visibility === 'hidden') {
+    delete matchStage.$or;
     matchStage.isHidden = true;
   }
 
@@ -187,7 +192,7 @@ export const getEventById = asyncHandler(async (req, res) => {
     buildEventPipeline({
       _id: new mongoose.Types.ObjectId(req.params.id),
       isDeleted: false,
-      isHidden: false
+      ...visibleEventCondition
     })
   );
 

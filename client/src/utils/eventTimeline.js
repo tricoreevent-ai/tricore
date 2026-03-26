@@ -31,8 +31,31 @@ export const isPastEvent = (event, referenceDate = new Date()) => {
   return timestamp !== null && timestamp < getDayStartTimestamp(referenceDate);
 };
 
+export const isVisiblePublicEvent = (event) =>
+  Boolean(event) && !Boolean(event.isHidden) && !Boolean(event.isDeleted);
+
+export const isRegistrationOpenForEvent = (event, referenceDate = new Date()) =>
+  isVisiblePublicEvent(event) &&
+  Boolean(event.registrationEnabled) &&
+  isUpcomingOrOngoingEvent(event, referenceDate) &&
+  isDateOnOrAfterToday(event.registrationDeadline, referenceDate);
+
 export const sortEventsByStartDate = (events = []) =>
   [...events].sort((left, right) => {
+    const leftTimestamp = getEventStartTimestamp(left) ?? Number.MAX_SAFE_INTEGER;
+    const rightTimestamp = getEventStartTimestamp(right) ?? Number.MAX_SAFE_INTEGER;
+    return leftTimestamp - rightTimestamp;
+  });
+
+export const sortPublicUpcomingEvents = (events = [], referenceDate = new Date()) =>
+  [...events].sort((left, right) => {
+    const leftOpen = isRegistrationOpenForEvent(left, referenceDate);
+    const rightOpen = isRegistrationOpenForEvent(right, referenceDate);
+
+    if (leftOpen !== rightOpen) {
+      return leftOpen ? -1 : 1;
+    }
+
     const leftTimestamp = getEventStartTimestamp(left) ?? Number.MAX_SAFE_INTEGER;
     const rightTimestamp = getEventStartTimestamp(right) ?? Number.MAX_SAFE_INTEGER;
     return leftTimestamp - rightTimestamp;
