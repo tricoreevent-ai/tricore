@@ -3,6 +3,7 @@ import { Match } from '../models/Match.js';
 import { Payment } from '../models/Payment.js';
 import { Registration } from '../models/Registration.js';
 import { SecurityAlert } from '../models/SecurityAlert.js';
+import { buildDefaultCalendarRange, getCalendarFeed } from '../services/calendarFeedService.js';
 import { confirmedPaymentStatuses, normalizePaymentStatus } from '../services/paymentStatusService.js';
 import { serializeRegistrationRecord } from '../services/registrationViewService.js';
 import { sendCsv } from '../utils/csv.js';
@@ -42,7 +43,8 @@ export const getAdminDashboard = asyncHandler(async (_req, res) => {
     sportRegistrationBreakdown,
     upcomingEvents,
     openSecurityAlerts,
-    latestAlerts
+    latestAlerts,
+    calendarFeed
   ] = await Promise.all([
     Event.countDocuments({ isDeleted: false }),
     Registration.countDocuments(),
@@ -100,17 +102,47 @@ export const getAdminDashboard = asyncHandler(async (_req, res) => {
       { $sort: { totalRegistrations: -1 } },
       { $limit: 6 }
     ]),
-    Event.find({
-      isDeleted: false,
-      startDate: { $gte: new Date() }
-    })
-      .select('name venue startDate registrationDeadline registrationCount maxParticipants sportType')
-      .sort({ startDate: 1 })
-      .limit(4),
+    Event.aggregate([
+      {
+        $match: {
+          isDeleted: false,
+          startDate: { $gte: new Date() }
+        }
+      },
+      { $sort: { startDate: 1 } },
+      { $limit: 4 },
+      {
+        $lookup: {
+          from: 'registrations',
+          localField: '_id',
+          foreignField: 'eventId',
+          as: 'registrations'
+        }
+      },
+      {
+        $addFields: {
+          registrationCount: { $size: '$registrations' }
+        }
+      },
+      {
+        $project: {
+          registrations: 0
+        }
+      }
+    ]),
     SecurityAlert.countDocuments({ status: 'open' }),
     SecurityAlert.find({ status: 'open' })
       .sort({ lastSeenAt: -1 })
-      .limit(5)
+      .limit(5),
+    (() => {
+      const { dateFrom, dateTo } = buildDefaultCalendarRange();
+
+      return getCalendarFeed({
+        dateFrom,
+        dateTo,
+        includeHiddenEvents: true
+      });
+    })()
   ]);
 
   const paymentStatusCounts = paymentStatusAggregation.reduce(
@@ -146,6 +178,7 @@ export const getAdminDashboard = asyncHandler(async (_req, res) => {
         totalRegistrations: item.totalRegistrations
       })),
       upcomingEvents,
+      calendarFeed,
       openSecurityAlerts,
       openAlerts: openSecurityAlerts,
       latestAlerts

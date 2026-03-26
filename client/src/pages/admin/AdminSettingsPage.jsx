@@ -13,6 +13,7 @@ import {
   getHomePageConfiguration,
   getInvoiceConfiguration,
   getPaymentConfiguration,
+  getPublicSiteConfiguration,
   getTransactionOtpConfiguration,
   restoreBackupNow as restoreBackupNowRequest,
   sendBackupNow as sendBackupNowRequest,
@@ -23,6 +24,7 @@ import {
   updateHomePageConfiguration,
   updateInvoiceConfiguration,
   updatePaymentConfiguration,
+  updatePublicSiteConfiguration,
   updateTransactionOtpConfiguration
 } from '../../api/settingsApi.js';
 import BackupSettingsPanel from '../../components/settings/BackupSettingsPanel.jsx';
@@ -37,6 +39,7 @@ import InvoiceSettingsPanel from '../../components/settings/InvoiceSettingsPanel
 import AdminThemeSettingsPanel from '../../components/settings/AdminThemeSettingsPanel.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
 import TransactionOtpSettingsPanel from '../../components/settings/TransactionOtpSettingsPanel.jsx';
+import WebsiteSettingsPanel from '../../components/settings/WebsiteSettingsPanel.jsx';
 import useAdminTheme from '../../hooks/useAdminTheme.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
 import { formatDateTime } from '../../utils/formatters.js';
@@ -108,9 +111,13 @@ export default function AdminSettingsPage() {
   const [bannerError, setBannerError] = useState('');
   const [bannerMessage, setBannerMessage] = useState('');
   const [homePageConfig, setHomePageConfig] = useState(null);
+  const [publicSiteConfig, setPublicSiteConfig] = useState(null);
   const [homePageSavePending, setHomePageSavePending] = useState(false);
   const [homePageError, setHomePageError] = useState('');
   const [homePageMessage, setHomePageMessage] = useState('');
+  const [websiteSavePending, setWebsiteSavePending] = useState(false);
+  const [websiteError, setWebsiteError] = useState('');
+  const [websiteMessage, setWebsiteMessage] = useState('');
   const [gallerySavePending, setGallerySavePending] = useState(false);
   const [galleryError, setGalleryError] = useState('');
   const [galleryMessage, setGalleryMessage] = useState('');
@@ -265,6 +272,22 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const loadWebsiteTab = async () => {
+    setTabLoadingState('website', true);
+
+    try {
+      const websiteResponse = await getPublicSiteConfiguration();
+      setPublicSiteConfig(websiteResponse);
+      markTabLoaded('website');
+      setLoadError('');
+    } catch (error) {
+      setLoadError(getApiErrorMessage(error, 'Unable to load website settings.'));
+    } finally {
+      setTabLoadingState('website', false);
+      setInitializing(false);
+    }
+  };
+
   const loadBackupsTab = async () => {
     setTabLoadingState('backups', true);
 
@@ -341,6 +364,8 @@ export default function AdminSettingsPage() {
         loadBannersTab();
       } else if (activeTab === 'gallery') {
         loadGalleryTab();
+      } else if (activeTab === 'website') {
+        loadWebsiteTab();
       } else if (activeTab === 'backups') {
         loadBackupsTab();
       } else if (activeTab === 'security') {
@@ -774,6 +799,22 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleSaveWebsiteConfiguration = async (payload) => {
+    setWebsiteSavePending(true);
+    setWebsiteError('');
+    setWebsiteMessage('');
+
+    try {
+      const response = await updatePublicSiteConfiguration(payload);
+      setPublicSiteConfig(response);
+      setWebsiteMessage('Website link settings updated successfully.');
+    } catch (error) {
+      setWebsiteError(getApiErrorMessage(error, 'Unable to save website settings.'));
+    } finally {
+      setWebsiteSavePending(false);
+    }
+  };
+
   const handleSaveInvoiceConfiguration = async (payload) => {
     setInvoiceSavePending(true);
     setInvoiceError('');
@@ -954,6 +995,15 @@ export default function AdminSettingsPage() {
           type="button"
         >
           Gallery
+        </button>
+        <button
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            activeTab === 'website' ? 'bg-white text-slate-900 shadow-soft' : 'text-slate-600 hover:bg-white/70'
+          }`}
+          onClick={() => setActiveTab('website')}
+          type="button"
+        >
+          Website
         </button>
         <button
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -1432,6 +1482,21 @@ export default function AdminSettingsPage() {
             savePending={gallerySavePending}
           />
         </>
+        )
+      ) : null}
+
+      {activeTab === 'website' ? (
+        activeTabLoading && !loadedTabs.website ? (
+          <LoadingSpinner compact label="Loading website settings..." />
+        ) : (
+        <WebsiteSettingsPanel
+          config={publicSiteConfig}
+          error={websiteError}
+          message={websiteMessage}
+          onRefresh={loadWebsiteTab}
+          onSave={handleSaveWebsiteConfiguration}
+          savePending={websiteSavePending}
+        />
         )
       ) : null}
 

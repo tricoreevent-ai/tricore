@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { getAdminDashboard } from '../../api/dashboardApi.js';
+import AdminCalendarPanel from '../../components/admin/AdminCalendarPanel.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import DataTable from '../../components/common/DataTable.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
@@ -370,6 +371,15 @@ export default function AdminDashboardPage() {
             </section>
           </div>
 
+          <section className="panel mt-8 p-6">
+            <AdminCalendarPanel
+              emptyMessage="No events, holidays, or sports fixtures fall inside the current 30-day overview window."
+              initialMonth={dashboard.calendarFeed?.dateFrom}
+              items={dashboard.calendarFeed?.items || []}
+              title="30-Day Planning Calendar"
+            />
+          </section>
+
           <div className="mt-8 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
             <section className="panel p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -511,7 +521,9 @@ export default function AdminDashboardPage() {
                           </p>
                           <p>
                             <span className="font-semibold text-slate-900">Registration Deadline:</span>{' '}
-                            {formatDate(event.registrationDeadline)}
+                            {event.registrationDeadline
+                              ? formatDate(event.registrationDeadline)
+                              : 'Coming Soon / Not Set'}
                           </p>
                         </div>
                       </div>

@@ -1,4 +1,8 @@
 const toTimestamp = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
   const timestamp = new Date(value).getTime();
   return Number.isFinite(timestamp) ? timestamp : null;
 };
@@ -14,6 +18,21 @@ export const getEventStartTimestamp = (event) =>
 
 export const getEventEndTimestamp = (event) =>
   toTimestamp(event?.endDate) ?? toTimestamp(event?.startDate);
+
+export const getRegistrationStartTimestamp = (event) =>
+  toTimestamp(event?.registrationStartDate);
+
+export const getRegistrationDeadlineCutoffTimestamp = (event) => {
+  const timestamp = toTimestamp(event?.registrationDeadline);
+
+  if (timestamp === null) {
+    return null;
+  }
+
+  const deadline = new Date(event.registrationDeadline);
+  deadline.setHours(23, 59, 59, 999);
+  return deadline.getTime();
+};
 
 export const isDateOnOrAfterToday = (value, referenceDate = new Date()) => {
   const timestamp = toTimestamp(value);
@@ -34,11 +53,47 @@ export const isPastEvent = (event, referenceDate = new Date()) => {
 export const isVisiblePublicEvent = (event) =>
   Boolean(event) && !Boolean(event.isHidden) && !Boolean(event.isDeleted);
 
+export const hasRegistrationStartedForEvent = (event, referenceDate = new Date()) => {
+  const startTimestamp = getRegistrationStartTimestamp(event);
+
+  if (startTimestamp !== null) {
+    return startTimestamp <= referenceDate.getTime();
+  }
+
+  return getRegistrationDeadlineCutoffTimestamp(event) !== null;
+};
+
+export const isRegistrationComingSoonForEvent = (event, referenceDate = new Date()) =>
+  isVisiblePublicEvent(event) &&
+  Boolean(event.registrationEnabled) &&
+  isUpcomingOrOngoingEvent(event, referenceDate) &&
+  !hasRegistrationStartedForEvent(event, referenceDate) &&
+  ((getRegistrationDeadlineCutoffTimestamp(event) ?? Number.MAX_SAFE_INTEGER) >=
+    referenceDate.getTime());
+
 export const isRegistrationOpenForEvent = (event, referenceDate = new Date()) =>
   isVisiblePublicEvent(event) &&
   Boolean(event.registrationEnabled) &&
   isUpcomingOrOngoingEvent(event, referenceDate) &&
-  isDateOnOrAfterToday(event.registrationDeadline, referenceDate);
+  hasRegistrationStartedForEvent(event, referenceDate) &&
+  ((getRegistrationDeadlineCutoffTimestamp(event) ?? Number.MAX_SAFE_INTEGER) >=
+    referenceDate.getTime());
+
+export const getPublicEventRegistrationStatus = (event, referenceDate = new Date()) => {
+  if (isPastEvent(event, referenceDate)) {
+    return 'completed';
+  }
+
+  if (isRegistrationOpenForEvent(event, referenceDate)) {
+    return 'open';
+  }
+
+  if (isRegistrationComingSoonForEvent(event, referenceDate)) {
+    return 'coming_soon';
+  }
+
+  return 'closed';
+};
 
 export const sortEventsByStartDate = (events = []) =>
   [...events].sort((left, right) => {
@@ -49,11 +104,17 @@ export const sortEventsByStartDate = (events = []) =>
 
 export const sortPublicUpcomingEvents = (events = [], referenceDate = new Date()) =>
   [...events].sort((left, right) => {
-    const leftOpen = isRegistrationOpenForEvent(left, referenceDate);
-    const rightOpen = isRegistrationOpenForEvent(right, referenceDate);
+    const statusPriority = {
+      open: 0,
+      coming_soon: 1,
+      closed: 2,
+      completed: 3
+    };
+    const leftStatus = getPublicEventRegistrationStatus(left, referenceDate);
+    const rightStatus = getPublicEventRegistrationStatus(right, referenceDate);
 
-    if (leftOpen !== rightOpen) {
-      return leftOpen ? -1 : 1;
+    if (leftStatus !== rightStatus) {
+      return (statusPriority[leftStatus] ?? 99) - (statusPriority[rightStatus] ?? 99);
     }
 
     const leftTimestamp = getEventStartTimestamp(left) ?? Number.MAX_SAFE_INTEGER;

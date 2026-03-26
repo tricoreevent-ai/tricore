@@ -7,12 +7,14 @@ import {
   getAdminRegistrations,
   updateAdminRegistration
 } from '../../api/registrationApi.js';
+import AdminFilterPanel from '../../components/admin/AdminFilterPanel.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import TypeaheadSelect from '../../components/common/TypeaheadSelect.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
 import { copyTextToClipboard } from '../../utils/clipboard.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
+import { createDefaultDateRangeFilters } from '../../utils/dateRange.js';
 import { downloadBlob } from '../../utils/download.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
 
@@ -29,11 +31,9 @@ const pageSizeOptions = [10, 20, 30, 50].map((value) => ({
   label: String(value)
 }));
 
-const createInitialFilters = () => ({
+const createInitialFilters = () => createDefaultDateRangeFilters({
   eventId: '',
-  status: '',
-  dateFrom: '',
-  dateTo: ''
+  status: ''
 });
 
 const getPaymentBadgeClass = (status) => {
@@ -314,9 +314,26 @@ export default function AdminRegistrationsPage() {
       description="Review registrations, confirm payments, and keep participant details compact, paginated, and export-friendly."
       title="Registrations"
     >
-      <div className="panel p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid gap-4 md:grid-cols-4">
+      <AdminFilterPanel
+        actions={
+          <>
+            <button className="btn-secondary" onClick={() => void handleApplyFilters()} type="button">
+              Apply Filters
+            </button>
+            <button className="btn-secondary" onClick={handleResetFilters} type="button">
+              Reset
+            </button>
+            <button className="btn-secondary" disabled={copying} onClick={copyRegistrations} type="button">
+              {copying ? 'Copying...' : 'Copy Excel Rows'}
+            </button>
+            <button className="btn-primary" disabled={exporting} onClick={exportRegistrations} type="button">
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+          </>
+        }
+        description="The date range defaults to today through the next 30 days. Apply it or refine it before loading registrations."
+        title="Registration Filters"
+      >
             <div>
               <label className="label" htmlFor="registration-date-from">
                 From
@@ -345,39 +362,41 @@ export default function AdminRegistrationsPage() {
                 value={draftFilters.dateTo}
               />
             </div>
-            <TypeaheadSelect
-              disabled={eventsLoading}
-              onChange={(event) => {
-                setDraftFilters((current) => ({ ...current, eventId: event.target.value }));
-              }}
-              options={eventFilterOptions}
-              placeholder="All Events"
-              searchPlaceholder="Search events"
-              value={draftFilters.eventId}
-            />
-            <TypeaheadSelect
-              onChange={(event) => {
-                setDraftFilters((current) => ({ ...current, status: event.target.value }));
-              }}
-              options={paymentStateOptions}
-              placeholder="All Payment States"
-              searchPlaceholder="Search payment states"
-              value={draftFilters.status}
-            />
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button className="btn-secondary" onClick={() => void handleApplyFilters()} type="button">
-              Apply Filters
-            </button>
-            <button className="btn-secondary" onClick={handleResetFilters} type="button">
-              Reset
-            </button>
-            <button className="btn-secondary" disabled={copying} onClick={copyRegistrations} type="button">{copying ? 'Copying...' : 'Copy Excel Rows'}</button>
-            <button className="btn-primary" disabled={exporting} onClick={exportRegistrations} type="button">{exporting ? 'Exporting...' : 'Export CSV'}</button>
-          </div>
-        </div>
+            <div>
+              <label className="label" htmlFor="registration-event">
+                Event
+              </label>
+              <TypeaheadSelect
+                disabled={eventsLoading}
+                id="registration-event"
+                onChange={(event) => {
+                  setDraftFilters((current) => ({ ...current, eventId: event.target.value }));
+                }}
+                options={eventFilterOptions}
+                placeholder="All Events"
+                searchPlaceholder="Search events"
+                value={draftFilters.eventId}
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="registration-status">
+                Payment State
+              </label>
+              <TypeaheadSelect
+                id="registration-status"
+                onChange={(event) => {
+                  setDraftFilters((current) => ({ ...current, status: event.target.value }));
+                }}
+                options={paymentStateOptions}
+                placeholder="All Payment States"
+                searchPlaceholder="Search payment states"
+                value={draftFilters.status}
+              />
+            </div>
+      </AdminFilterPanel>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+      <div className="panel mt-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
           <p>
             {hasAppliedFilters
               ? `Showing ${(page - 1) * limit + (data.items.length ? 1 : 0)}-${Math.min(page * limit, data.totalCount || 0)} of ${data.totalCount || 0} registrations`

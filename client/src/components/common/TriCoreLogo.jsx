@@ -6,8 +6,8 @@ export default function TriCoreLogo({
   className = '',
   markClassName = 'h-12 w-12',
   showText = true,
-  titleClassName = 'font-display text-lg font-bold text-slate-950',
-  subtitleClassName = 'text-xs text-slate-500',
+  titleClassName = 'font-display text-xl font-bold tracking-tight text-slate-950 sm:text-2xl',
+  subtitleClassName = 'text-xs text-slate-500 sm:text-sm',
   subtitle = 'Corporate Sports Operations'
 }) {
   return (
@@ -22,4 +22,3 @@ export default function TriCoreLogo({
     </div>
   );
 }
-

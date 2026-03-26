@@ -9,6 +9,7 @@ import {
   getHomePageConfiguration,
   getInvoiceConfiguration,
   getPaymentConfiguration,
+  getPublicSiteConfiguration,
   getTransactionOtpConfiguration,
   saveBackupConfiguration,
   saveContactForwarding,
@@ -17,6 +18,7 @@ import {
   saveHomePageConfiguration,
   saveInvoiceConfiguration,
   savePaymentConfiguration,
+  savePublicSiteConfiguration,
   saveTransactionOtpConfiguration,
   restoreBackupNow,
   sendBackupNow,
@@ -36,6 +38,7 @@ import { updateHomeBannerConfigurationSchema } from '../validators/homeBannerVal
 import { updateHomePageContentConfigurationSchema } from '../validators/homePageContentValidation.js';
 import { updateInvoiceConfigurationSchema } from '../validators/invoiceSettingsValidation.js';
 import { updatePaymentConfigurationSchema } from '../validators/paymentSettingsValidation.js';
+import { updatePublicSiteSettingsSchema } from '../validators/siteSettingsValidation.js';
 import { updateTransactionOtpConfigurationSchema } from '../validators/transactionOtpValidation.js';
 
 const router = Router();
@@ -151,6 +154,20 @@ router.put(
   authorizePermissions(adminPermissions.settings),
   validate(updateHomePageContentConfigurationSchema),
   saveHomePageConfiguration
+);
+
+router.get(
+  '/public-site',
+  authenticate,
+  authorizePermissions(adminPermissions.settings),
+  getPublicSiteConfiguration
+);
+router.put(
+  '/public-site',
+  authenticate,
+  authorizePermissions(adminPermissions.settings),
+  validate(updatePublicSiteSettingsSchema),
+  savePublicSiteConfiguration
 );
 
 export default router;

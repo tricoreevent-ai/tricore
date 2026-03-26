@@ -20,7 +20,11 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/90 backdrop-blur">
       <div className="container-shell flex items-center justify-between py-4">
         <Link className="flex items-center gap-3" to="/">
-          <TriCoreLogo markClassName="h-11 w-11" />
+          <TriCoreLogo
+            markClassName="h-12 w-12"
+            titleClassName="font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.85rem]"
+            subtitleClassName="text-xs text-slate-500 sm:text-sm"
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

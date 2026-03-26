@@ -6,7 +6,9 @@ import { ensureBackupSettingDocument } from './services/backupSettingsService.js
 import { startBackupScheduler } from './services/backupSchedulerService.js';
 import { ensureContactForwardingSettingDocument } from './services/contactSettingsService.js';
 import { ensureEmailSettingDocument } from './services/emailSettingsService.js';
+import { startEventInterestScheduler } from './services/eventInterestSchedulerService.js';
 import { ensureInvoiceSettingDocument } from './services/invoiceSettingsService.js';
+import { ensurePublicSiteSettingDocument } from './services/publicSiteSettingsService.js';
 import { initializeFileLogging } from './utils/fileLogger.js';
 
 initializeFileLogging();
@@ -21,7 +23,8 @@ const primeAppSettings = async () => {
       ensureBackupSettingDocument(),
       ensureEmailSettingDocument(),
       ensureContactForwardingSettingDocument(),
-      ensureInvoiceSettingDocument()
+      ensureInvoiceSettingDocument(),
+      ensurePublicSiteSettingDocument()
     ]);
   } catch (error) {
     console.warn('Settings bootstrap warning:', error.message);
@@ -53,6 +56,7 @@ const bootstrapPersistenceServices = async () => {
   await ensureDefaultAdmin();
   await primeAppSettings();
   startBackupScheduler();
+  startEventInterestScheduler();
   persistenceBootstrapCompleted = true;
 };
 

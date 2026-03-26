@@ -14,6 +14,7 @@ const defaultState = {
   maxParticipants: 8,
   entryFee: 0,
   registrationDeadline: '',
+  registrationStartDate: '',
   teamSize: 11,
   playerLimit: 15,
   registrationEnabled: true
@@ -26,8 +27,25 @@ const sportTypeOptions = [
   { value: 'Swimming', label: 'Swimming' }
 ];
 
+const toDateTimeLocalValue = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
+
+  const localTime = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60 * 1000);
+  return localTime.toISOString().slice(0, 16);
+};
+
 const getEventErrors = (form) => {
   const errors = {};
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
   if (!form.name?.trim() || form.name.trim().length < 3) {
     errors.name = 'Event name must be at least 3 characters.';
@@ -53,20 +71,36 @@ const getEventErrors = (form) => {
     errors.endDate = 'End date is required.';
   }
 
-  if (!form.registrationDeadline) {
-    errors.registrationDeadline = 'Registration deadline is required.';
-  }
-
   if (form.startDate && form.endDate && new Date(form.startDate) > new Date(form.endDate)) {
     errors.endDate = 'End date must be on or after the start date.';
   }
 
-  if (
-    form.registrationDeadline &&
-    form.startDate &&
-    new Date(form.registrationDeadline) > new Date(form.startDate)
-  ) {
-    errors.registrationDeadline = 'Registration deadline must be on or before the start date.';
+  if (Boolean(form.registrationStartDate) !== Boolean(form.registrationDeadline)) {
+    errors.registrationStartDate =
+      'Enter both registration dates or leave both blank to keep this event as Coming Soon.';
+  }
+
+  if (form.registrationStartDate && form.registrationDeadline && form.startDate) {
+    const registrationStart = new Date(form.registrationStartDate);
+    const registrationDeadline = new Date(form.registrationDeadline);
+    registrationDeadline.setHours(23, 59, 59, 999);
+    const eventStart = new Date(form.startDate);
+    eventStart.setHours(23, 59, 59, 999);
+
+    if (registrationStart > registrationDeadline) {
+      errors.registrationStartDate =
+        'Registration start date must be before the registration deadline.';
+    }
+
+    if (registrationDeadline > eventStart) {
+      errors.registrationDeadline = 'Registration deadline must be on or before the start date.';
+    }
+
+    if (eventStart >= todayStart) {
+      if (registrationStart < todayStart || registrationDeadline < todayStart) {
+        errors.registrationStartDate = 'Registration dates must be today or in the future.';
+      }
+    }
   }
 
   if (Number(form.maxParticipants) < 1) {
@@ -136,7 +170,12 @@ export default function EventForm({
       return;
     }
 
-    await onSubmit(form);
+    await onSubmit({
+      ...form,
+      registrationStartDate: form.registrationStartDate
+        ? new Date(form.registrationStartDate).toISOString()
+        : ''
+    });
   };
 
   const renderFieldError = (field) =>
@@ -203,18 +242,34 @@ export default function EventForm({
         </div>
         <div>
           <label className="label" htmlFor="registrationDeadline">
-            Registration Deadline
+            Registration Deadline <span className="text-slate-400">(optional)</span>
           </label>
           <input
             className="input"
             id="registrationDeadline"
             name="registrationDeadline"
             onChange={handleChange}
-            required
             type="date"
             value={form.registrationDeadline?.slice(0, 10) || ''}
           />
           {renderFieldError('registrationDeadline')}
+        </div>
+        <div>
+          <label className="label" htmlFor="registrationStartDate">
+            Registration Start Date <span className="text-slate-400">(optional)</span>
+          </label>
+          <input
+            className="input"
+            id="registrationStartDate"
+            name="registrationStartDate"
+            onChange={handleChange}
+            type="datetime-local"
+            value={toDateTimeLocalValue(form.registrationStartDate)}
+          />
+          {renderFieldError('registrationStartDate')}
+          <p className="mt-2 text-xs text-slate-500">
+            Leave both registration dates blank to publish the event as Coming Soon with Notify Later.
+          </p>
         </div>
         <div>
           <label className="label" htmlFor="bannerImage">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import AppIcon from '../common/AppIcon.jsx';
 import ImageGallerySection from '../common/ImageGallerySection.jsx';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import PartnerHighlights from '../common/PartnerHighlights.jsx';
@@ -10,8 +11,11 @@ import {
   partnerHighlights,
   whyChooseItems
 } from '../../data/siteContent.js';
-import { isDateOnOrAfterToday, isUpcomingOrOngoingEvent } from '../../utils/eventTimeline.js';
-import { formatCurrency, formatDate } from '../../utils/formatters.js';
+import {
+  getPublicEventRegistrationStatus,
+  isUpcomingOrOngoingEvent
+} from '../../utils/eventTimeline.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
 
 const defaultTheme = {
   primaryColor: '#0F5FDB',
@@ -189,10 +193,9 @@ export default function HomePageContentSections({ content, events, eventsError, 
             } md:grid-cols-2`}
           >
             {featuredEvents.map((event) => {
-              const isRegistrationOpen =
-                Boolean(event.registrationEnabled) &&
-                isDateOnOrAfterToday(event.registrationDeadline) &&
-                isUpcomingOrOngoingEvent(event);
+              const registrationStatus = getPublicEventRegistrationStatus(event);
+              const isRegistrationOpen = registrationStatus === 'open';
+              const isComingSoon = registrationStatus === 'coming_soon';
 
               return (
                 <article className="panel h-full overflow-hidden" key={event._id}>
@@ -221,10 +224,14 @@ export default function HomePageContentSections({ content, events, eventsError, 
                         </div>
                         <span
                           className={`badge ${
-                            isRegistrationOpen ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                            isRegistrationOpen
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : isComingSoon
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-slate-100 text-slate-600'
                           }`}
                         >
-                          {isRegistrationOpen ? 'Open' : 'Closed'}
+                          {isRegistrationOpen ? 'Open' : isComingSoon ? 'Coming Soon' : 'Closed'}
                         </span>
                       </div>
                       <p className="mt-4 text-sm leading-7 text-slate-600">
@@ -240,13 +247,19 @@ export default function HomePageContentSections({ content, events, eventsError, 
                           {formatCurrency(event.entryFee)}
                         </p>
                         <p>
-                          <span className="font-semibold text-slate-900">Registration Deadline:</span>{' '}
-                          {formatDate(event.registrationDeadline)}
+                          <span className="font-semibold text-slate-900">
+                            {isComingSoon ? 'Registration Opens:' : 'Registration Deadline:'}
+                          </span>{' '}
+                          {isComingSoon && event.registrationStartDate
+                            ? formatDateTime(event.registrationStartDate)
+                            : event.registrationDeadline
+                              ? formatDate(event.registrationDeadline)
+                              : 'Coming Soon'}
                         </p>
                       </div>
                       <div className="mt-6">
                         <Link className="btn-primary" to={`/events/${event._id}`}>
-                          View event
+                          {isComingSoon ? 'Notify later' : 'View event'}
                         </Link>
                       </div>
                     </div>
@@ -287,9 +300,14 @@ export default function HomePageContentSections({ content, events, eventsError, 
             <div className="grid gap-4 p-8 sm:grid-cols-2 sm:p-10">
               {eventsContent.process.slice(0, 4).map((step, index) => (
                 <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm" key={step.title}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
-                    Step {index + 1}
-                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
+                      Step {index + 1}
+                    </p>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 text-white">
+                      <AppIcon className="h-4 w-4" name={step.icon} />
+                    </span>
+                  </div>
                   <h3 className="mt-3 text-lg font-bold text-white">{step.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-blue-50">{step.description}</p>
                 </div>

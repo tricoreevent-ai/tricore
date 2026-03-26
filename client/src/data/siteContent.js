@@ -279,26 +279,31 @@ export const eventsContent = {
   ],
   process: [
     {
+      icon: 'search',
       title: 'Discovery & Strategy',
       description:
         'We begin by understanding your goals, audience, business context, and event vision.'
     },
     {
+      icon: 'calendar',
       title: 'Meticulous Planning',
       description:
         'Venue selection, budgeting, design, staffing, vendors, and detailed run sheets are mapped in advance.'
     },
     {
+      icon: 'settings',
       title: 'Logistics & Coordination',
       description:
         'We manage registration, equipment, officiating, hospitality, first aid, and participant flow.'
     },
     {
+      icon: 'check',
       title: 'Flawless Execution',
       description:
         'Our on-ground managers and event crew lead the day with control, speed, and clarity.'
     },
     {
+      icon: 'chart',
       title: 'Post-Event Analysis',
       description:
         'We review outcomes, highlight key moments, and provide a post-event summary with insights.'

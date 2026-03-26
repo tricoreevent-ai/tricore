@@ -30,6 +30,11 @@ export const getAdminEventCatalog = async (params = {}) => {
   return response.data.data;
 };
 
+export const getAdminCalendarFeed = async (params = {}) => {
+  const response = await adminApi.get('/events/calendar-feed', freshRequestConfig(params));
+  return response.data.data;
+};
+
 export const getEventById = async (eventId) => {
   const response = await publicApi.get(`/events/${eventId}`, freshRequestConfig());
   return response.data.data;
@@ -47,5 +52,20 @@ export const updateEvent = async (eventId, payload) => {
 
 export const deleteEvent = async (eventId) => {
   const response = await adminApi.delete(`/events/${eventId}`);
+  return response.data;
+};
+
+export const expressInterestInEvent = async (eventId, payload) => {
+  const response = await publicApi.post(`/events/${eventId}/interests`, payload);
+  return response.data;
+};
+
+export const getEventInterests = async (eventId) => {
+  const response = await adminApi.get(`/events/${eventId}/interests`);
+  return response.data.data;
+};
+
+export const sendEventInterestEmail = async (eventId, payload) => {
+  const response = await adminApi.post(`/events/${eventId}/interests/send-email`, payload);
   return response.data;
 };

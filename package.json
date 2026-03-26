@@ -10,6 +10,7 @@
     "client": "npm --prefix client run dev",
     "build": "npm --prefix client run build",
     "build:client": "npm --prefix client run build",
+    "seed:test:data": "node server/scripts/seed-test-data.js",
     "start": "npm run start:server",
     "start:server": "npm --prefix server run start",
     "validate:workflow": "node server/scripts/run-validation-suite.js",

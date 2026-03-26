@@ -2,11 +2,30 @@ import { Registration } from '../models/Registration.js';
 import { Event } from '../models/Event.js';
 import { ApiError } from '../utils/ApiError.js';
 
+const visibleEventCondition = {
+  $or: [{ isHidden: false }, { isHidden: { $exists: false } }]
+};
+
+const getDeadlineCutoff = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  parsed.setHours(23, 59, 59, 999);
+  return parsed;
+};
+
 export const getOpenEvent = async (eventId) => {
   const event = await Event.findOne({
     _id: eventId,
     isDeleted: false,
-    $or: [{ isHidden: false }, { isHidden: { $exists: false } }]
+    ...visibleEventCondition
   });
 
   if (!event) {
@@ -16,12 +35,38 @@ export const getOpenEvent = async (eventId) => {
   return event;
 };
 
+export const hasRegistrationStarted = (event, referenceDate = new Date()) => {
+  if (event?.registrationStartDate) {
+    return new Date(event.registrationStartDate) <= referenceDate;
+  }
+
+  if (event?.registrationDeadline) {
+    return true;
+  }
+
+  return false;
+};
+
+export const hasRegistrationDeadlinePassed = (event, referenceDate = new Date()) => {
+  const cutoff = getDeadlineCutoff(event?.registrationDeadline);
+  return Boolean(cutoff) && cutoff < referenceDate;
+};
+
+export const isRegistrationOpenForEvent = (event, referenceDate = new Date()) =>
+  Boolean(event?.registrationEnabled) &&
+  hasRegistrationStarted(event, referenceDate) &&
+  !hasRegistrationDeadlinePassed(event, referenceDate);
+
 export const ensureRegistrationWindow = async (event) => {
   if (!event.registrationEnabled) {
     throw new ApiError(400, 'Registration is currently disabled for this event.');
   }
 
-  if (new Date(event.registrationDeadline) < new Date()) {
+  if (!hasRegistrationStarted(event)) {
+    throw new ApiError(400, 'Registration has not opened yet for this event.');
+  }
+
+  if (hasRegistrationDeadlinePassed(event)) {
     throw new ApiError(400, 'Registration deadline has passed for this event.');
   }
 

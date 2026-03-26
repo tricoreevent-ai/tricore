@@ -27,6 +27,10 @@ import {
   updateHomePageContent
 } from '../services/homePageContentService.js';
 import {
+  getPublicSiteSettings,
+  updatePublicSiteSettings
+} from '../services/publicSiteSettingsService.js';
+import {
   getPaymentSettings,
   getPublicPaymentSettings,
   updatePaymentSettings
@@ -309,6 +313,28 @@ export const saveHomePageConfiguration = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Home page content updated successfully.',
+    data: settings
+  });
+});
+
+export const getPublicSiteConfiguration = asyncHandler(async (_req, res) => {
+  const settings = await getPublicSiteSettings();
+
+  res.json({
+    success: true,
+    data: settings
+  });
+});
+
+export const savePublicSiteConfiguration = asyncHandler(async (req, res) => {
+  const settings = await updatePublicSiteSettings({
+    payload: req.body,
+    userId: req.user._id
+  });
+
+  res.json({
+    success: true,
+    message: 'Website settings updated successfully.',
     data: settings
   });
 });

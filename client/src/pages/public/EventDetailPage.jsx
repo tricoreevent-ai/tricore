@@ -4,8 +4,14 @@ import { useParams } from 'react-router-dom';
 import { getMatchesByEvent } from '../../api/dashboardApi.js';
 import { getEventById } from '../../api/eventsApi.js';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import NotifyInterestPanel from '../../components/events/NotifyInterestPanel.jsx';
 import RegistrationForm from '../../components/dashboards/RegistrationForm.jsx';
-import { formatCurrency, formatDate } from '../../utils/formatters.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
+import {
+  getPublicEventRegistrationStatus,
+  isRegistrationComingSoonForEvent,
+  isRegistrationOpenForEvent
+} from '../../utils/eventTimeline.js';
 
 export default function EventDetailPage() {
   const { eventId } = useParams();
@@ -47,6 +53,10 @@ export default function EventDetailPage() {
     );
   }
 
+  const registrationStatus = getPublicEventRegistrationStatus(event);
+  const isRegistrationOpen = isRegistrationOpenForEvent(event);
+  const isComingSoon = isRegistrationComingSoonForEvent(event);
+
   return (
     <div className="container-shell py-16">
       <div className="grid gap-10 2xl:grid-cols-[1.1fr_0.9fr]">
@@ -76,7 +86,19 @@ export default function EventDetailPage() {
               </div>
               <div className="rounded-3xl bg-slate-50 p-5">
                 <p className="text-sm font-semibold text-slate-500">Registration Deadline</p>
-                <p className="mt-2 text-lg font-bold text-slate-950">{formatDate(event.registrationDeadline)}</p>
+                <p className="mt-2 text-lg font-bold text-slate-950">
+                  {event.registrationDeadline ? formatDate(event.registrationDeadline) : 'Coming Soon'}
+                </p>
+              </div>
+              <div className="rounded-3xl bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-500">Registration Opens</p>
+                <p className="mt-2 text-lg font-bold text-slate-950">
+                  {event.registrationStartDate
+                    ? formatDateTime(event.registrationStartDate)
+                    : event.registrationDeadline
+                      ? 'Already open'
+                      : 'Coming Soon'}
+                </p>
               </div>
               <div className="rounded-3xl bg-slate-50 p-5">
                 <p className="text-sm font-semibold text-slate-500">Team Size</p>
@@ -131,7 +153,45 @@ export default function EventDetailPage() {
           </div>
         </section>
 
-        <RegistrationForm event={event} />
+        <div className="space-y-6">
+          <div className="panel p-6">
+            <span
+              className={`badge ${
+                registrationStatus === 'open'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : registrationStatus === 'coming_soon'
+                    ? 'bg-amber-50 text-amber-700'
+                    : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              {registrationStatus === 'open'
+                ? 'Registration Open'
+                : registrationStatus === 'coming_soon'
+                  ? 'Coming Soon'
+                  : registrationStatus === 'completed'
+                    ? 'Event Completed'
+                    : 'Registration Closed'}
+            </span>
+            <h2 className="mt-4 text-2xl font-bold text-slate-950">Participation</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              {isRegistrationOpen
+                ? 'Registrations are currently open. Complete the form below to reserve your slot.'
+                : isComingSoon
+                  ? 'Registrations have not opened yet. Join the notify-later list to receive the registration link the moment the event goes live.'
+                  : registrationStatus === 'completed'
+                    ? 'This event has already been completed and no longer accepts new registrations.'
+                    : 'Registrations are currently unavailable for this event.'}
+            </p>
+          </div>
+
+          {isRegistrationOpen ? (
+            <RegistrationForm event={event} />
+          ) : isComingSoon ? (
+            <div className="panel p-6">
+              <NotifyInterestPanel event={event} />
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );

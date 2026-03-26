@@ -7,6 +7,7 @@ import { downloadReportsOverview, getReportsOverview } from '../../api/dashboard
 import { getAdminEvents } from '../../api/eventsApi.js';
 import { acknowledgeSecurityAlert, getSecurityAlerts } from '../../api/securityAlertApi.js';
 import BreakdownChart from '../../components/accounting/BreakdownChart.jsx';
+import AdminFilterPanel from '../../components/admin/AdminFilterPanel.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import DataTable from '../../components/common/DataTable.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
@@ -18,6 +19,7 @@ import { adminPermissions } from '../../data/adminAccess.js';
 import { transactionScopeLabels } from '../../data/accountingOptions.js';
 import useAdminAuth from '../../hooks/useAdminAuth.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
+import { createDefaultDateRangeFilters } from '../../utils/dateRange.js';
 import { downloadBlob } from '../../utils/download.js';
 import { formatCurrency, formatDateTime } from '../../utils/formatters.js';
 
@@ -149,19 +151,13 @@ const getAlertContextLines = (alert) => {
 const normalizeTab = (value, allowedTabs) =>
   allowedTabs.includes(value) ? value : allowedTabs[0] || 'overview';
 
-const createFinanceFilters = () => {
-  return {
+const createFinanceFilters = () =>
+  createDefaultDateRangeFilters({
     eventId: '',
-    dateFrom: '',
-    dateTo: '',
     scope: ''
-  };
-};
+  });
 
-const createActivityFilters = () => ({
-  dateFrom: '',
-  dateTo: ''
-});
+const createActivityFilters = () => createDefaultDateRangeFilters();
 
 const buildFinanceParams = (filters) => {
   const params = { eventId: filters.eventId, scope: filters.scope };
@@ -891,26 +887,10 @@ export default function AdminReportsPage() {
 
       {activeTab === 'finance' ? (
         <>
-          <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <form className="panel grid gap-4 p-6 xl:grid-cols-6 xl:flex-1" onSubmit={applyFinanceFilters}>
-              <div>
-                <label className="label" htmlFor="finance-dateFrom">From</label>
-                <input className="input" id="finance-dateFrom" name="dateFrom" onChange={handleFinanceFilterChange} type="date" value={financeDraftFilters.dateFrom} />
-              </div>
-              <div>
-                <label className="label" htmlFor="finance-dateTo">To</label>
-                <input className="input" id="finance-dateTo" name="dateTo" onChange={handleFinanceFilterChange} type="date" value={financeDraftFilters.dateTo} />
-              </div>
-              <div className="xl:col-span-2">
-                <label className="label" htmlFor="finance-eventId">Event</label>
-                <TypeaheadSelect disabled={financeDraftFilters.scope === 'common' || financeEventsLoading} id="finance-eventId" name="eventId" onChange={handleFinanceFilterChange} options={financeEventOptions} placeholder="All Events" searchPlaceholder="Search events" value={financeDraftFilters.eventId} />
-              </div>
-              <div>
-                <label className="label" htmlFor="finance-scope">Scope</label>
-                <TypeaheadSelect id="finance-scope" name="scope" onChange={handleFinanceFilterChange} options={financeScopeOptions} placeholder="All Scopes" searchPlaceholder="Search scopes" value={financeDraftFilters.scope} />
-              </div>
-              <div className="xl:self-end">
-                <div className="flex flex-wrap gap-3">
+          <form onSubmit={applyFinanceFilters}>
+            <AdminFilterPanel
+              actions={
+                <>
                   <button className="btn-primary gap-2" disabled={financeLoading} type="submit">
                     <AppIcon className="h-4 w-4" name="refresh" />
                     {financeLoading ? 'Refreshing...' : 'Load Finance'}
@@ -922,10 +902,30 @@ export default function AdminReportsPage() {
                     <AppIcon className="h-4 w-4" name="export" />
                     {exportingFinance ? 'Exporting...' : 'Export Finance'}
                   </button>
-                </div>
+                </>
+              }
+              description="The finance range defaults to today through the next 30 days. Load the report only after the date range and scope are correct."
+              gridClassName="xl:grid-cols-[1fr_1fr_1.4fr_1fr]"
+              title="Finance Filters"
+            >
+              <div>
+                <label className="label" htmlFor="finance-dateFrom">From</label>
+                <input className="input" id="finance-dateFrom" name="dateFrom" onChange={handleFinanceFilterChange} type="date" value={financeDraftFilters.dateFrom} />
               </div>
-            </form>
-          </div>
+              <div>
+                <label className="label" htmlFor="finance-dateTo">To</label>
+                <input className="input" id="finance-dateTo" name="dateTo" onChange={handleFinanceFilterChange} type="date" value={financeDraftFilters.dateTo} />
+              </div>
+              <div>
+                <label className="label" htmlFor="finance-eventId">Event</label>
+                <TypeaheadSelect disabled={financeDraftFilters.scope === 'common' || financeEventsLoading} id="finance-eventId" name="eventId" onChange={handleFinanceFilterChange} options={financeEventOptions} placeholder="All Events" searchPlaceholder="Search events" value={financeDraftFilters.eventId} />
+              </div>
+              <div>
+                <label className="label" htmlFor="finance-scope">Scope</label>
+                <TypeaheadSelect id="finance-scope" name="scope" onChange={handleFinanceFilterChange} options={financeScopeOptions} placeholder="All Scopes" searchPlaceholder="Search scopes" value={financeDraftFilters.scope} />
+              </div>
+            </AdminFilterPanel>
+          </form>
 
           {financeEventsLoading ? <LoadingSpinner compact label="Loading finance filters..." /> : null}
           {financeLoading ? <LoadingSpinner compact label="Loading finance reports..." /> : null}
@@ -1023,37 +1023,36 @@ export default function AdminReportsPage() {
 
       {activeTab === 'activity' ? (
         <section className="panel p-6">
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Operational History</h2>
-              <p className="mt-2 text-sm text-slate-500">A readable trail of event creation, registration changes, accounting activity, and alert generation.</p>
-            </div>
-            <button className="btn-secondary gap-2" disabled={exportingHistory} onClick={handleExportHistory} type="button">
-              <AppIcon className="h-4 w-4" name="export" />
-              {exportingHistory ? 'Exporting...' : 'Export History'}
-            </button>
-          </div>
-
-          <form className="grid gap-4 md:grid-cols-4" onSubmit={applyActivityFilters}>
-            <div>
-              <label className="label" htmlFor="activity-dateFrom">From</label>
-              <input className="input" id="activity-dateFrom" name="dateFrom" onChange={(event) => setActivityDraftFilters((current) => ({ ...current, dateFrom: event.target.value }))} type="date" value={activityDraftFilters.dateFrom} />
-            </div>
-            <div>
-              <label className="label" htmlFor="activity-dateTo">To</label>
-              <input className="input" id="activity-dateTo" name="dateTo" onChange={(event) => setActivityDraftFilters((current) => ({ ...current, dateTo: event.target.value }))} type="date" value={activityDraftFilters.dateTo} />
-            </div>
-            <div className="md:col-span-2 md:self-end">
-              <div className="flex flex-wrap gap-3">
-                <button className="btn-primary gap-2" disabled={activityLoading} type="submit">
-                  <AppIcon className="h-4 w-4" name="refresh" />
-                  {activityLoading ? 'Loading...' : 'Load History'}
-                </button>
-                <button className="btn-secondary gap-2" disabled={activityLoading} onClick={resetActivityFilters} type="button">
-                  Reset
-                </button>
+          <form onSubmit={applyActivityFilters}>
+            <AdminFilterPanel
+              actions={
+                <>
+                  <button className="btn-primary gap-2" disabled={activityLoading} type="submit">
+                    <AppIcon className="h-4 w-4" name="refresh" />
+                    {activityLoading ? 'Loading...' : 'Load History'}
+                  </button>
+                  <button className="btn-secondary gap-2" disabled={activityLoading} onClick={resetActivityFilters} type="button">
+                    Reset
+                  </button>
+                  <button className="btn-secondary gap-2" disabled={exportingHistory} onClick={handleExportHistory} type="button">
+                    <AppIcon className="h-4 w-4" name="export" />
+                    {exportingHistory ? 'Exporting...' : 'Export History'}
+                  </button>
+                </>
+              }
+              description="Use the default 30-day range or narrow it before loading the operational history trail."
+              gridClassName="xl:grid-cols-2"
+              title="Operational History"
+            >
+              <div>
+                <label className="label" htmlFor="activity-dateFrom">From</label>
+                <input className="input" id="activity-dateFrom" name="dateFrom" onChange={(event) => setActivityDraftFilters((current) => ({ ...current, dateFrom: event.target.value }))} type="date" value={activityDraftFilters.dateFrom} />
               </div>
-            </div>
+              <div>
+                <label className="label" htmlFor="activity-dateTo">To</label>
+                <input className="input" id="activity-dateTo" name="dateTo" onChange={(event) => setActivityDraftFilters((current) => ({ ...current, dateTo: event.target.value }))} type="date" value={activityDraftFilters.dateTo} />
+              </div>
+            </AdminFilterPanel>
           </form>
 
           {activityLoading ? <LoadingSpinner compact label="Loading activity history..." /> : null}

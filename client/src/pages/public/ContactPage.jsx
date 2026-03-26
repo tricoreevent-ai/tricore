@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 import { submitContactInquiry } from '../../api/contactApi.js';
 import FormAlert from '../../components/common/FormAlert.jsx';
-import { contactContent } from '../../data/siteContent.js';
+import PartnerHighlights from '../../components/common/PartnerHighlights.jsx';
+import { contactContent, partnerHighlights } from '../../data/siteContent.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
 
 const getTelephoneHref = (phone) => `tel:${String(phone || '').replace(/[^\d+]/g, '')}`;
@@ -42,8 +43,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="container-shell py-16">
-      <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+    <div className="pb-20 pt-16">
+      <div className="container-shell">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
         <section className="space-y-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">Reach out</p>
@@ -145,7 +147,13 @@ export default function ContactPage() {
           </button>
           <p className="text-sm text-slate-500">Stay connected for upcoming events, announcements, and news.</p>
         </form>
+        </div>
       </div>
+      <PartnerHighlights
+        description="Spark 7 Sports Arena and Sarva Horizon continue to shape the venue quality, presentation, and partner experience behind TriCore events."
+        partners={partnerHighlights}
+        title="Proud Event Partners"
+      />
     </div>
   );
 }

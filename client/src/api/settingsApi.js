@@ -90,3 +90,13 @@ export const updateHomePageConfiguration = async (payload) => {
   const response = await adminApi.put('/settings/home-page', payload);
   return response.data.data;
 };
+
+export const getPublicSiteConfiguration = async () => {
+  const response = await adminApi.get('/settings/public-site');
+  return response.data.data;
+};
+
+export const updatePublicSiteConfiguration = async (payload) => {
+  const response = await adminApi.put('/settings/public-site', payload);
+  return response.data.data;
+};

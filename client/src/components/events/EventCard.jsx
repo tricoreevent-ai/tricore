@@ -1,22 +1,27 @@
 import { Link } from 'react-router-dom';
 
-import { formatCurrency, formatDate } from '../../utils/formatters.js';
-import { isDateOnOrAfterToday, isPastEvent } from '../../utils/eventTimeline.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
+import { getPublicEventRegistrationStatus, isPastEvent } from '../../utils/eventTimeline.js';
 
 export default function EventCard({ event }) {
   const isPast = isPastEvent(event);
-  const isRegistrationOpen =
-    !isPast && Boolean(event.registrationEnabled) && isDateOnOrAfterToday(event.registrationDeadline);
-  const statusClass = isPast
-    ? 'bg-slate-100 text-slate-700'
-    : isRegistrationOpen
-      ? 'bg-emerald-400/20 text-emerald-100'
-      : 'bg-white/10 text-white';
-  const statusLabel = isPast
-    ? 'Completed'
-    : isRegistrationOpen
-      ? 'Registration Open'
-      : 'Registration Closed';
+  const registrationStatus = getPublicEventRegistrationStatus(event);
+  const statusClass =
+    registrationStatus === 'completed'
+      ? 'bg-slate-100 text-slate-700'
+      : registrationStatus === 'open'
+        ? 'bg-emerald-400/20 text-emerald-100'
+        : registrationStatus === 'coming_soon'
+          ? 'bg-amber-400/20 text-amber-100'
+          : 'bg-white/10 text-white';
+  const statusLabel =
+    registrationStatus === 'completed'
+      ? 'Completed'
+      : registrationStatus === 'open'
+        ? 'Registration Open'
+        : registrationStatus === 'coming_soon'
+          ? 'Coming Soon'
+          : 'Registration Closed';
 
   return (
     <article className="panel overflow-hidden">
@@ -51,10 +56,16 @@ export default function EventCard({ event }) {
         </div>
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
-            {isPast ? `Completed: ${formatDate(event.endDate)}` : `Deadline: ${formatDate(event.registrationDeadline)}`}
+            {isPast
+              ? `Completed: ${formatDate(event.endDate)}`
+              : registrationStatus === 'coming_soon'
+                ? `Registration opens: ${event.registrationStartDate ? formatDateTime(event.registrationStartDate) : 'Coming Soon'}`
+                : event.registrationDeadline
+                  ? `Deadline: ${formatDate(event.registrationDeadline)}`
+                  : 'Registration window will be announced shortly.'}
           </p>
           <Link className="btn-primary" to={`/events/${event._id}`}>
-            View Event
+            {registrationStatus === 'coming_soon' ? 'Notify Later' : 'View Event'}
           </Link>
         </div>
       </div>

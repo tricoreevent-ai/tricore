@@ -45,7 +45,11 @@ const eventSchema = new mongoose.Schema(
     },
     registrationDeadline: {
       type: Date,
-      required: true
+      default: null
+    },
+    registrationStartDate: {
+      type: Date,
+      default: null
     },
     teamSize: {
       type: Number,

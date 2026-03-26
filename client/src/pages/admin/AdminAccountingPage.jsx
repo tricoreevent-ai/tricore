@@ -17,6 +17,7 @@ import {
 import { getAdminEvents } from '../../api/eventsApi.js';
 import { getInvoiceConfiguration } from '../../api/settingsApi.js';
 import AccountingCategoryManager from '../../components/accounting/AccountingCategoryManager.jsx';
+import AdminFilterPanel from '../../components/admin/AdminFilterPanel.jsx';
 import DataTable from '../../components/common/DataTable.jsx';
 import TransactionForm from '../../components/accounting/TransactionForm.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
@@ -35,6 +36,7 @@ import {
 } from '../../data/accountingOptions.js';
 import useAdminAuth from '../../hooks/useAdminAuth.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
+import { createDefaultDateRangeFilters } from '../../utils/dateRange.js';
 import { downloadBlob } from '../../utils/download.js';
 import { formatCurrency, formatDate } from '../../utils/formatters.js';
 import { printAccountingDocument } from '../../utils/printAccountingDocument.js';
@@ -58,21 +60,18 @@ const defaultTransactionData = {
   }
 };
 
-const createInitialFilters = () => {
-  return {
+const createInitialFilters = () =>
+  createDefaultDateRangeFilters({
     eventId: '',
     period: 'range',
     month: '',
     year: '',
-    dateFrom: '',
-    dateTo: '',
     scope: '',
     type: '',
     category: '',
     paymentMode: '',
     source: ''
-  };
-};
+  });
 
 const buildBaseParams = (filters) => {
   const params = {
@@ -894,28 +893,37 @@ export default function AdminAccountingPage() {
             </div>
           ) : (
             <div className="mt-6 space-y-6">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold">Transaction Ledger</h3>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Apply a date range and any column filters before loading ledger data.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    className="btn-secondary"
-                    disabled={exportingTransactions}
-                    onClick={handleExportTransactions}
-                    type="button"
-                  >
-                    {exportingTransactions ? 'Exporting...' : 'Export Transactions'}
-                  </button>
-                </div>
-              </div>
-
               <FormAlert message={dataError} />
 
-              <form className="grid gap-4 xl:grid-cols-6" onSubmit={handleApplyFilters}>
+              <form onSubmit={handleApplyFilters}>
+                <AdminFilterPanel
+                  actions={
+                    <>
+                      <button className="btn-primary" disabled={refreshing} type="submit">
+                        {refreshing ? 'Applying...' : 'Apply Filters'}
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        disabled={refreshing}
+                        onClick={handleResetFilters}
+                        type="button"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        disabled={exportingTransactions}
+                        onClick={handleExportTransactions}
+                        type="button"
+                      >
+                        {exportingTransactions ? 'Exporting...' : 'Export Transactions'}
+                      </button>
+                    </>
+                  }
+                  description="The ledger keeps the default 30-day range ready, but it still waits for Apply Filters before querying transactions."
+                  gridClassName="xl:grid-cols-4"
+                  title="Transaction Ledger"
+                >
                 <div>
                   <label className="label" htmlFor="ledger-dateFrom">
                     From
@@ -1027,21 +1035,7 @@ export default function AdminAccountingPage() {
                     value={draftFilters.source}
                   />
                 </div>
-                <div className="xl:col-span-3 xl:self-end">
-                  <div className="flex flex-wrap gap-3">
-                    <button className="btn-primary" disabled={refreshing} type="submit">
-                      {refreshing ? 'Applying...' : 'Apply Filters'}
-                    </button>
-                    <button
-                      className="btn-secondary"
-                      disabled={refreshing}
-                      onClick={handleResetFilters}
-                      type="button"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </div>
+                </AdminFilterPanel>
               </form>
 
               {hasAppliedLedgerFilters ? (

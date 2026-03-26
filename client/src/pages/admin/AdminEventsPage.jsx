@@ -1,25 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  getAdminCalendarFeed,
   createEvent,
   deleteEvent,
   getAdminEventCatalog,
-  getAdminEvents,
+  getEventInterests,
+  sendEventInterestEmail,
   updateEvent
 } from '../../api/eventsApi.js';
+import AdminCalendarPanel from '../../components/admin/AdminCalendarPanel.jsx';
+import AdminFilterPanel from '../../components/admin/AdminFilterPanel.jsx';
 import DataTable from '../../components/common/DataTable.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
-import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import TypeaheadSelect from '../../components/common/TypeaheadSelect.jsx';
 import EventForm from '../../components/events/EventForm.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
-import { formatCurrency, formatDate } from '../../utils/formatters.js';
+import { createDefaultDateRangeFilters } from '../../utils/dateRange.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
 
-const createInitialFilters = () => ({
-  dateFrom: '',
-  dateTo: '',
+const createInitialFilters = () => createDefaultDateRangeFilters({
   visibility: 'all'
 });
 
@@ -29,42 +31,17 @@ const visibilityOptions = [
   { value: 'hidden', label: 'Hidden Only' }
 ];
 
-const shiftMonth = (date, offset) => {
-  const nextDate = new Date(date);
-  nextDate.setMonth(nextDate.getMonth() + offset);
-  return nextDate;
-};
-
-const buildCalendarDays = (monthDate) => {
-  const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-  const calendarStart = new Date(monthStart);
-  calendarStart.setDate(monthStart.getDate() - monthStart.getDay());
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const day = new Date(calendarStart);
-    day.setDate(calendarStart.getDate() + index);
-    return day;
-  });
-};
-
-const eventOverlapsDay = (event, day) => {
-  const start = new Date(event.startDate);
-  const end = new Date(event.endDate || event.startDate);
-  const dayStart = new Date(day);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(day);
-  dayEnd.setHours(23, 59, 59, 999);
-
-  return start <= dayEnd && end >= dayStart;
-};
+const interestAudienceOptions = [
+  { value: 'selected', label: 'Selected Contacts' },
+  { value: 'pending', label: 'Pending Auto-Notify' },
+  { value: 'all', label: 'All Interested Contacts' }
+];
 
 export default function AdminEventsPage() {
   const [draftFilters, setDraftFilters] = useState(createInitialFilters());
   const [activeFilters, setActiveFilters] = useState(createInitialFilters());
   const [catalogData, setCatalogData] = useState({ items: [], totalCount: 0, page: 1, limit: 20 });
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [selectedCalendarEvent, setSelectedCalendarEvent] = useState(null);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [calendarFeed, setCalendarFeed] = useState({ items: [], dateFrom: '', dateTo: '' });
   const [catalogView, setCatalogView] = useState('list');
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -79,6 +56,25 @@ export default function AdminEventsPage() {
   const [actionType, setActionType] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [interestEvent, setInterestEvent] = useState(null);
+  const [interestData, setInterestData] = useState({
+    items: [],
+    summary: {
+      totalCount: 0,
+      automatedNotifiedCount: 0,
+      manualSentCount: 0,
+      pendingCount: 0
+    }
+  });
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestError, setInterestError] = useState('');
+  const [interestMessage, setInterestMessage] = useState('');
+  const [selectedInterestIds, setSelectedInterestIds] = useState([]);
+  const [manualEmailForm, setManualEmailForm] = useState({
+    audience: 'selected',
+    customMessage: ''
+  });
+  const [manualEmailPending, setManualEmailPending] = useState(false);
 
   const refreshCatalog = async (filters = activeFilters, nextPage = page, nextLimit = limit) => {
     setCatalogLoading(true);
@@ -99,25 +95,55 @@ export default function AdminEventsPage() {
     }
   };
 
-  const refreshCalendarEvents = async (filters = activeFilters) => {
+  const refreshCalendarFeed = async (filters = activeFilters) => {
     setCalendarLoading(true);
 
     try {
-      const response = await getAdminEvents(filters);
-      setCalendarEvents(response);
-      setSelectedCalendarEvent((current) => {
-        if (!current) {
-          return response[0] || null;
-        }
-
-        return response.find((item) => item._id === current._id) || response[0] || null;
-      });
+      const response = await getAdminCalendarFeed(filters);
+      setCalendarFeed(response);
       setListError('');
     } catch (error) {
-      setListError(getApiErrorMessage(error, 'Unable to load calendar events.'));
+      setListError(getApiErrorMessage(error, 'Unable to load the planning calendar.'));
     } finally {
       setCalendarLoading(false);
     }
+  };
+
+  const loadEventInterests = async (eventItem, options = {}) => {
+    setInterestEvent(eventItem);
+    setInterestLoading(true);
+
+    if (!options.preserveFlash) {
+      setInterestError('');
+      setInterestMessage('');
+    }
+
+    setSelectedInterestIds([]);
+
+    try {
+      const response = await getEventInterests(eventItem._id);
+      setInterestData(response);
+    } catch (error) {
+      setInterestError(getApiErrorMessage(error, 'Unable to load interested contacts.'));
+    } finally {
+      setInterestLoading(false);
+    }
+  };
+
+  const toggleInterestSelection = (interestId) => {
+    setSelectedInterestIds((current) =>
+      current.includes(interestId)
+        ? current.filter((id) => id !== interestId)
+        : [...current, interestId]
+    );
+  };
+
+  const selectAllInterestsOnPage = () => {
+    setSelectedInterestIds(interestData.items.map((item) => item._id));
+  };
+
+  const clearSelectedInterests = () => {
+    setSelectedInterestIds([]);
   };
 
   useEffect(() => {
@@ -127,6 +153,12 @@ export default function AdminEventsPage() {
 
     void refreshCatalog(activeFilters, page, limit);
   }, [hasAppliedFilters, limit, page]);
+
+  useEffect(() => {
+    setSelectedInterestIds((current) =>
+      current.filter((id) => interestData.items.some((item) => item._id === id))
+    );
+  }, [interestData.items]);
 
   const validateFilters = (filters) => {
     if (!filters.dateFrom || !filters.dateTo) {
@@ -153,11 +185,10 @@ export default function AdminEventsPage() {
     setActiveFilters(nextFilters);
     setHasAppliedFilters(true);
     setPage(1);
-    setCalendarMonth(new Date(`${nextFilters.dateFrom}T00:00:00`));
 
     await Promise.all([
       refreshCatalog(nextFilters, 1, limit),
-      refreshCalendarEvents(nextFilters)
+      refreshCalendarFeed(nextFilters)
     ]);
   };
 
@@ -166,8 +197,7 @@ export default function AdminEventsPage() {
     setActiveFilters(createInitialFilters());
     setHasAppliedFilters(false);
     setCatalogData({ items: [], totalCount: 0, page: 1, limit });
-    setCalendarEvents([]);
-    setSelectedCalendarEvent(null);
+    setCalendarFeed({ items: [], dateFrom: '', dateTo: '' });
     setListError('');
     setPage(1);
   };
@@ -192,7 +222,7 @@ export default function AdminEventsPage() {
       if (hasAppliedFilters) {
         await Promise.all([
           refreshCatalog(activeFilters, page, limit),
-          refreshCalendarEvents(activeFilters)
+          refreshCalendarFeed(activeFilters)
         ]);
       }
     } catch (error) {
@@ -222,7 +252,7 @@ export default function AdminEventsPage() {
       if (hasAppliedFilters) {
         await Promise.all([
           refreshCatalog(activeFilters, page, limit),
-          refreshCalendarEvents(activeFilters)
+          refreshCalendarFeed(activeFilters)
         ]);
       }
     } catch (error) {
@@ -248,7 +278,7 @@ export default function AdminEventsPage() {
       if (hasAppliedFilters) {
         await Promise.all([
           refreshCatalog(activeFilters, page, limit),
-          refreshCalendarEvents(activeFilters)
+          refreshCalendarFeed(activeFilters)
         ]);
       }
     } catch (error) {
@@ -276,7 +306,7 @@ export default function AdminEventsPage() {
       if (hasAppliedFilters) {
         await Promise.all([
           refreshCatalog(activeFilters, page, limit),
-          refreshCalendarEvents(activeFilters)
+          refreshCalendarFeed(activeFilters)
         ]);
       }
     } catch (error) {
@@ -287,7 +317,37 @@ export default function AdminEventsPage() {
     }
   };
 
-  const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth]);
+  const handleManualEmailSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!interestEvent?._id) {
+      return;
+    }
+
+    if (manualEmailForm.audience === 'selected' && !selectedInterestIds.length) {
+      setInterestError('Select at least one interested contact before sending to selected users.');
+      return;
+    }
+
+    setManualEmailPending(true);
+    setInterestError('');
+    setInterestMessage('');
+
+    try {
+      const response = await sendEventInterestEmail(interestEvent._id, {
+        audience: manualEmailForm.audience,
+        interestIds:
+          manualEmailForm.audience === 'selected' ? selectedInterestIds : [],
+        customMessage: manualEmailForm.customMessage
+      });
+      setInterestMessage(response.message || 'Event email sent successfully.');
+      await loadEventInterests(interestEvent, { preserveFlash: true });
+    } catch (error) {
+      setInterestError(getApiErrorMessage(error, 'Unable to send event email.'));
+    } finally {
+      setManualEmailPending(false);
+    }
+  };
 
   const catalogColumns = useMemo(
     () => [
@@ -307,12 +367,16 @@ export default function AdminEventsPage() {
       {
         key: 'schedule',
         header: 'Schedule',
-        accessor: (item) => `${item.startDate || ''} ${item.endDate || ''} ${item.registrationDeadline || ''}`,
+        accessor: (item) =>
+          `${item.startDate || ''} ${item.endDate || ''} ${item.registrationDeadline || ''} ${item.registrationStartDate || ''}`,
         cell: (item) => (
           <div className="text-sm text-slate-600">
             <p>{formatDate(item.startDate)} to {formatDate(item.endDate)}</p>
             <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400">
-              Deadline {formatDate(item.registrationDeadline)}
+              Opens {item.registrationStartDate ? formatDateTime(item.registrationStartDate) : 'Coming Soon'}
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400">
+              Deadline {item.registrationDeadline ? formatDate(item.registrationDeadline) : 'Not Set'}
             </p>
           </div>
         )
@@ -327,6 +391,7 @@ export default function AdminEventsPage() {
             <p className="mt-1">
               Registrations: {item.registrationCount || 0}/{item.maxParticipants}
             </p>
+            <p className="mt-1">Notify Later: {item.interestCount || 0}</p>
           </div>
         )
       },
@@ -356,6 +421,13 @@ export default function AdminEventsPage() {
           <div className="flex flex-wrap gap-2">
             <button className="btn-secondary px-4 py-2" onClick={() => setEditingEvent(item)} type="button">
               Edit
+            </button>
+            <button
+              className="btn-secondary px-4 py-2"
+              onClick={() => loadEventInterests(item)}
+              type="button"
+            >
+              Interested Users
             </button>
             <button
               className="btn-secondary px-4 py-2"
@@ -398,6 +470,84 @@ export default function AdminEventsPage() {
     [actionEventId, actionType]
   );
 
+  const interestColumns = useMemo(
+    () => [
+      {
+        key: 'selected',
+        header: 'Select',
+        accessor: (item) => selectedInterestIds.includes(item._id),
+        exportable: false,
+        sortable: false,
+        cell: (item) => (
+          <input
+            checked={selectedInterestIds.includes(item._id)}
+            onChange={() => toggleInterestSelection(item._id)}
+            type="checkbox"
+          />
+        )
+      },
+      {
+        key: 'contact',
+        header: 'Interested Contact',
+        accessor: (item) => `${item.name || ''} ${item.email || ''} ${item.phone || ''}`,
+        cell: (item) => (
+          <div>
+            <p className="font-semibold text-slate-900">{item.name}</p>
+            <p className="text-sm text-slate-500">{item.email}</p>
+            {item.phone ? <p className="text-sm text-slate-500">{item.phone}</p> : null}
+          </div>
+        )
+      },
+      {
+        key: 'createdAt',
+        header: 'Opted In',
+        accessor: (item) => item.createdAt,
+        sortValue: (item) => new Date(item.createdAt).getTime(),
+        exportValue: (item) => formatDateTime(item.createdAt),
+        cell: (item) => <span className="text-sm text-slate-600">{formatDateTime(item.createdAt)}</span>
+      },
+      {
+        key: 'automated',
+        header: 'Auto Notify',
+        accessor: (item) => item.registrationOpenedNotifiedAt || '',
+        exportValue: (item) =>
+          item.registrationOpenedNotifiedAt ? formatDateTime(item.registrationOpenedNotifiedAt) : 'Pending',
+        cell: (item) => (
+          <span
+            className={`badge ${
+              item.registrationOpenedNotifiedAt
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-amber-50 text-amber-700'
+            }`}
+          >
+            {item.registrationOpenedNotifiedAt
+              ? formatDateTime(item.registrationOpenedNotifiedAt)
+              : 'Pending'}
+          </span>
+        )
+      },
+      {
+        key: 'manual',
+        header: 'Manual Email',
+        accessor: (item) => item.lastManualEmailSentAt || '',
+        exportValue: (item) =>
+          item.lastManualEmailSentAt ? formatDateTime(item.lastManualEmailSentAt) : '-',
+        cell: (item) => (
+          <span className="text-sm text-slate-600">
+            {item.lastManualEmailSentAt ? formatDateTime(item.lastManualEmailSentAt) : '-'}
+          </span>
+        )
+      },
+      {
+        key: 'count',
+        header: 'Email Count',
+        accessor: (item) => item.notificationCount || 0,
+        cell: (item) => <span className="text-sm font-semibold text-slate-900">{item.notificationCount || 0}</span>
+      }
+    ],
+    [selectedInterestIds]
+  );
+
   return (
     <AdminPageShell
       description="Create, update, hide, disable, and review tournaments from a compact catalog that scales to large event volumes."
@@ -419,28 +569,21 @@ export default function AdminEventsPage() {
           successMessage={formSuccess}
         />
 
-        <section className="panel p-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Event Catalog</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Load a scoped date range first, then switch between the dense list view and a
-                calendar view for planning.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
+        <AdminFilterPanel
+          actions={
+            <>
               <button className="btn-secondary" onClick={handleApplyFilters} type="button">
                 Apply Filters
               </button>
               <button className="btn-secondary" onClick={handleResetFilters} type="button">
                 Reset
               </button>
-            </div>
-          </div>
-
-          <FormAlert message={listError} />
-
-          <div className="mt-6 grid gap-4 xl:grid-cols-4">
+            </>
+          }
+          description="Use the default 30-day range or refine visibility, then switch between the compact list and the shared planning calendar."
+          gridClassName="xl:grid-cols-[1fr_1fr_1fr_220px]"
+          title="Event Catalog"
+        >
             <div>
               <label className="label" htmlFor="event-date-from">
                 From
@@ -512,168 +655,185 @@ export default function AdminEventsPage() {
                 </button>
               </div>
             </div>
+        </AdminFilterPanel>
+
+        <FormAlert message={listError} />
+
+        {!hasAppliedFilters ? (
+          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 p-8">
+            <h3 className="text-xl font-bold text-slate-950">Load a filtered catalog</h3>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
+              The default range is already set to today through the next 30 days. Apply it or refine
+              it before loading the catalog so large event datasets stay responsive.
+            </p>
           </div>
+        ) : catalogView === 'list' ? (
+          <div>
+            <DataTable
+              columns={catalogColumns}
+              emptyMessage="No events match the selected date range."
+              loading={catalogLoading}
+              loadingLabel="Loading event catalog..."
+              rowKey="_id"
+              rows={catalogData.items}
+              searchPlaceholder="Search events on this page"
+              serverPagination={{
+                page: catalogData.page || page,
+                pageSize: catalogData.limit || limit,
+                totalCount: catalogData.totalCount || 0,
+                onPageChange: setPage,
+                onPageSizeChange: (nextLimit) => {
+                  setLimit(nextLimit);
+                  setPage(1);
+                }
+              }}
+              tableClassName="min-w-[1180px]"
+            />
+          </div>
+        ) : (
+          <AdminCalendarPanel
+            emptyMessage="No events, holidays, or sports fixtures match the current calendar range."
+            initialMonth={activeFilters.dateFrom}
+            items={calendarFeed.items}
+            loading={calendarLoading}
+            loadingLabel="Loading planning calendar..."
+            title="Planning Calendar"
+          />
+        )}
 
-          {!hasAppliedFilters ? (
-            <div className="mt-6 rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 p-8">
-              <h3 className="text-xl font-bold text-slate-950">Load a filtered catalog</h3>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                Select a date range to load the event catalog. This keeps the page responsive even
-                when the system contains a large number of events.
-              </p>
-            </div>
-          ) : catalogView === 'list' ? (
-            <div className="mt-6">
-              <DataTable
-                columns={catalogColumns}
-                emptyMessage="No events match the selected date range."
-                loading={catalogLoading}
-                loadingLabel="Loading event catalog..."
-                rowKey="_id"
-                rows={catalogData.items}
-                searchPlaceholder="Search events on this page"
-                serverPagination={{
-                  page: catalogData.page || page,
-                  pageSize: catalogData.limit || limit,
-                  totalCount: catalogData.totalCount || 0,
-                  onPageChange: setPage,
-                  onPageSizeChange: (nextLimit) => {
-                    setLimit(nextLimit);
-                    setPage(1);
-                  }
-                }}
-                tableClassName="min-w-[1180px]"
-              />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-6">
-              {calendarLoading ? <LoadingSpinner compact label="Loading event calendar..." /> : null}
-
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {interestEvent ? (
+            <div className="mt-8 space-y-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold">
-                    {new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(calendarMonth)}
-                  </h3>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                    Notify Later Contacts
+                  </p>
+                  <h3 className="mt-3 text-2xl font-bold text-slate-950">{interestEvent.name}</h3>
                   <p className="mt-2 text-sm text-slate-500">
-                    Click an event chip to inspect its schedule, visibility, and registration state.
+                    View interested users, export the contact list, and send manual event emails
+                    using the configured public registration link.
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <button className="btn-secondary gap-2" onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))} type="button">
-                    <AppIcon className="h-4 w-4" name="chevronLeft" />
-                    Previous Month
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => loadEventInterests(interestEvent)}
+                    type="button"
+                  >
+                    Refresh Contacts
                   </button>
-                  <button className="btn-secondary gap-2" onClick={() => setCalendarMonth((current) => shiftMonth(current, 1))} type="button">
-                    Next Month
-                    <AppIcon className="h-4 w-4" name="chevronRight" />
+                  <button
+                    className="btn-secondary"
+                    onClick={() => {
+                      setInterestEvent(null);
+                      setInterestData({
+                        items: [],
+                        summary: {
+                          totalCount: 0,
+                          automatedNotifiedCount: 0,
+                          manualSentCount: 0,
+                          pendingCount: 0
+                        }
+                      });
+                      setSelectedInterestIds([]);
+                      setInterestError('');
+                      setInterestMessage('');
+                    }}
+                    type="button"
+                  >
+                    Close
                   </button>
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-7">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div className="px-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" key={day}>
-                    {day}
-                  </div>
-                ))}
-                {calendarDays.map((day) => {
-                  const dayEvents = calendarEvents.filter((event) => eventOverlapsDay(event, day));
-                  const isCurrentMonth = day.getMonth() === calendarMonth.getMonth();
-
-                  return (
-                    <div
-                      className={`min-h-[156px] rounded-[1.5rem] border p-3 ${
-                        isCurrentMonth
-                          ? 'border-slate-200 bg-white'
-                          : 'border-slate-100 bg-slate-50/70'
-                      }`}
-                      key={day.toISOString()}
-                    >
-                      <p className={`text-sm font-semibold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>
-                        {day.getDate()}
-                      </p>
-                      <div className="mt-3 space-y-2">
-                        {dayEvents.slice(0, 3).map((event) => (
-                          <button
-                            className={`w-full rounded-2xl px-3 py-2 text-left text-xs font-semibold transition ${
-                              selectedCalendarEvent?._id === event._id
-                                ? 'bg-brand-blue text-white'
-                                : event.isHidden
-                                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                                  : 'bg-brand-mist text-brand-blue hover:bg-blue-100'
-                            }`}
-                            key={`${day.toISOString()}-${event._id}`}
-                            onClick={() => setSelectedCalendarEvent(event)}
-                            type="button"
-                          >
-                            {event.name}
-                          </button>
-                        ))}
-                        {dayEvents.length > 3 ? (
-                          <p className="px-1 text-xs text-slate-400">+{dayEvents.length - 3} more</p>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="rounded-2xl bg-white p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-orange">Interested</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">{interestData.summary.totalCount || 0}</p>
+                </div>
+                <div className="rounded-2xl bg-white p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-orange">Pending Auto-Notify</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">{interestData.summary.pendingCount || 0}</p>
+                </div>
+                <div className="rounded-2xl bg-white p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-orange">Auto Notified</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">{interestData.summary.automatedNotifiedCount || 0}</p>
+                </div>
+                <div className="rounded-2xl bg-white p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-orange">Manual Emails</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">{interestData.summary.manualSentCount || 0}</p>
+                </div>
               </div>
 
-              {selectedCalendarEvent ? (
-                <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
-                        Selected Event
-                      </p>
-                      <h4 className="mt-3 text-2xl font-bold text-slate-950">{selectedCalendarEvent.name}</h4>
-                      <p className="mt-2 text-sm text-slate-500">
-                        {selectedCalendarEvent.sportType} • {selectedCalendarEvent.venue}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`badge ${selectedCalendarEvent.isHidden ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                        {selectedCalendarEvent.isHidden ? 'Hidden On Website' : 'Visible On Website'}
-                      </span>
-                      <span className="badge bg-slate-100 text-slate-700">
-                        Registration {selectedCalendarEvent.registrationEnabled ? 'Enabled' : 'Disabled'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-5 grid gap-4 md:grid-cols-4">
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Dates</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">
-                        {formatDate(selectedCalendarEvent.startDate)} to {formatDate(selectedCalendarEvent.endDate)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Deadline</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">
-                        {formatDate(selectedCalendarEvent.registrationDeadline)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Entry Fee</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">
-                        {formatCurrency(selectedCalendarEvent.entryFee)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Registrations</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">
-                        {selectedCalendarEvent.registrationCount || 0}/{selectedCalendarEvent.maxParticipants}
-                      </p>
-                    </div>
-                  </div>
+              <form className="grid gap-4 rounded-[1.75rem] bg-white p-6 xl:grid-cols-[240px_1fr_auto]" onSubmit={handleManualEmailSubmit}>
+                <div>
+                  <label className="label" htmlFor="interest-audience">
+                    Audience
+                  </label>
+                  <TypeaheadSelect
+                    id="interest-audience"
+                    onChange={(event) =>
+                      setManualEmailForm((current) => ({
+                        ...current,
+                        audience: event.target.value
+                      }))
+                    }
+                    options={interestAudienceOptions}
+                    placeholder="Audience"
+                    searchPlaceholder="Search audience"
+                    value={manualEmailForm.audience}
+                  />
                 </div>
-              ) : (
-                <p className="rounded-2xl bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                  No events match the current calendar month.
-                </p>
-              )}
+                <div>
+                  <label className="label" htmlFor="interest-message">
+                    Custom Message (optional)
+                  </label>
+                  <textarea
+                    className="input min-h-28"
+                    id="interest-message"
+                    onChange={(event) =>
+                      setManualEmailForm((current) => ({
+                        ...current,
+                        customMessage: event.target.value
+                      }))
+                    }
+                    placeholder="Add a short note for the recipients before the event details and registration link."
+                    value={manualEmailForm.customMessage}
+                  />
+                </div>
+                <div className="xl:self-end">
+                  <button className="btn-primary" disabled={manualEmailPending} type="submit">
+                    {manualEmailPending ? 'Sending...' : 'Send Event Email'}
+                  </button>
+                </div>
+              </form>
+
+              <FormAlert message={interestError} />
+              <FormAlert message={interestMessage} type="success" />
+
+              <DataTable
+                columns={interestColumns}
+                emptyMessage="No users have clicked Notify Later for this event yet."
+                exportFileName={`event-interest-${interestEvent._id}.csv`}
+                exportable
+                loading={interestLoading}
+                loadingLabel="Loading interested contacts..."
+                rowKey="_id"
+                rows={interestData.items}
+                searchPlaceholder="Search interested contacts"
+                toolbarActions={
+                  <div className="flex flex-wrap gap-2">
+                    <button className="btn-secondary px-4 py-2" onClick={selectAllInterestsOnPage} type="button">
+                      Select All
+                    </button>
+                    <button className="btn-secondary px-4 py-2" onClick={clearSelectedInterests} type="button">
+                      Clear
+                    </button>
+                  </div>
+                }
+              />
             </div>
-          )}
-        </section>
+        ) : null}
       </div>
     </AdminPageShell>
   );

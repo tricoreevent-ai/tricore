@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getEvents } from '../../api/eventsApi.js';
+import AppIcon from '../../components/common/AppIcon.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import EventCard from '../../components/events/EventCard.jsx';
 import { eventsContent } from '../../data/siteContent.js';
@@ -179,11 +180,19 @@ export default function EventsPage() {
         </div>
         <div className="grid gap-6 lg:grid-cols-5">
           {eventsContent.process.map((step, index) => (
-            <div className="rounded-3xl bg-slate-50 p-5" key={step.title}>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-orange">
-                Step {index + 1}
-              </p>
-              <h3 className="mt-3 text-lg font-bold">{step.title}</h3>
+            <div
+              className="group rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_60%,#eef4ff_100%)] p-5 shadow-soft transition hover:-translate-y-1"
+              key={step.title}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-orange">
+                  Step {index + 1}
+                </span>
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-mist text-brand-blue">
+                  <AppIcon className="h-5 w-5" name={step.icon} />
+                </span>
+              </div>
+              <h3 className="mt-5 text-lg font-bold">{step.title}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-600">{step.description}</p>
             </div>
           ))}

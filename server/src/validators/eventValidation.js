@@ -4,6 +4,19 @@ import { dateStringSchema, objectIdSchema, optionalTextSchema } from './common.j
 
 const sportTypes = ['Cricket', 'Football', 'Badminton', 'Swimming'];
 
+const getRegistrationDeadlineCutoff = (value) => {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  parsed.setHours(23, 59, 59, 999);
+  return parsed;
+};
+
+const optionalEventDateSchema = z.string().trim().optional().or(z.literal(''));
+
 const eventFieldsSchema = z.object({
   name: z.string().trim().min(3, 'Event name is required.'),
   description: optionalTextSchema,
@@ -14,7 +27,8 @@ const eventFieldsSchema = z.object({
   endDate: dateStringSchema,
   maxParticipants: z.coerce.number().int().positive(),
   entryFee: z.coerce.number().nonnegative(),
-  registrationDeadline: dateStringSchema,
+  registrationDeadline: optionalEventDateSchema,
+  registrationStartDate: optionalEventDateSchema,
   teamSize: z.coerce.number().int().positive(),
   playerLimit: z.coerce.number().int().positive(),
   registrationEnabled: z.boolean().optional().default(true),
@@ -35,6 +49,37 @@ const applyEventRules = (schema) =>
       {
         message: 'Registration deadline must be on or before the start date.',
         path: ['registrationDeadline']
+      }
+    )
+    .refine(
+      (data) => {
+        const hasStart = Boolean(data.registrationStartDate);
+        const hasDeadline = Boolean(data.registrationDeadline);
+        return hasStart === hasDeadline;
+      },
+      {
+        message: 'Enter both registration dates or leave both blank for Coming Soon.',
+        path: ['registrationStartDate']
+      }
+    )
+    .refine(
+      (data) => {
+        if (!data.registrationStartDate || !data.registrationDeadline) {
+          return true;
+        }
+
+        const registrationStart = new Date(data.registrationStartDate);
+        const registrationDeadlineCutoff = getRegistrationDeadlineCutoff(data.registrationDeadline);
+
+        if (Number.isNaN(registrationStart.getTime()) || !registrationDeadlineCutoff) {
+          return true;
+        }
+
+        return registrationStart <= registrationDeadlineCutoff;
+      },
+      {
+        message: 'Registration start date must be before the registration deadline.',
+        path: ['registrationStartDate']
       }
     )
     .refine((data) => !data.playerLimit || !data.teamSize || data.playerLimit >= data.teamSize, {

@@ -1,0 +1,312 @@
+[
+  {
+    "id": "india-2026-new-year",
+    "name": "New Year's Day",
+    "startDate": "2026-01-01",
+    "endDate": "2026-01-01",
+    "holidayType": "national",
+    "observanceType": "restricted",
+    "description": "The first day of the 2026 calendar year."
+  },
+  {
+    "id": "india-2026-pongal",
+    "name": "Pongal / Makar Sankranti",
+    "startDate": "2026-01-14",
+    "endDate": "2026-01-14",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Harvest observance marked across multiple Indian states."
+  },
+  {
+    "id": "india-2026-republic-day",
+    "name": "Republic Day",
+    "startDate": "2026-01-26",
+    "endDate": "2026-01-26",
+    "holidayType": "national",
+    "observanceType": "gazetted",
+    "description": "National holiday commemorating the adoption of the Constitution of India."
+  },
+  {
+    "id": "india-2026-maha-shivaratri",
+    "name": "Maha Shivaratri",
+    "startDate": "2026-02-15",
+    "endDate": "2026-02-15",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Major Hindu observance dedicated to Lord Shiva."
+  },
+  {
+    "id": "india-2026-holi",
+    "name": "Holi",
+    "startDate": "2026-03-04",
+    "endDate": "2026-03-04",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Festival of colours celebrated across India."
+  },
+  {
+    "id": "india-2026-ugadi",
+    "name": "Ugadi / Gudi Padwa",
+    "startDate": "2026-03-19",
+    "endDate": "2026-03-19",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "New year observance in several Indian states."
+  },
+  {
+    "id": "india-2026-ramzan-id",
+    "name": "Ramzan Id / Eid al-Fitr",
+    "startDate": "2026-03-21",
+    "endDate": "2026-03-21",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "isTentative": true,
+    "description": "Festival marking the close of Ramadan; lunar date may shift with moon sighting."
+  },
+  {
+    "id": "india-2026-rama-navami",
+    "name": "Rama Navami",
+    "startDate": "2026-03-26",
+    "endDate": "2026-03-26",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Hindu observance celebrating the birth of Lord Rama."
+  },
+  {
+    "id": "india-2026-mahavir-jayanti",
+    "name": "Mahavir Jayanti",
+    "startDate": "2026-03-31",
+    "endDate": "2026-03-31",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Jain festival celebrating the birth of Mahavira."
+  },
+  {
+    "id": "india-2026-good-friday",
+    "name": "Good Friday",
+    "startDate": "2026-04-03",
+    "endDate": "2026-04-03",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Christian observance before Easter."
+  },
+  {
+    "id": "india-2026-vaisakhi",
+    "name": "Vaisakhi",
+    "startDate": "2026-04-14",
+    "endDate": "2026-04-14",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Harvest festival widely marked in Punjab and by Sikh communities."
+  },
+  {
+    "id": "india-2026-ambedkar-jayanti",
+    "name": "Ambedkar Jayanti",
+    "startDate": "2026-04-14",
+    "endDate": "2026-04-14",
+    "holidayType": "national",
+    "observanceType": "observance",
+    "description": "Birth anniversary of Dr. B. R. Ambedkar."
+  },
+  {
+    "id": "india-2026-bohag-bihu",
+    "name": "Bohag Bihu",
+    "startDate": "2026-04-15",
+    "endDate": "2026-04-15",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Assamese new year and spring festival."
+  },
+  {
+    "id": "india-2026-buddha-purnima",
+    "name": "Buddha Purnima",
+    "startDate": "2026-05-01",
+    "endDate": "2026-05-01",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Buddhist observance of Gautama Buddha's birth and enlightenment."
+  },
+  {
+    "id": "india-2026-bakrid",
+    "name": "Bakrid / Eid al-Adha",
+    "startDate": "2026-05-27",
+    "endDate": "2026-05-27",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "isTentative": true,
+    "description": "Festival of sacrifice; lunar date may shift with moon sighting."
+  },
+  {
+    "id": "india-2026-muharram",
+    "name": "Muharram / Ashura",
+    "startDate": "2026-06-26",
+    "endDate": "2026-06-26",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "isTentative": true,
+    "description": "Islamic observance at the beginning of the Hijri year; lunar date may shift."
+  },
+  {
+    "id": "india-2026-rath-yatra",
+    "name": "Rath Yatra",
+    "startDate": "2026-07-16",
+    "endDate": "2026-07-16",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Jagannath chariot festival observed in Odisha and elsewhere."
+  },
+  {
+    "id": "india-2026-independence-day",
+    "name": "Independence Day",
+    "startDate": "2026-08-15",
+    "endDate": "2026-08-15",
+    "holidayType": "national",
+    "observanceType": "gazetted",
+    "description": "National holiday marking India's independence."
+  },
+  {
+    "id": "india-2026-onam",
+    "name": "Onam",
+    "startDate": "2026-08-26",
+    "endDate": "2026-08-26",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Major harvest festival in Kerala."
+  },
+  {
+    "id": "india-2026-milad",
+    "name": "Milad un-Nabi",
+    "startDate": "2026-08-26",
+    "endDate": "2026-08-26",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "isTentative": true,
+    "description": "Islamic observance; lunar date may shift with moon sighting."
+  },
+  {
+    "id": "india-2026-raksha-bandhan",
+    "name": "Raksha Bandhan",
+    "startDate": "2026-08-28",
+    "endDate": "2026-08-28",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Festival celebrating sibling bonds."
+  },
+  {
+    "id": "india-2026-janmashtami",
+    "name": "Janmashtami",
+    "startDate": "2026-09-04",
+    "endDate": "2026-09-04",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Hindu festival celebrating the birth of Lord Krishna."
+  },
+  {
+    "id": "india-2026-ganesh-chaturthi",
+    "name": "Ganesh Chaturthi",
+    "startDate": "2026-09-14",
+    "endDate": "2026-09-14",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Festival celebrating Lord Ganesha."
+  },
+  {
+    "id": "india-2026-gandhi-jayanti",
+    "name": "Mahatma Gandhi Jayanti",
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-02",
+    "holidayType": "national",
+    "observanceType": "gazetted",
+    "description": "National holiday honoring Mahatma Gandhi."
+  },
+  {
+    "id": "india-2026-navratri",
+    "name": "Sharad Navratri",
+    "startDate": "2026-10-11",
+    "endDate": "2026-10-20",
+    "holidayType": "religious",
+    "observanceType": "observance",
+    "description": "Nine-night Hindu festival observed across India."
+  },
+  {
+    "id": "india-2026-dussehra",
+    "name": "Dussehra",
+    "startDate": "2026-10-20",
+    "endDate": "2026-10-20",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Festival marking the triumph of good over evil."
+  },
+  {
+    "id": "india-2026-karwa-chauth",
+    "name": "Karwa Chauth",
+    "startDate": "2026-10-29",
+    "endDate": "2026-10-29",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "North Indian Hindu fasting observance."
+  },
+  {
+    "id": "india-2026-diwali",
+    "name": "Diwali / Deepavali",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Festival of lights observed across India."
+  },
+  {
+    "id": "india-2026-govardhan-puja",
+    "name": "Govardhan Puja",
+    "startDate": "2026-11-09",
+    "endDate": "2026-11-09",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Festival observed immediately after Diwali in many regions."
+  },
+  {
+    "id": "india-2026-bhai-dooj",
+    "name": "Bhai Duj",
+    "startDate": "2026-11-11",
+    "endDate": "2026-11-11",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Festival celebrating sibling bonds after Diwali."
+  },
+  {
+    "id": "india-2026-chhath-puja",
+    "name": "Chhath Puja",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Major sun worship festival in Bihar, Jharkhand, and eastern India."
+  },
+  {
+    "id": "india-2026-guru-nanak-jayanti",
+    "name": "Guru Nanak Jayanti",
+    "startDate": "2026-11-24",
+    "endDate": "2026-11-24",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Sikh festival celebrating the birth of Guru Nanak."
+  },
+  {
+    "id": "india-2026-christmas-eve",
+    "name": "Christmas Eve",
+    "startDate": "2026-12-24",
+    "endDate": "2026-12-24",
+    "holidayType": "religious",
+    "observanceType": "restricted",
+    "description": "Evening observance ahead of Christmas Day."
+  },
+  {
+    "id": "india-2026-christmas",
+    "name": "Christmas",
+    "startDate": "2026-12-25",
+    "endDate": "2026-12-25",
+    "holidayType": "religious",
+    "observanceType": "gazetted",
+    "description": "Christian festival commemorating the birth of Jesus Christ."
+  }
+]

@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
 
+import { CalendarSportsEvent } from '../models/CalendarSportsEvent.js';
 import { Event } from '../models/Event.js';
 import { Payment } from '../models/Payment.js';
 import { Registration } from '../models/Registration.js';
 import { Transaction } from '../models/Transaction.js';
 import { hasAdminPortalAccess } from '../constants/adminAccess.js';
 import { recordActivity } from '../services/activityLogService.js';
+import {
+  buildCalendarRangeFromQuery,
+  getCalendarFeed
+} from '../services/calendarFeedService.js';
 import { confirmedPaymentStatuses } from '../services/paymentStatusService.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -14,8 +19,68 @@ const toEventDocument = (payload) => ({
   ...payload,
   startDate: new Date(payload.startDate),
   endDate: new Date(payload.endDate),
-  registrationDeadline: new Date(payload.registrationDeadline)
+  registrationDeadline: payload.registrationDeadline
+    ? new Date(payload.registrationDeadline)
+    : null,
+  registrationStartDate: payload.registrationStartDate
+    ? new Date(payload.registrationStartDate)
+    : null
 });
+
+const startOfToday = (referenceDate = new Date()) => {
+  const date = new Date(referenceDate);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const endOfDay = (value) => {
+  const date = new Date(value);
+  date.setHours(23, 59, 59, 999);
+  return date;
+};
+
+const hasDateValue = (value) =>
+  value !== null && value !== undefined && String(value).trim() !== '';
+
+const validateEventRegistrationWindow = (payload, referenceDate = new Date()) => {
+  const hasStart = hasDateValue(payload.registrationStartDate);
+  const hasDeadline = hasDateValue(payload.registrationDeadline);
+
+  if (hasStart !== hasDeadline) {
+    throw new ApiError(
+      400,
+      'Enter both Registration Start Date and Registration Deadline, or leave both blank to keep the event as Coming Soon.'
+    );
+  }
+
+  if (!hasStart && !hasDeadline) {
+    return;
+  }
+
+  const registrationStart = new Date(payload.registrationStartDate);
+  const registrationDeadlineCutoff = endOfDay(payload.registrationDeadline);
+  const eventStartCutoff = endOfDay(payload.startDate);
+
+  if (Number.isNaN(registrationStart.getTime()) || Number.isNaN(registrationDeadlineCutoff.getTime())) {
+    throw new ApiError(400, 'Registration dates must be valid.');
+  }
+
+  if (registrationStart > registrationDeadlineCutoff) {
+    throw new ApiError(400, 'Registration Start Date must be before the Registration Deadline.');
+  }
+
+  if (registrationDeadlineCutoff > eventStartCutoff) {
+    throw new ApiError(400, 'Registration Deadline must be on or before the event start date.');
+  }
+
+  if (new Date(payload.startDate) >= startOfToday(referenceDate)) {
+    const todayStart = startOfToday(referenceDate);
+
+    if (registrationStart < todayStart || registrationDeadlineCutoff < todayStart) {
+      throw new ApiError(400, 'Registration dates must be today or in the future.');
+    }
+  }
+};
 
 const disableEventCaching = (res) => {
   res.set({
@@ -115,8 +180,17 @@ const buildEventPipeline = (matchStage) => [
     }
   },
   {
+    $lookup: {
+      from: 'eventinterests',
+      localField: '_id',
+      foreignField: 'eventId',
+      as: 'interests'
+    }
+  },
+  {
     $addFields: {
       registrationCount: { $size: '$registrations' },
+      interestCount: { $size: '$interests' },
       revenue: {
         $sum: {
           $map: {
@@ -137,7 +211,8 @@ const buildEventPipeline = (matchStage) => [
   {
     $project: {
       registrations: 0,
-      payments: 0
+      payments: 0,
+      interests: 0
     }
   }
 ];
@@ -152,6 +227,124 @@ export const getEvents = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: events
+  });
+});
+
+export const getAdminCalendarFeed = asyncHandler(async (req, res) => {
+  disableEventCaching(res);
+
+  const { dateFrom, dateTo } = buildCalendarRangeFromQuery(req.query);
+  const data = await getCalendarFeed({
+    dateFrom,
+    dateTo,
+    includeHiddenEvents: true
+  });
+
+  res.json({
+    success: true,
+    data
+  });
+});
+
+export const getSportsCalendarEvents = asyncHandler(async (_req, res) => {
+  const items = await CalendarSportsEvent.find()
+    .sort({ startDate: 1, name: 1 })
+    .populate('createdBy', 'name username email')
+    .populate('updatedBy', 'name username email');
+
+  res.json({
+    success: true,
+    data: items
+  });
+});
+
+export const createSportsCalendarEvent = asyncHandler(async (req, res) => {
+  const item = await CalendarSportsEvent.create({
+    ...req.body,
+    startDate: new Date(req.body.startDate),
+    endDate: new Date(req.body.endDate),
+    createdBy: req.user._id,
+    updatedBy: req.user._id
+  });
+
+  await recordActivity({
+    action: 'create',
+    category: 'calendar',
+    details: `Added sports fixture ${item.name} from ${item.startDate.toISOString()} to ${item.endDate.toISOString()}.`,
+    performedBy: req.user._id,
+    subjectId: item._id.toString(),
+    subjectType: 'sports_calendar_event',
+    summary: `Created sports calendar event "${item.name}".`
+  });
+
+  res.status(201).json({
+    success: true,
+    data: item
+  });
+});
+
+export const updateSportsCalendarEvent = asyncHandler(async (req, res) => {
+  const existing = await CalendarSportsEvent.findById(req.params.id);
+
+  if (!existing) {
+    throw new ApiError(404, 'Sports calendar event not found.');
+  }
+
+  const payload = {
+    ...req.body,
+    updatedBy: req.user._id
+  };
+
+  if (payload.startDate) {
+    payload.startDate = new Date(payload.startDate);
+  }
+
+  if (payload.endDate) {
+    payload.endDate = new Date(payload.endDate);
+  }
+
+  const item = await CalendarSportsEvent.findByIdAndUpdate(req.params.id, payload, {
+    new: true,
+    runValidators: true
+  });
+
+  await recordActivity({
+    action: 'update',
+    category: 'calendar',
+    details: `Updated sports fixture ${item.name}.`,
+    performedBy: req.user._id,
+    subjectId: item._id.toString(),
+    subjectType: 'sports_calendar_event',
+    summary: `Updated sports calendar event "${item.name}".`
+  });
+
+  res.json({
+    success: true,
+    data: item
+  });
+});
+
+export const deleteSportsCalendarEvent = asyncHandler(async (req, res) => {
+  const item = await CalendarSportsEvent.findById(req.params.id);
+
+  if (!item) {
+    throw new ApiError(404, 'Sports calendar event not found.');
+  }
+
+  await item.deleteOne();
+  await recordActivity({
+    action: 'delete',
+    category: 'calendar',
+    details: `Deleted sports fixture ${item.name}.`,
+    performedBy: req.user._id,
+    subjectId: item._id.toString(),
+    subjectType: 'sports_calendar_event',
+    summary: `Deleted sports calendar event "${item.name}".`
+  });
+
+  res.json({
+    success: true,
+    message: 'Sports calendar event deleted successfully.'
   });
 });
 
@@ -207,6 +400,7 @@ export const getEventById = asyncHandler(async (req, res) => {
 });
 
 export const createEvent = asyncHandler(async (req, res) => {
+  validateEventRegistrationWindow(req.body);
   const event = await Event.create(toEventDocument(req.body));
   await recordActivity({
     action: 'create',
@@ -243,9 +437,29 @@ export const updateEvent = asyncHandler(async (req, res) => {
     payload.endDate = new Date(payload.endDate);
   }
 
-  if (payload.registrationDeadline) {
-    payload.registrationDeadline = new Date(payload.registrationDeadline);
+  if (Object.prototype.hasOwnProperty.call(payload, 'registrationDeadline')) {
+    payload.registrationDeadline = payload.registrationDeadline
+      ? new Date(payload.registrationDeadline)
+      : null;
   }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'registrationStartDate')) {
+    payload.registrationStartDate = payload.registrationStartDate
+      ? new Date(payload.registrationStartDate)
+      : null;
+  }
+
+  validateEventRegistrationWindow({
+    startDate: payload.startDate || existing.startDate,
+    registrationStartDate:
+      Object.prototype.hasOwnProperty.call(req.body, 'registrationStartDate')
+        ? req.body.registrationStartDate
+        : existing.registrationStartDate,
+    registrationDeadline:
+      Object.prototype.hasOwnProperty.call(req.body, 'registrationDeadline')
+        ? req.body.registrationDeadline
+        : existing.registrationDeadline
+  });
 
   if (payload.isHidden === true) {
     payload.registrationEnabled = false;
