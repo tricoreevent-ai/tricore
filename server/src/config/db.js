@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import { env } from './env.js';
 
@@ -118,6 +117,8 @@ const connectToPrimaryMongo = async () => {
 };
 
 const connectToMemoryMongo = async (connectionError) => {
+  const { MongoMemoryServer } = await import('mongodb-memory-server');
+
   activeConnectionMode = 'memory-fallback';
   console.warn(
     `Primary MongoDB connection failed (${sanitizeMongoUri(env.mongoUri)}). ` +

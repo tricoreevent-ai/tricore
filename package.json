@@ -16,7 +16,7 @@
     "validate:workflow": "node server/scripts/run-validation-suite.js",
     "deploy": "npm run build:client && npm run start:server",
     "lint": "npm --prefix client run lint",
-    "postinstall": "npm --prefix server install && npm --prefix client install && npm --prefix client run build"
+    "postinstall": "npm --prefix server install --omit=dev && npm --prefix client install --include=dev && npm --prefix client run build"
   },
   "dependencies": {
     "express": "^4.21.1"
