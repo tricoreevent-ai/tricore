@@ -13,6 +13,26 @@ const visibleEventCondition = {
 
 let cachedHolidayEntries = null;
 
+const holidayToneByType = {
+  national: 'holiday-national',
+  religious: 'holiday-religious',
+  regional: 'holiday-regional',
+  sports: 'holiday-sports',
+  political: 'holiday-political',
+  civic: 'holiday-political',
+  strike: 'holiday-strike'
+};
+
+const holidaySubtitleByType = {
+  national: 'National holiday',
+  religious: 'Religious observance',
+  regional: 'Regional holiday',
+  sports: 'Sports / wellness day',
+  political: 'Civic / political observance',
+  civic: 'Civic / political observance',
+  strike: 'Service advisory / strike'
+};
+
 const startOfDay = (value) => {
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
@@ -60,23 +80,47 @@ const loadHolidayEntries = () => {
   return cachedHolidayEntries;
 };
 
+export const refreshHolidayCache = async () => {
+  cachedHolidayEntries = null;
+  const entries = loadHolidayEntries();
+  const countsByType = entries.reduce(
+    (acc, item) => ({
+      ...acc,
+      [item.holidayType || 'unknown']: (acc[item.holidayType || 'unknown'] || 0) + 1
+    }),
+    {}
+  );
+
+  return {
+    total: entries.length,
+    countsByType,
+    range: {
+      start: entries[0]?.startDate || null,
+      end: entries[entries.length - 1]?.endDate || null
+    }
+  };
+};
+
 const buildHolidayEntries = ({ dateFrom, dateTo }) =>
   loadHolidayEntries()
     .filter((item) => overlapsDateRange(item, dateFrom, dateTo))
-    .map((item) => ({
-      ...item,
-      id: item.id,
-      entryId: item.id,
-      entryType: 'holiday',
-      title: item.name,
-      subtitle: `${item.holidayType} holiday`,
-      colorTone:
-        item.holidayType === 'national'
-          ? 'holiday-national'
-          : item.holidayType === 'religious'
-            ? 'holiday-religious'
-            : 'holiday-regional'
-    }));
+    .map((item) => {
+      const holidayType = item.holidayType || 'regional';
+      const colorTone = holidayToneByType[holidayType] || 'holiday-regional';
+      const subtitle =
+        item.subtitle ||
+        `${holidaySubtitleByType[holidayType] || 'Holiday'}${item.region ? ` • ${item.region}` : ''}`;
+
+      return {
+        ...item,
+        id: item.id,
+        entryId: item.id,
+        entryType: 'holiday',
+        title: item.name,
+        subtitle,
+        colorTone
+      };
+    });
 
 const buildEventMatchStage = ({ dateFrom, dateTo, includeHiddenEvents }) => {
   const stage = {

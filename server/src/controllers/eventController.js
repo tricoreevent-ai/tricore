@@ -9,7 +9,8 @@ import { hasAdminPortalAccess } from '../constants/adminAccess.js';
 import { recordActivity } from '../services/activityLogService.js';
 import {
   buildCalendarRangeFromQuery,
-  getCalendarFeed
+  getCalendarFeed,
+  refreshHolidayCache
 } from '../services/calendarFeedService.js';
 import { isImageDataUrl, persistImageReference } from '../services/imageStorageService.js';
 import { confirmedPaymentStatuses } from '../services/paymentStatusService.js';
@@ -286,6 +287,16 @@ export const getAdminCalendarFeed = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data
+  });
+});
+
+export const refreshCalendarHolidays = asyncHandler(async (_req, res) => {
+  const summary = await refreshHolidayCache();
+
+  res.json({
+    success: true,
+    message: 'Calendar holidays refreshed from the latest 2026 dataset.',
+    data: summary
   });
 });
 

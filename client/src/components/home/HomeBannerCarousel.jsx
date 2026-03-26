@@ -99,6 +99,7 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
           decoding="async"
           fetchPriority="high"
           loading="eager"
+          sizes="100vw"
           src={currentBanner.imageUrl}
         />
       ) : null}

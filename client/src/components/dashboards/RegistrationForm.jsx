@@ -10,6 +10,7 @@ import { getApiErrorMessage } from '../../utils/apiErrors.js';
 import { saveRegistrationDraft } from '../../utils/paymentDraftStorage.js';
 import GoogleLoginButton from '../auth/GoogleLoginButton.jsx';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
+import FloatingLabelField from '../common/FloatingLabelField.jsx';
 
 const emptyPlayer = { name: '', phone: '', address: '' };
 
@@ -66,59 +67,6 @@ const validatePlayerDraft = (player) => {
 
   return '';
 };
-
-function FloatingField({
-  id,
-  label,
-  onChange,
-  required = false,
-  textarea = false,
-  type = 'text',
-  value
-}) {
-  const labelClassName = textarea
-    ? value
-      ? 'floating-label'
-      : 'floating-label floating-label-empty-textarea'
-    : value
-      ? 'floating-label'
-      : 'floating-label floating-label-empty';
-
-  if (textarea) {
-    return (
-      <div className="floating-field">
-        <textarea
-          className="floating-textarea peer"
-          id={id}
-          onChange={onChange}
-          placeholder={label}
-          required={required}
-          value={value}
-        />
-        <label className={labelClassName} htmlFor={id}>
-          {label}
-        </label>
-      </div>
-    );
-  }
-
-  return (
-    <div className="floating-field">
-      <input
-        className="floating-input peer"
-        id={id}
-        onChange={onChange}
-        placeholder={label}
-        required={required}
-        type={type}
-        value={value}
-      />
-      <label className={labelClassName} htmlFor={id}>
-        {label}
-      </label>
-    </div>
-  );
-}
 
 export default function RegistrationForm({ event, onSuccess }) {
   const navigate = useNavigate();
@@ -416,7 +364,7 @@ export default function RegistrationForm({ event, onSuccess }) {
 
       <fieldset className="space-y-6 border-0 p-0" disabled={Boolean(existingRegistration)}>
         {event.teamSize === 1 ? (
-          <FloatingField
+          <FloatingLabelField
             id="name"
             label="Participant Name"
             onChange={(eventValue) => updateField('name', eventValue.target.value)}
@@ -425,7 +373,7 @@ export default function RegistrationForm({ event, onSuccess }) {
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            <FloatingField
+            <FloatingLabelField
               id="teamName"
               label="Team Name"
               onChange={(eventValue) => updateField('teamName', eventValue.target.value)}
@@ -433,7 +381,7 @@ export default function RegistrationForm({ event, onSuccess }) {
               value={form.teamName}
             />
             {event.sportType === 'Cricket' ? (
-              <FloatingField
+              <FloatingLabelField
                 id="captainName"
                 label="Captain Name"
                 onChange={(eventValue) => updateField('captainName', eventValue.target.value)}
@@ -445,7 +393,7 @@ export default function RegistrationForm({ event, onSuccess }) {
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <FloatingField
+          <FloatingLabelField
             id="email"
             label="Email"
             onChange={(eventValue) => updateField('email', eventValue.target.value)}
@@ -453,14 +401,14 @@ export default function RegistrationForm({ event, onSuccess }) {
             type="email"
             value={form.email}
           />
-          <FloatingField
+          <FloatingLabelField
             id="phone1"
             label="Primary Phone"
             onChange={(eventValue) => updateField('phone1', eventValue.target.value)}
             required
             value={form.phone1}
           />
-          <FloatingField
+          <FloatingLabelField
             id="phone2"
             label="Secondary Phone"
             onChange={(eventValue) => updateField('phone2', eventValue.target.value)}
@@ -468,7 +416,7 @@ export default function RegistrationForm({ event, onSuccess }) {
             value={form.phone2}
           />
           <div className="md:col-span-2">
-            <FloatingField
+            <FloatingLabelField
               id="address"
               label="Address"
               onChange={(eventValue) => updateField('address', eventValue.target.value)}
@@ -521,7 +469,7 @@ export default function RegistrationForm({ event, onSuccess }) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingField
+                <FloatingLabelField
                   id="player-draft-name"
                   label="Player Name"
                   onChange={(eventValue) => updatePlayerDraft('name', eventValue.target.value)}
@@ -529,7 +477,7 @@ export default function RegistrationForm({ event, onSuccess }) {
                 />
               </div>
               <div onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingField
+                <FloatingLabelField
                   id="player-draft-phone"
                   label="Phone"
                   onChange={(eventValue) => updatePlayerDraft('phone', eventValue.target.value)}
@@ -537,7 +485,7 @@ export default function RegistrationForm({ event, onSuccess }) {
                 />
               </div>
               <div className="md:col-span-2" onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingField
+                <FloatingLabelField
                   id="player-draft-address"
                   label="Address"
                   onChange={(eventValue) => updatePlayerDraft('address', eventValue.target.value)}

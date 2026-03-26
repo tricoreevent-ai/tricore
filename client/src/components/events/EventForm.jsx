@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import FormAlert from '../common/FormAlert.jsx';
 import TypeaheadSelect from '../common/TypeaheadSelect.jsx';
+import FloatingLabelField from '../common/FloatingLabelField.jsx';
 
 const defaultState = {
   name: '',
@@ -153,61 +154,6 @@ const getEventErrors = (form) => {
   return errors;
 };
 
-function FloatingField({
-  error,
-  id,
-  inputRef,
-  label,
-  min,
-  name,
-  onChange,
-  required = false,
-  textarea = false,
-  type = 'text',
-  value
-}) {
-  const hasValue = value !== '' && value !== null && value !== undefined;
-  const labelClassName = textarea
-    ? hasValue
-      ? 'floating-label'
-      : 'floating-label floating-label-empty-textarea'
-    : hasValue
-      ? 'floating-label'
-      : 'floating-label floating-label-empty';
-
-  return (
-    <div className="floating-field">
-      {textarea ? (
-        <textarea
-          className={`floating-textarea peer ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : ''}`.trim()}
-          id={id}
-          name={name}
-          onChange={onChange}
-          placeholder={label}
-          required={required}
-          value={value}
-        />
-      ) : (
-        <input
-          className={`floating-input peer ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : ''}`.trim()}
-          id={id}
-          min={min}
-          name={name}
-          onChange={onChange}
-          placeholder={label}
-          ref={inputRef}
-          required={required}
-          type={type}
-          value={value}
-        />
-      )}
-      <label className={labelClassName} htmlFor={id}>
-        {label}
-      </label>
-    </div>
-  );
-}
-
 export default function EventForm({
   autoFocusToken,
   initialValues,
@@ -308,9 +254,6 @@ export default function EventForm({
     });
   };
 
-  const renderFieldError = (field) =>
-    errors[field] ? <p className="mt-2 text-xs font-medium text-red-600">{errors[field]}</p> : null;
-
   return (
     <form className="panel space-y-6 p-6" onSubmit={handleSubmit} ref={formRef}>
       <div>
@@ -323,7 +266,7 @@ export default function EventForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
-          <FloatingField
+          <FloatingLabelField
             error={errors.name}
             id="name"
             inputRef={eventNameInputRef}
@@ -333,10 +276,9 @@ export default function EventForm({
             required
             value={form.name}
           />
-          {renderFieldError('name')}
         </div>
         <div className="md:col-span-2">
-          <FloatingField
+          <FloatingLabelField
             error={errors.description}
             id="description"
             label="Description"
@@ -361,7 +303,7 @@ export default function EventForm({
           />
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.venue}
             id="venue"
             label="Venue"
@@ -370,10 +312,9 @@ export default function EventForm({
             required
             value={form.venue}
           />
-          {renderFieldError('venue')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.startDate}
             id="startDate"
             label="Start Date"
@@ -383,10 +324,9 @@ export default function EventForm({
             type="date"
             value={form.startDate?.slice(0, 10) || ''}
           />
-          {renderFieldError('startDate')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.endDate}
             id="endDate"
             label="End Date"
@@ -396,10 +336,9 @@ export default function EventForm({
             type="date"
             value={form.endDate?.slice(0, 10) || ''}
           />
-          {renderFieldError('endDate')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.registrationDeadline}
             id="registrationDeadline"
             label="Registration Deadline (optional)"
@@ -408,37 +347,29 @@ export default function EventForm({
             type="date"
             value={form.registrationDeadline?.slice(0, 10) || ''}
           />
-          {renderFieldError('registrationDeadline')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.registrationStartDate}
             id="registrationStartDate"
             label="Registration Start Date (optional)"
             name="registrationStartDate"
             onChange={handleChange}
             type="datetime-local"
+            helper="Leave both registration dates blank to publish the event as Coming Soon with Notify Later."
             value={toDateTimeLocalValue(form.registrationStartDate)}
           />
-          {renderFieldError('registrationStartDate')}
-          <p className="mt-2 text-xs text-slate-500">
-            Leave both registration dates blank to publish the event as Coming Soon with Notify Later.
-          </p>
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.bannerImage}
             id="bannerImage"
             label="Banner Image URL or /uploads path"
             name="bannerImage"
             onChange={handleChange}
+            helper="Paste an image URL or upload a banner file. Uploaded images are stored on this server and only the file path is saved in MongoDB."
             value={form.bannerImage}
           />
-          {renderFieldError('bannerImage')}
-          <p className="mt-2 text-xs text-slate-500">
-            Paste an image URL or upload a banner file. Uploaded images are stored on this server and only
-            the file path is saved in MongoDB.
-          </p>
         </div>
         <div>
           <label className="label" htmlFor="bannerImageUpload">
@@ -465,7 +396,7 @@ export default function EventForm({
           ) : null}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.maxParticipants}
             id="maxParticipants"
             label="Max Participants / Teams"
@@ -476,10 +407,9 @@ export default function EventForm({
             type="number"
             value={form.maxParticipants}
           />
-          {renderFieldError('maxParticipants')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.entryFee}
             id="entryFee"
             label="Entry Fee"
@@ -490,10 +420,9 @@ export default function EventForm({
             type="number"
             value={form.entryFee}
           />
-          {renderFieldError('entryFee')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.teamSize}
             id="teamSize"
             label="Team Size"
@@ -504,10 +433,9 @@ export default function EventForm({
             type="number"
             value={form.teamSize}
           />
-          {renderFieldError('teamSize')}
         </div>
         <div>
-          <FloatingField
+          <FloatingLabelField
             error={errors.playerLimit}
             id="playerLimit"
             label="Player Limit"
@@ -518,7 +446,6 @@ export default function EventForm({
             type="number"
             value={form.playerLimit}
           />
-          {renderFieldError('playerLimit')}
         </div>
       </div>
 

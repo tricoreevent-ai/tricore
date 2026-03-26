@@ -35,6 +35,11 @@ export const getAdminCalendarFeed = async (params = {}) => {
   return response.data.data;
 };
 
+export const refreshCalendarHolidays = async () => {
+  const response = await adminApi.post('/events/calendar-holidays/refresh');
+  return response.data;
+};
+
 export const getEventById = async (eventId) => {
   const response = await publicApi.get(`/events/${eventId}`, freshRequestConfig());
   return response.data.data;

@@ -20,8 +20,9 @@ const populateUpdatedBy = (query) => query.populate('updatedBy', 'name username 
 const bannerImageOptions = {
   folder: 'home-banners',
   filenamePrefix: 'banner',
-  maxWidth: 1920,
-  quality: 80
+  maxWidth: 1600,
+  maxHeight: 900,
+  quality: 72
 };
 
 const normalizeBanner = (banner = {}, index = 0) => ({

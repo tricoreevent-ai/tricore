@@ -6,6 +6,7 @@ import {
   deleteEvent,
   getAdminEventCatalog,
   getEventInterests,
+  refreshCalendarHolidays,
   sendEventInterestEmail,
   updateEvent
 } from '../../api/eventsApi.js';
@@ -51,8 +52,10 @@ export default function AdminEventsPage() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [listError, setListError] = useState('');
+  const [calendarMessage, setCalendarMessage] = useState('');
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calendarActionPending, setCalendarActionPending] = useState(false);
   const [actionEventId, setActionEventId] = useState('');
   const [actionType, setActionType] = useState('');
   const [page, setPage] = useState(1);
@@ -201,6 +204,22 @@ export default function AdminEventsPage() {
     setCalendarFeed({ items: [], dateFrom: '', dateTo: '' });
     setListError('');
     setPage(1);
+  };
+
+  const handleRefreshHolidays = async () => {
+    setCalendarActionPending(true);
+    setCalendarMessage('');
+    setListError('');
+
+    try {
+      const response = await refreshCalendarHolidays();
+      setCalendarMessage(response.message || 'Calendar holidays refreshed.');
+      await refreshCalendarFeed(hasAppliedFilters ? activeFilters : createInitialFilters());
+    } catch (error) {
+      setListError(getApiErrorMessage(error, 'Unable to refresh calendar holidays.'));
+    } finally {
+      setCalendarActionPending(false);
+    }
   };
 
   const handleSubmit = async (payload) => {
@@ -581,17 +600,24 @@ export default function AdminEventsPage() {
         <AdminFilterPanel
           actions={
             <>
-              <button className="btn-secondary" onClick={handleApplyFilters} type="button">
-                Apply Filters
-              </button>
-              <button className="btn-secondary" onClick={handleResetFilters} type="button">
-                Reset
-              </button>
-            </>
-          }
-          description="Use the default 30-day range or refine visibility, then switch between the compact list and the shared planning calendar."
-          gridClassName="xl:grid-cols-[1fr_1fr_1fr_220px]"
-          title="Event Catalog"
+          <button className="btn-secondary" onClick={handleApplyFilters} type="button">
+            Apply Filters
+          </button>
+          <button className="btn-secondary" onClick={handleResetFilters} type="button">
+            Reset
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={handleRefreshHolidays}
+            type="button"
+          >
+            {calendarActionPending ? 'Updating Holidays...' : 'Update Holidays'}
+          </button>
+        </>
+      }
+      description="Use the default 30-day range or refine visibility, then switch between the compact list and the shared planning calendar."
+      gridClassName="xl:grid-cols-[1fr_1fr_1fr_220px]"
+      title="Event Catalog"
         >
             <div>
               <label className="label" htmlFor="event-date-from">
@@ -667,6 +693,7 @@ export default function AdminEventsPage() {
         </AdminFilterPanel>
 
         <FormAlert message={listError} />
+        <FormAlert message={calendarMessage} type="success" />
 
         {!hasAppliedFilters ? (
           <div className="rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 p-8">

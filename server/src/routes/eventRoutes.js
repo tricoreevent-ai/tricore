@@ -5,6 +5,7 @@ import {
   createEvent,
   deleteSportsCalendarEvent,
   getAdminCalendarFeed,
+  refreshCalendarHolidays,
   deleteEvent,
   getEventById,
   getEventCatalog,
@@ -54,6 +55,12 @@ router.get(
   authorizePermissions(adminPermissions.events, adminPermissions.overview),
   validate(calendarFeedQuerySchema),
   getAdminCalendarFeed
+);
+router.post(
+  '/calendar-holidays/refresh',
+  authenticate,
+  authorizePermissions(adminPermissions.events, adminPermissions.overview),
+  refreshCalendarHolidays
 );
 router.get(
   '/sports-calendar-events',

@@ -39,6 +39,9 @@ const toneClasses = {
   'holiday-national': 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
   'holiday-religious': 'bg-rose-50 text-rose-600 hover:bg-rose-100',
   'holiday-regional': 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100',
+  'holiday-sports': 'bg-sky-50 text-sky-700 hover:bg-sky-100',
+  'holiday-political': 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
+  'holiday-strike': 'bg-orange-50 text-orange-700 hover:bg-orange-100',
   'sports-fixture': 'bg-amber-50 text-amber-700 hover:bg-amber-100',
   'event-live': 'bg-brand-mist text-brand-blue hover:bg-blue-100',
   'event-closed': 'bg-slate-100 text-slate-700 hover:bg-slate-200',
@@ -63,6 +66,25 @@ const categoryFilters = [
     label: 'Regional Holiday',
     tone: 'holiday-regional',
     matches: (item) => item.entryType === 'holiday' && item.holidayType === 'regional'
+  },
+  {
+    key: 'sportsDay',
+    label: 'Sports / Wellness Day',
+    tone: 'holiday-sports',
+    matches: (item) => item.entryType === 'holiday' && item.holidayType === 'sports'
+  },
+  {
+    key: 'civicHoliday',
+    label: 'Civic / Political',
+    tone: 'holiday-political',
+    matches: (item) =>
+      item.entryType === 'holiday' && ['political', 'civic'].includes(item.holidayType)
+  },
+  {
+    key: 'strikeAdvisory',
+    label: 'Strike / Advisory',
+    tone: 'holiday-strike',
+    matches: (item) => item.entryType === 'holiday' && item.holidayType === 'strike'
   },
   {
     key: 'sportsFixture',
@@ -93,11 +115,21 @@ const getEntryBadgeClass = (item) =>
 
 const getEntryTypeLabel = (item) => {
   if (item.entryType === 'holiday') {
-    return item.holidayType === 'national'
-      ? 'National Holiday'
-      : item.holidayType === 'religious'
-        ? 'Religious Observance'
-        : 'Regional Holiday';
+    switch (item.holidayType) {
+      case 'national':
+        return 'National Holiday';
+      case 'religious':
+        return 'Religious Observance';
+      case 'sports':
+        return 'Sports / Wellness Day';
+      case 'political':
+      case 'civic':
+        return 'Civic / Political';
+      case 'strike':
+        return 'Strike / Advisory';
+      default:
+        return 'Regional Holiday';
+    }
   }
 
   if (item.entryType === 'sports_fixture') {

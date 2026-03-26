@@ -9,6 +9,16 @@
     "description": "The first day of the 2026 calendar year."
   },
   {
+    "id": "india-2026-lohri",
+    "name": "Lohri",
+    "startDate": "2026-01-13",
+    "endDate": "2026-01-13",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "region": "Punjab, Haryana, Delhi NCR",
+    "description": "Harvest bonfire festival celebrated across northern India."
+  },
+  {
     "id": "india-2026-pongal",
     "name": "Pongal / Makar Sankranti",
     "startDate": "2026-01-14",
@@ -16,6 +26,15 @@
     "holidayType": "regional",
     "observanceType": "restricted",
     "description": "Harvest observance marked across multiple Indian states."
+  },
+  {
+    "id": "india-2026-national-voters-day",
+    "name": "National Voters' Day",
+    "startDate": "2026-01-25",
+    "endDate": "2026-01-25",
+    "holidayType": "political",
+    "observanceType": "observance",
+    "description": "Awareness observance that promotes electoral participation."
   },
   {
     "id": "india-2026-republic-day",
@@ -91,6 +110,15 @@
     "description": "Christian observance before Easter."
   },
   {
+    "id": "india-2026-ambedkar-jayanti",
+    "name": "Ambedkar Jayanti",
+    "startDate": "2026-04-14",
+    "endDate": "2026-04-14",
+    "holidayType": "national",
+    "observanceType": "observance",
+    "description": "Birth anniversary of Dr. B. R. Ambedkar."
+  },
+  {
     "id": "india-2026-vaisakhi",
     "name": "Vaisakhi",
     "startDate": "2026-04-14",
@@ -100,13 +128,14 @@
     "description": "Harvest festival widely marked in Punjab and by Sikh communities."
   },
   {
-    "id": "india-2026-ambedkar-jayanti",
-    "name": "Ambedkar Jayanti",
+    "id": "india-2026-vishu",
+    "name": "Vishu",
     "startDate": "2026-04-14",
     "endDate": "2026-04-14",
-    "holidayType": "national",
-    "observanceType": "observance",
-    "description": "Birth anniversary of Dr. B. R. Ambedkar."
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "region": "Kerala",
+    "description": "Kerala new year observance with Vishukkani and temple visits."
   },
   {
     "id": "india-2026-bohag-bihu",
@@ -127,6 +156,16 @@
     "description": "Buddhist observance of Gautama Buddha's birth and enlightenment."
   },
   {
+    "id": "india-2026-maharashtra-day",
+    "name": "Maharashtra Day",
+    "startDate": "2026-05-01",
+    "endDate": "2026-05-01",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "region": "Maharashtra",
+    "description": "State formation day marked with parades and civic events."
+  },
+  {
     "id": "india-2026-bakrid",
     "name": "Bakrid / Eid al-Adha",
     "startDate": "2026-05-27",
@@ -137,6 +176,25 @@
     "description": "Festival of sacrifice; lunar date may shift with moon sighting."
   },
   {
+    "id": "india-2026-telangana-formation-day",
+    "name": "Telangana Formation Day",
+    "startDate": "2026-06-02",
+    "endDate": "2026-06-02",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "region": "Telangana",
+    "description": "Commemorates the formation of Telangana state."
+  },
+  {
+    "id": "india-2026-international-yoga-day",
+    "name": "International Yoga Day",
+    "startDate": "2026-06-21",
+    "endDate": "2026-06-21",
+    "holidayType": "sports",
+    "observanceType": "observance",
+    "description": "Mass yoga sessions and wellness drives across India."
+  },
+  {
     "id": "india-2026-muharram",
     "name": "Muharram / Ashura",
     "startDate": "2026-06-26",
@@ -145,6 +203,15 @@
     "observanceType": "gazetted",
     "isTentative": true,
     "description": "Islamic observance at the beginning of the Hijri year; lunar date may shift."
+  },
+  {
+    "id": "india-2026-transport-strike-advisory",
+    "name": "Nationwide Transport Strike (Advisory)",
+    "startDate": "2026-07-15",
+    "endDate": "2026-07-15",
+    "holidayType": "strike",
+    "observanceType": "advisory",
+    "description": "Placeholder advisory for nationwide transport and logistics strike notices."
   },
   {
     "id": "india-2026-rath-yatra",
@@ -165,15 +232,6 @@
     "description": "National holiday marking India's independence."
   },
   {
-    "id": "india-2026-onam",
-    "name": "Onam",
-    "startDate": "2026-08-26",
-    "endDate": "2026-08-26",
-    "holidayType": "regional",
-    "observanceType": "restricted",
-    "description": "Major harvest festival in Kerala."
-  },
-  {
     "id": "india-2026-milad",
     "name": "Milad un-Nabi",
     "startDate": "2026-08-26",
@@ -184,6 +242,15 @@
     "description": "Islamic observance; lunar date may shift with moon sighting."
   },
   {
+    "id": "india-2026-onam",
+    "name": "Onam",
+    "startDate": "2026-08-26",
+    "endDate": "2026-08-26",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "description": "Major harvest festival in Kerala."
+  },
+  {
     "id": "india-2026-raksha-bandhan",
     "name": "Raksha Bandhan",
     "startDate": "2026-08-28",
@@ -191,6 +258,15 @@
     "holidayType": "religious",
     "observanceType": "restricted",
     "description": "Festival celebrating sibling bonds."
+  },
+  {
+    "id": "india-2026-national-sports-day",
+    "name": "National Sports Day",
+    "startDate": "2026-08-29",
+    "endDate": "2026-08-29",
+    "holidayType": "sports",
+    "observanceType": "observance",
+    "description": "Celebrates sporting spirit and the birth anniversary of Major Dhyan Chand."
   },
   {
     "id": "india-2026-janmashtami",
@@ -245,6 +321,16 @@
     "holidayType": "religious",
     "observanceType": "restricted",
     "description": "North Indian Hindu fasting observance."
+  },
+  {
+    "id": "india-2026-karnataka-rajyotsava",
+    "name": "Karnataka Rajyotsava",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "holidayType": "regional",
+    "observanceType": "restricted",
+    "region": "Karnataka",
+    "description": "State foundation day with cultural programs and awards."
   },
   {
     "id": "india-2026-diwali",
