@@ -27,7 +27,13 @@ app.use(
     credentials: true
   })
 );
-app.use(helmet());
+app.use(
+  helmet({
+    // Google Identity Services popup needs access to window.opener when it
+    // returns from accounts.google.com in production.
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
+  })
+);
 app.use(express.json({ limit: '100mb' }));
 app.use(morgan('dev'));
 app.use(morgan('combined', { stream: createMorganStream('access.log') }));
