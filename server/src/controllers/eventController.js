@@ -11,9 +11,19 @@ import {
   buildCalendarRangeFromQuery,
   getCalendarFeed
 } from '../services/calendarFeedService.js';
+import { isImageDataUrl, persistImageReference } from '../services/imageStorageService.js';
 import { confirmedPaymentStatuses } from '../services/paymentStatusService.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+
+const eventBannerImageOptions = {
+  folder: 'event-banners',
+  filenamePrefix: 'event-banner',
+  maxWidth: 1600,
+  quality: 80
+};
+
+let eventBannerMigrationPromise = null;
 
 const toEventDocument = (payload) => ({
   ...payload,
@@ -93,6 +103,38 @@ const disableEventCaching = (res) => {
 
 const visibleEventCondition = {
   $or: [{ isHidden: false }, { isHidden: { $exists: false } }]
+};
+
+const persistEventBannerImage = async (payload = {}) => ({
+  ...payload,
+  bannerImage: await persistImageReference(payload.bannerImage, eventBannerImageOptions)
+});
+
+const migrateLegacyEventBannerImages = async () => {
+  if (!eventBannerMigrationPromise) {
+    eventBannerMigrationPromise = (async () => {
+      const legacyEvents = await Event.find({
+        bannerImage: { $exists: true, $type: 'string', $regex: /^data:image\// }
+      });
+
+      if (!legacyEvents.length) {
+        return;
+      }
+
+      for (const event of legacyEvents) {
+        if (!isImageDataUrl(event.bannerImage)) {
+          continue;
+        }
+
+        event.bannerImage = await persistImageReference(event.bannerImage, eventBannerImageOptions);
+        await event.save();
+      }
+    })().finally(() => {
+      eventBannerMigrationPromise = null;
+    });
+  }
+
+  await eventBannerMigrationPromise;
 };
 
 const getEventUsageCounts = async (eventId) => {
@@ -219,6 +261,7 @@ const buildEventPipeline = (matchStage) => [
 
 export const getEvents = asyncHandler(async (req, res) => {
   disableEventCaching(res);
+  await migrateLegacyEventBannerImages();
 
   const matchStage = buildEventMatchStage(req.query, req.user);
 
@@ -350,6 +393,7 @@ export const deleteSportsCalendarEvent = asyncHandler(async (req, res) => {
 
 export const getEventCatalog = asyncHandler(async (req, res) => {
   disableEventCaching(res);
+  await migrateLegacyEventBannerImages();
 
   const matchStage = buildEventMatchStage({ ...req.query, includeHidden: 'true' }, req.user);
   const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
@@ -380,6 +424,7 @@ export const getEventCatalog = asyncHandler(async (req, res) => {
 
 export const getEventById = asyncHandler(async (req, res) => {
   disableEventCaching(res);
+  await migrateLegacyEventBannerImages();
 
   const [event] = await Event.aggregate(
     buildEventPipeline({
@@ -401,7 +446,9 @@ export const getEventById = asyncHandler(async (req, res) => {
 
 export const createEvent = asyncHandler(async (req, res) => {
   validateEventRegistrationWindow(req.body);
-  const event = await Event.create(toEventDocument(req.body));
+  const event = await Event.create(
+    toEventDocument(await persistEventBannerImage(req.body))
+  );
   await recordActivity({
     action: 'create',
     category: 'event',
@@ -447,6 +494,12 @@ export const updateEvent = asyncHandler(async (req, res) => {
     payload.registrationStartDate = payload.registrationStartDate
       ? new Date(payload.registrationStartDate)
       : null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'bannerImage')) {
+    payload.bannerImage = (
+      await persistEventBannerImage({ bannerImage: req.body.bannerImage })
+    ).bannerImage;
   }
 
   validateEventRegistrationWindow({

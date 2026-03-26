@@ -40,8 +40,23 @@ export const createAdminUser = async (payload) => {
   return response.data.data;
 };
 
+export const updateAdminUser = async (userId, payload) => {
+  const response = await adminApi.put(`/auth/admin/users/${userId}`, payload);
+  return response.data.data;
+};
+
 export const updateAdminUserAccess = async (userId, payload) => {
   const response = await adminApi.put(`/auth/admin/users/${userId}/access`, payload);
+  return response.data.data;
+};
+
+export const resetAdminUserPassword = async (userId, payload) => {
+  const response = await adminApi.post(`/auth/admin/users/${userId}/password`, payload);
+  return response.data.data;
+};
+
+export const deleteAdminUser = async (userId) => {
+  const response = await adminApi.delete(`/auth/admin/users/${userId}`);
   return response.data.data;
 };
 

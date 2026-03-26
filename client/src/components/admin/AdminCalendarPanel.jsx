@@ -45,14 +45,48 @@ const toneClasses = {
   'event-hidden': 'bg-rose-50 text-rose-600 hover:bg-rose-100'
 };
 
-const legendItems = [
-  { key: 'holiday-national', label: 'National Holiday' },
-  { key: 'holiday-religious', label: 'Religious Observance' },
-  { key: 'holiday-regional', label: 'Regional Holiday' },
-  { key: 'sports-fixture', label: 'Sports Fixture' },
-  { key: 'event-live', label: 'Published Event' },
-  { key: 'event-hidden', label: 'Hidden Event' }
+const categoryFilters = [
+  {
+    key: 'nationalHoliday',
+    label: 'National Holiday',
+    tone: 'holiday-national',
+    matches: (item) => item.entryType === 'holiday' && item.holidayType === 'national'
+  },
+  {
+    key: 'religiousObservance',
+    label: 'Religious Observance',
+    tone: 'holiday-religious',
+    matches: (item) => item.entryType === 'holiday' && item.holidayType === 'religious'
+  },
+  {
+    key: 'regionalHoliday',
+    label: 'Regional Holiday',
+    tone: 'holiday-regional',
+    matches: (item) => item.entryType === 'holiday' && item.holidayType === 'regional'
+  },
+  {
+    key: 'sportsFixture',
+    label: 'Sports Fixture',
+    tone: 'sports-fixture',
+    matches: (item) => item.entryType === 'sports_fixture'
+  },
+  {
+    key: 'publishedEvent',
+    label: 'Published Event',
+    tone: 'event-live',
+    matches: (item) => item.entryType === 'event' && !item.isHidden
+  },
+  {
+    key: 'hiddenEvent',
+    label: 'Hidden Event',
+    tone: 'event-hidden',
+    matches: (item) => item.entryType === 'event' && Boolean(item.isHidden)
+  }
 ];
+
+const defaultVisibleCategories = Object.fromEntries(
+  categoryFilters.map((filterDefinition) => [filterDefinition.key, true])
+);
 
 const getEntryBadgeClass = (item) =>
   toneClasses[item.colorTone || item.key] || 'bg-slate-100 text-slate-700';
@@ -92,26 +126,46 @@ export default function AdminCalendarPanel({
 }) {
   const [calendarMonth, setCalendarMonth] = useState(() => normalizeMonth(initialMonth));
   const [selectedEntryId, setSelectedEntryId] = useState('');
+  const [visibleCategories, setVisibleCategories] = useState(defaultVisibleCategories);
 
   useEffect(() => {
     setCalendarMonth(normalizeMonth(initialMonth));
   }, [initialMonth]);
 
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) =>
+        categoryFilters.some(
+          (filterDefinition) =>
+            visibleCategories[filterDefinition.key] && filterDefinition.matches(item)
+        )
+      ),
+    [items, visibleCategories]
+  );
+
   useEffect(() => {
-    if (!items.length) {
+    if (!filteredItems.length) {
       setSelectedEntryId('');
       return;
     }
 
     setSelectedEntryId((current) =>
-      items.some((item) => item.entryId === current) ? current : items[0].entryId
+      filteredItems.some((item) => item.entryId === current) ? current : filteredItems[0].entryId
     );
-  }, [items]);
+  }, [filteredItems]);
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth]);
+  const monthLabel = useMemo(
+    () =>
+      calendarMonth.toLocaleString('en-IN', {
+        month: 'long',
+        year: 'numeric'
+      }),
+    [calendarMonth]
+  );
   const selectedItem = useMemo(
-    () => items.find((item) => item.entryId === selectedEntryId) || null,
-    [items, selectedEntryId]
+    () => filteredItems.find((item) => item.entryId === selectedEntryId) || null,
+    [filteredItems, selectedEntryId]
   );
 
   return (
@@ -124,6 +178,12 @@ export default function AdminCalendarPanel({
           <p className="mt-2 text-sm text-slate-500">
             Events, holidays, and sports fixtures share the same planning calendar.
           </p>
+          <div className="mt-4 inline-flex flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-orange">
+              Viewing Month
+            </span>
+            <span className="mt-2 text-2xl font-bold text-slate-950">{monthLabel}</span>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -145,13 +205,79 @@ export default function AdminCalendarPanel({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {legendItems.map((item) => (
-          <span className={`badge ${getEntryBadgeClass(item)}`} key={item.key}>
-            {item.label}
-          </span>
-        ))}
-      </div>
+      <section className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+              Calendar Visibility
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Use the checkboxes to show or hide holidays, fixtures, and TriCore event types.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn-secondary px-4 py-2"
+              onClick={() => setVisibleCategories(defaultVisibleCategories)}
+              type="button"
+            >
+              Show All
+            </button>
+            <button
+              className="btn-secondary px-4 py-2"
+              onClick={() =>
+                setVisibleCategories((current) =>
+                  Object.fromEntries(
+                    Object.keys(current).map((key) => [key, false])
+                  )
+                )
+              }
+              type="button"
+            >
+              Hide All
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {categoryFilters.map((filterDefinition) => {
+            const checked = Boolean(visibleCategories[filterDefinition.key]);
+
+            return (
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
+                  checked
+                    ? 'border-slate-300 bg-white text-slate-800 shadow-soft'
+                    : 'border-slate-200 bg-white/60 text-slate-500'
+                }`}
+                key={filterDefinition.key}
+              >
+                <input
+                  checked={checked}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-blue focus:ring-brand-blue"
+                  onChange={() =>
+                    setVisibleCategories((current) => ({
+                      ...current,
+                      [filterDefinition.key]: !current[filterDefinition.key]
+                    }))
+                  }
+                  type="checkbox"
+                />
+                <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className={`badge ${getEntryBadgeClass({ key: filterDefinition.tone })}`}>
+                      {filterDefinition.label}
+                    </span>
+                  </span>
+                  <span className="mt-2 block text-xs uppercase tracking-[0.16em] text-slate-400">
+                    {checked ? 'Visible on calendar' : 'Hidden from calendar'}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </section>
 
       <div className="grid gap-3 md:grid-cols-7">
         {weekdayLabels.map((day) => (
@@ -160,19 +286,30 @@ export default function AdminCalendarPanel({
           </div>
         ))}
         {calendarDays.map((day) => {
-          const dayItems = items.filter((item) => entryOverlapsDay(item, day));
+          const dayItems = filteredItems.filter((item) => entryOverlapsDay(item, day));
           const isCurrentMonth = day.getMonth() === calendarMonth.getMonth();
+          const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+          const dayClasses = isCurrentMonth
+            ? isWeekend
+              ? 'border-amber-100 bg-amber-50/70'
+              : 'border-slate-200 bg-white'
+            : isWeekend
+              ? 'border-amber-100 bg-amber-50/40'
+              : 'border-slate-100 bg-slate-50/70';
 
           return (
             <div
-              className={`min-h-[156px] rounded-[1.5rem] border p-3 ${
-                isCurrentMonth ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50/70'
-              }`}
+              className={`min-h-[156px] rounded-[1.5rem] border p-3 ${dayClasses}`}
               key={day.toISOString()}
             >
               <p className={`text-sm font-semibold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>
                 {day.getDate()}
               </p>
+              {isWeekend ? (
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-700">
+                  Weekend
+                </p>
+              ) : null}
               <div className="mt-3 space-y-2">
                 {dayItems.slice(0, 3).map((item) => (
                   <button

@@ -153,6 +153,8 @@ export default function AdminSettingsPage() {
   const [invoiceError, setInvoiceError] = useState('');
   const [invoiceMessage, setInvoiceMessage] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [contactSettingsLoading, setContactSettingsLoading] = useState(false);
+  const [contactSubmissionsLoading, setContactSubmissionsLoading] = useState(false);
   const activeTabLoading = Boolean(tabLoading[activeTab]);
   const hasLoadedActiveTab = Boolean(loadedTabs[activeTab]);
 
@@ -170,30 +172,63 @@ export default function AdminSettingsPage() {
     }));
   };
 
-  const loadContactTab = async (
-    nextSubmissionsPage = submissionsPage,
-    nextSubmissionsLimit = submissionsLimit
-  ) => {
-    setTabLoadingState('contact', true);
+  const loadContactSettings = async () => {
+    setContactSettingsLoading(true);
 
     try {
-      const [settingsResponse, submissionsResponse] = await Promise.all([
-        getContactForwardingSettings(),
-        getContactSubmissions({ page: nextSubmissionsPage, limit: nextSubmissionsLimit })
-      ]);
+      const settingsResponse = await getContactForwardingSettings();
 
       setSettings(settingsResponse);
       setRecipientEmails(settingsResponse.contactInquiryEmails || settingsResponse.emails || []);
       setRegistrationCompletedEmails(settingsResponse.registrationCompletedEmails || []);
       setRegistrationFollowUpEmails(settingsResponse.registrationFollowUpEmails || []);
-      setSubmissionData(submissionsResponse);
-      markTabLoaded('contact');
       setLoadError('');
+      return settingsResponse;
     } catch (error) {
       setLoadError(getApiErrorMessage(error, 'Unable to load contact forwarding settings.'));
+      throw error;
     } finally {
-      setTabLoadingState('contact', false);
+      setContactSettingsLoading(false);
       setInitializing(false);
+    }
+  };
+
+  const loadContactSubmissions = async (
+    nextSubmissionsPage = submissionsPage,
+    nextSubmissionsLimit = submissionsLimit
+  ) => {
+    setContactSubmissionsLoading(true);
+
+    try {
+      const submissionsResponse = await getContactSubmissions({
+        page: nextSubmissionsPage,
+        limit: nextSubmissionsLimit
+      });
+
+      setSubmissionData(submissionsResponse);
+      setLoadError('');
+      return submissionsResponse;
+    } catch (error) {
+      setLoadError(getApiErrorMessage(error, 'Unable to load contact enquiries.'));
+      throw error;
+    } finally {
+      setContactSubmissionsLoading(false);
+      setInitializing(false);
+    }
+  };
+
+  const refreshContactTab = async (
+    nextSubmissionsPage = submissionsPage,
+    nextSubmissionsLimit = submissionsLimit
+  ) => {
+    try {
+      await Promise.all([
+        loadContactSettings(),
+        loadContactSubmissions(nextSubmissionsPage, nextSubmissionsLimit)
+      ]);
+      markTabLoaded('contact');
+    } catch {
+      // Each loader already sets the visible error state.
     }
   };
 
@@ -350,8 +385,17 @@ export default function AdminSettingsPage() {
   };
 
   useEffect(() => {
+    if (activeTab !== 'contact') {
+      return;
+    }
+
+    if (!loadedTabs.contact) {
+      void refreshContactTab(submissionsPage, submissionsLimit);
+    }
+  }, [activeTab, loadedTabs.contact]);
+
+  useEffect(() => {
     if (activeTab === 'contact') {
-      loadContactTab(submissionsPage, submissionsLimit);
       return;
     }
 
@@ -374,7 +418,29 @@ export default function AdminSettingsPage() {
         loadPaymentsTab();
       }
     }
-  }, [activeTab, loadedTabs, submissionsLimit, submissionsPage]);
+  }, [activeTab, loadedTabs]);
+
+  useEffect(() => {
+    if (activeTab !== 'contact' || !loadedTabs.contact) {
+      return;
+    }
+
+    const currentPage = submissionData.page || 1;
+    const currentLimit = submissionData.limit || 10;
+
+    if (currentPage === submissionsPage && currentLimit === submissionsLimit) {
+      return;
+    }
+
+    void loadContactSubmissions(submissionsPage, submissionsLimit);
+  }, [
+    activeTab,
+    loadedTabs.contact,
+    submissionData.limit,
+    submissionData.page,
+    submissionsLimit,
+    submissionsPage
+  ]);
 
   const deliverySummary = useMemo(() => {
     const deliveredCount = submissionData.items.filter(
@@ -498,7 +564,6 @@ export default function AdminSettingsPage() {
           ? 'Forwarding recipients updated successfully.'
           : 'Forwarding recipients cleared. System notifications will stay in-app only until email lists are added again.'
       );
-      await loadContactTab(submissionsPage, submissionsLimit);
     } catch (error) {
       setSettingsError(
         getApiErrorMessage(error, error?.message || 'Unable to save contact forwarding settings.')
@@ -1035,7 +1100,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {activeTab === 'contact' ? (
-        activeTabLoading && !loadedTabs.contact ? (
+        (contactSettingsLoading || contactSubmissionsLoading) && !loadedTabs.contact ? (
           <LoadingSpinner compact label="Loading contact settings..." />
         ) : (
         <>
@@ -1158,7 +1223,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <button
                   className="btn-secondary"
-                  onClick={() => loadContactTab(submissionsPage, submissionsLimit)}
+                  onClick={() => refreshContactTab(submissionsPage, submissionsLimit)}
                   type="button"
                 >
                   Refresh
@@ -1170,7 +1235,7 @@ export default function AdminSettingsPage() {
                   columns={contactSubmissionColumns}
                   emptyMessage="No contact enquiries have been submitted yet."
                   exportFileName="contact-enquiries.csv"
-                  loading={Boolean(tabLoading.contact)}
+                  loading={contactSubmissionsLoading}
                   loadingLabel="Loading contact enquiries..."
                   rowKey="_id"
                   rows={submissionData.items}

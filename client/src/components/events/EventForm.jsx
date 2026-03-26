@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import FormAlert from '../common/FormAlert.jsx';
 import TypeaheadSelect from '../common/TypeaheadSelect.jsx';
@@ -42,6 +42,37 @@ const toDateTimeLocalValue = (value) => {
   return localTime.toISOString().slice(0, 16);
 };
 
+const isValidBannerImageReference = (value) => {
+  const normalized = String(value || '').trim();
+
+  if (!normalized) {
+    return true;
+  }
+
+  if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(normalized)) {
+    return true;
+  }
+
+  if (/^\/uploads\//.test(normalized)) {
+    return true;
+  }
+
+  try {
+    const url = new URL(normalized);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error(`Unable to read ${file.name}.`));
+    reader.readAsDataURL(file);
+  });
+
 const getEventErrors = (form) => {
   const errors = {};
   const todayStart = new Date();
@@ -55,12 +86,8 @@ const getEventErrors = (form) => {
     errors.venue = 'Venue must be at least 3 characters.';
   }
 
-  if (form.bannerImage?.trim()) {
-    try {
-      new URL(form.bannerImage.trim());
-    } catch {
-      errors.bannerImage = 'Banner image must be a valid URL.';
-    }
+  if (!isValidBannerImageReference(form.bannerImage)) {
+    errors.bannerImage = 'Banner image must be a valid URL or uploaded image.';
   }
 
   if (!form.startDate) {
@@ -126,7 +153,63 @@ const getEventErrors = (form) => {
   return errors;
 };
 
+function FloatingField({
+  error,
+  id,
+  inputRef,
+  label,
+  min,
+  name,
+  onChange,
+  required = false,
+  textarea = false,
+  type = 'text',
+  value
+}) {
+  const hasValue = value !== '' && value !== null && value !== undefined;
+  const labelClassName = textarea
+    ? hasValue
+      ? 'floating-label'
+      : 'floating-label floating-label-empty-textarea'
+    : hasValue
+      ? 'floating-label'
+      : 'floating-label floating-label-empty';
+
+  return (
+    <div className="floating-field">
+      {textarea ? (
+        <textarea
+          className={`floating-textarea peer ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : ''}`.trim()}
+          id={id}
+          name={name}
+          onChange={onChange}
+          placeholder={label}
+          required={required}
+          value={value}
+        />
+      ) : (
+        <input
+          className={`floating-input peer ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : ''}`.trim()}
+          id={id}
+          min={min}
+          name={name}
+          onChange={onChange}
+          placeholder={label}
+          ref={inputRef}
+          required={required}
+          type={type}
+          value={value}
+        />
+      )}
+      <label className={labelClassName} htmlFor={id}>
+        {label}
+      </label>
+    </div>
+  );
+}
+
 export default function EventForm({
+  autoFocusToken,
   initialValues,
   onCancel,
   onSubmit,
@@ -136,11 +219,30 @@ export default function EventForm({
 }) {
   const [form, setForm] = useState(initialValues || defaultState);
   const [errors, setErrors] = useState({});
+  const formRef = useRef(null);
+  const eventNameInputRef = useRef(null);
 
   useEffect(() => {
     setForm(initialValues || defaultState);
     setErrors({});
   }, [initialValues]);
+
+  useEffect(() => {
+    if (!initialValues?._id) {
+      return;
+    }
+
+    const scrollToEditor = window.requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      window.requestAnimationFrame(() => {
+        eventNameInputRef.current?.focus();
+        eventNameInputRef.current?.select?.();
+      });
+    });
+
+    return () => window.cancelAnimationFrame(scrollToEditor);
+  }, [autoFocusToken, initialValues?._id]);
 
   const handleChange = (event) => {
     const { checked, name, type, value } = event.target;
@@ -159,6 +261,34 @@ export default function EventForm({
       delete nextErrors[name];
       return nextErrors;
     });
+  };
+
+  const handleBannerImageUpload = async (file) => {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const imageUrl = await readFileAsDataUrl(file);
+      setForm((current) => ({
+        ...current,
+        bannerImage: imageUrl
+      }));
+      setErrors((current) => {
+        if (!current.bannerImage) {
+          return current;
+        }
+
+        const nextErrors = { ...current };
+        delete nextErrors.bannerImage;
+        return nextErrors;
+      });
+    } catch (uploadError) {
+      setErrors((current) => ({
+        ...current,
+        bannerImage: uploadError.message || 'Unable to upload the banner image.'
+      }));
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -182,7 +312,7 @@ export default function EventForm({
     errors[field] ? <p className="mt-2 text-xs font-medium text-red-600">{errors[field]}</p> : null;
 
   return (
-    <form className="panel space-y-6 p-6" onSubmit={handleSubmit}>
+    <form className="panel space-y-6 p-6" onSubmit={handleSubmit} ref={formRef}>
       <div>
         <h3 className="text-xl font-bold">{form._id ? 'Edit Event' : 'Create Event'}</h3>
         <p className="mt-2 text-sm text-slate-500">Configure sports event settings, registration rules, and participant limits.</p>
@@ -193,17 +323,28 @@ export default function EventForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
-          <label className="label" htmlFor="name">
-            Event Name
-          </label>
-          <input className="input" id="name" name="name" onChange={handleChange} required value={form.name} />
+          <FloatingField
+            error={errors.name}
+            id="name"
+            inputRef={eventNameInputRef}
+            label="Event Name"
+            name="name"
+            onChange={handleChange}
+            required
+            value={form.name}
+          />
           {renderFieldError('name')}
         </div>
         <div className="md:col-span-2">
-          <label className="label" htmlFor="description">
-            Description
-          </label>
-          <textarea className="input min-h-28" id="description" name="description" onChange={handleChange} value={form.description} />
+          <FloatingField
+            error={errors.description}
+            id="description"
+            label="Description"
+            name="description"
+            onChange={handleChange}
+            textarea
+            value={form.description}
+          />
         </div>
         <div>
           <label className="label" htmlFor="sportType">
@@ -220,33 +361,48 @@ export default function EventForm({
           />
         </div>
         <div>
-          <label className="label" htmlFor="venue">
-            Venue
-          </label>
-          <input className="input" id="venue" name="venue" onChange={handleChange} required value={form.venue} />
+          <FloatingField
+            error={errors.venue}
+            id="venue"
+            label="Venue"
+            name="venue"
+            onChange={handleChange}
+            required
+            value={form.venue}
+          />
           {renderFieldError('venue')}
         </div>
         <div>
-          <label className="label" htmlFor="startDate">
-            Start Date
-          </label>
-          <input className="input" id="startDate" name="startDate" onChange={handleChange} required type="date" value={form.startDate?.slice(0, 10) || ''} />
+          <FloatingField
+            error={errors.startDate}
+            id="startDate"
+            label="Start Date"
+            name="startDate"
+            onChange={handleChange}
+            required
+            type="date"
+            value={form.startDate?.slice(0, 10) || ''}
+          />
           {renderFieldError('startDate')}
         </div>
         <div>
-          <label className="label" htmlFor="endDate">
-            End Date
-          </label>
-          <input className="input" id="endDate" name="endDate" onChange={handleChange} required type="date" value={form.endDate?.slice(0, 10) || ''} />
+          <FloatingField
+            error={errors.endDate}
+            id="endDate"
+            label="End Date"
+            name="endDate"
+            onChange={handleChange}
+            required
+            type="date"
+            value={form.endDate?.slice(0, 10) || ''}
+          />
           {renderFieldError('endDate')}
         </div>
         <div>
-          <label className="label" htmlFor="registrationDeadline">
-            Registration Deadline <span className="text-slate-400">(optional)</span>
-          </label>
-          <input
-            className="input"
+          <FloatingField
+            error={errors.registrationDeadline}
             id="registrationDeadline"
+            label="Registration Deadline (optional)"
             name="registrationDeadline"
             onChange={handleChange}
             type="date"
@@ -255,12 +411,10 @@ export default function EventForm({
           {renderFieldError('registrationDeadline')}
         </div>
         <div>
-          <label className="label" htmlFor="registrationStartDate">
-            Registration Start Date <span className="text-slate-400">(optional)</span>
-          </label>
-          <input
-            className="input"
+          <FloatingField
+            error={errors.registrationStartDate}
             id="registrationStartDate"
+            label="Registration Start Date (optional)"
             name="registrationStartDate"
             onChange={handleChange}
             type="datetime-local"
@@ -272,38 +426,98 @@ export default function EventForm({
           </p>
         </div>
         <div>
-          <label className="label" htmlFor="bannerImage">
-            Banner Image URL
-          </label>
-          <input className="input" id="bannerImage" name="bannerImage" onChange={handleChange} value={form.bannerImage} />
+          <FloatingField
+            error={errors.bannerImage}
+            id="bannerImage"
+            label="Banner Image URL or /uploads path"
+            name="bannerImage"
+            onChange={handleChange}
+            value={form.bannerImage}
+          />
           {renderFieldError('bannerImage')}
+          <p className="mt-2 text-xs text-slate-500">
+            Paste an image URL or upload a banner file. Uploaded images are stored on this server and only
+            the file path is saved in MongoDB.
+          </p>
         </div>
         <div>
-          <label className="label" htmlFor="maxParticipants">
-            Max Participants / Teams
+          <label className="label" htmlFor="bannerImageUpload">
+            Upload Banner Image
           </label>
-          <input className="input" id="maxParticipants" min="1" name="maxParticipants" onChange={handleChange} required type="number" value={form.maxParticipants} />
+          <input
+            accept="image/*"
+            className="input"
+            id="bannerImageUpload"
+            onChange={(event) => {
+              void handleBannerImageUpload(event.target.files?.[0]);
+              event.target.value = '';
+            }}
+            type="file"
+          />
+          {form.bannerImage ? (
+            <div className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-3">
+              <img
+                alt={form.name || 'Event banner preview'}
+                className="max-h-52 w-full rounded-2xl object-cover"
+                src={form.bannerImage}
+              />
+            </div>
+          ) : null}
+        </div>
+        <div>
+          <FloatingField
+            error={errors.maxParticipants}
+            id="maxParticipants"
+            label="Max Participants / Teams"
+            min="1"
+            name="maxParticipants"
+            onChange={handleChange}
+            required
+            type="number"
+            value={form.maxParticipants}
+          />
           {renderFieldError('maxParticipants')}
         </div>
         <div>
-          <label className="label" htmlFor="entryFee">
-            Entry Fee
-          </label>
-          <input className="input" id="entryFee" min="0" name="entryFee" onChange={handleChange} required type="number" value={form.entryFee} />
+          <FloatingField
+            error={errors.entryFee}
+            id="entryFee"
+            label="Entry Fee"
+            min="0"
+            name="entryFee"
+            onChange={handleChange}
+            required
+            type="number"
+            value={form.entryFee}
+          />
           {renderFieldError('entryFee')}
         </div>
         <div>
-          <label className="label" htmlFor="teamSize">
-            Team Size
-          </label>
-          <input className="input" id="teamSize" min="1" name="teamSize" onChange={handleChange} required type="number" value={form.teamSize} />
+          <FloatingField
+            error={errors.teamSize}
+            id="teamSize"
+            label="Team Size"
+            min="1"
+            name="teamSize"
+            onChange={handleChange}
+            required
+            type="number"
+            value={form.teamSize}
+          />
           {renderFieldError('teamSize')}
         </div>
         <div>
-          <label className="label" htmlFor="playerLimit">
-            Player Limit
-          </label>
-          <input className="input" id="playerLimit" min="1" name="playerLimit" onChange={handleChange} required type="number" value={form.playerLimit} />
+          <FloatingField
+            error={errors.playerLimit}
+            id="playerLimit"
+            label="Player Limit"
+            min="1"
+            name="playerLimit"
+            onChange={handleChange}
+            required
+            type="number"
+            value={form.playerLimit}
+          />
           {renderFieldError('playerLimit')}
         </div>
       </div>

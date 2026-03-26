@@ -45,6 +45,7 @@ export default function AdminEventsPage() {
   const [catalogView, setCatalogView] = useState('list');
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [editFocusToken, setEditFocusToken] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [formResetCounter, setFormResetCounter] = useState(0);
   const [formError, setFormError] = useState('');
@@ -230,6 +231,13 @@ export default function AdminEventsPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditEvent = (eventItem) => {
+    setEditingEvent(eventItem);
+    setEditFocusToken((current) => current + 1);
+    setFormError('');
+    setFormSuccess('');
   };
 
   const handleDelete = async (eventItem) => {
@@ -419,7 +427,7 @@ export default function AdminEventsPage() {
         sortable: false,
         cell: (item) => (
           <div className="flex flex-wrap gap-2">
-            <button className="btn-secondary px-4 py-2" onClick={() => setEditingEvent(item)} type="button">
+            <button className="btn-secondary px-4 py-2" onClick={() => handleEditEvent(item)} type="button">
               Edit
             </button>
             <button
@@ -555,6 +563,7 @@ export default function AdminEventsPage() {
     >
       <div className="space-y-8">
         <EventForm
+          autoFocusToken={editFocusToken}
           errorMessage={formError}
           initialValues={editingEvent}
           key={editingEvent?._id || `new-${formResetCounter}`}

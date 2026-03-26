@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { AppSetting } from '../models/AppSetting.js';
-import { persistImageReference } from './imageStorageService.js';
+import { isImageDataUrl, persistImageReference } from './imageStorageService.js';
 
 export const HOME_PAGE_CONTENT_SETTINGS_KEY = 'home-page-content-config';
 
@@ -157,6 +157,17 @@ const DEFAULT_HOME_PAGE_CONTENT = {
 
 const populateUpdatedBy = (query) => query.populate('updatedBy', 'name username email');
 
+const imageOptions = {
+  galleryHome: { folder: 'gallery/home', filenamePrefix: 'home-gallery', maxWidth: 1600, quality: 78 },
+  galleryAbout: { folder: 'gallery/about', filenamePrefix: 'about-gallery', maxWidth: 1600, quality: 78 },
+  intro: { folder: 'home-page', filenamePrefix: 'intro', maxWidth: 1600, quality: 80 },
+  speaker: { folder: 'home-speakers', filenamePrefix: 'speaker', maxWidth: 960, quality: 80 },
+  highlight: { folder: 'home-highlights', filenamePrefix: 'highlight', maxWidth: 1440, quality: 78 },
+  testimonial: { folder: 'home-testimonials', filenamePrefix: 'testimonial', maxWidth: 1200, quality: 80 },
+  avatar: { folder: 'home-avatars', filenamePrefix: 'avatar', maxWidth: 640, quality: 82 },
+  cta: { folder: 'home-page', filenamePrefix: 'cta', maxWidth: 1600, quality: 80 }
+};
+
 const normalizeSpeaker = (speaker = {}, index = 0) => ({
   id: normalizeText(speaker.id) || randomUUID(),
   name: normalizeText(speaker.name) || `Speaker ${index + 1}`,
@@ -194,6 +205,118 @@ const normalizeTestimonial = (testimonial = {}, index = 0) => ({
   avatarUrl: normalizeText(testimonial.avatarUrl),
   avatarAlt: normalizeText(testimonial.avatarAlt) || normalizeText(testimonial.name) || `Attendee ${index + 1}`
 });
+
+const migrateHomePageContentImages = async (settingDocument) => {
+  if (!settingDocument) {
+    return null;
+  }
+
+  const stored = settingDocument.value || {};
+  let hasChanges = false;
+  const migrateImageValue = async (value, options) => {
+    if (!isImageDataUrl(value)) {
+      return normalizeText(value);
+    }
+
+    hasChanges = true;
+    return persistImageReference(value, options);
+  };
+
+  const nextValue = {
+    ...stored,
+    galleryImages: Array.isArray(stored.galleryImages)
+      ? await Promise.all(
+          stored.galleryImages.map(async (image, index) =>
+            normalizeGalleryImage(
+              {
+                ...image,
+                imageUrl: await migrateImageValue(image.imageUrl, imageOptions.galleryHome)
+              },
+              index
+            )
+          )
+        )
+      : stored.galleryImages,
+    homeGalleryImages: Array.isArray(stored.homeGalleryImages)
+      ? await Promise.all(
+          stored.homeGalleryImages.map(async (image, index) =>
+            normalizeGalleryImage(
+              {
+                ...image,
+                imageUrl: await migrateImageValue(image.imageUrl, imageOptions.galleryHome)
+              },
+              index
+            )
+          )
+        )
+      : stored.homeGalleryImages,
+    aboutGalleryImages: Array.isArray(stored.aboutGalleryImages)
+      ? await Promise.all(
+          stored.aboutGalleryImages.map(async (image, index) =>
+            normalizeGalleryImage(
+              {
+                ...image,
+                imageUrl: await migrateImageValue(image.imageUrl, imageOptions.galleryAbout)
+              },
+              index
+            )
+          )
+        )
+      : stored.aboutGalleryImages,
+    introImageUrl: await migrateImageValue(stored.introImageUrl, imageOptions.intro),
+    speakers: Array.isArray(stored.speakers)
+      ? await Promise.all(
+          stored.speakers.map(async (speaker, index) =>
+            normalizeSpeaker(
+              {
+                ...speaker,
+                imageUrl: await migrateImageValue(speaker.imageUrl, imageOptions.speaker)
+              },
+              index
+            )
+          )
+        )
+      : stored.speakers,
+    highlightImages: Array.isArray(stored.highlightImages)
+      ? await Promise.all(
+          stored.highlightImages.map(async (image, index) =>
+            normalizeHighlightImage(
+              {
+                ...image,
+                imageUrl: await migrateImageValue(image.imageUrl, imageOptions.highlight)
+              },
+              index
+            )
+          )
+        )
+      : stored.highlightImages,
+    testimonials: Array.isArray(stored.testimonials)
+      ? await Promise.all(
+          stored.testimonials.map(async (testimonial, index) =>
+            normalizeTestimonial(
+              {
+                ...testimonial,
+                imageUrl: await migrateImageValue(testimonial.imageUrl, imageOptions.testimonial),
+                avatarUrl: await migrateImageValue(testimonial.avatarUrl, imageOptions.avatar)
+              },
+              index
+            )
+          )
+        )
+      : stored.testimonials,
+    ctaImageUrl: await migrateImageValue(stored.ctaImageUrl, imageOptions.cta)
+  };
+
+  if (!hasChanges) {
+    return settingDocument;
+  }
+
+  settingDocument.value = nextValue;
+  settingDocument.markModified('value');
+  await settingDocument.save();
+
+  return populateUpdatedBy(AppSetting.findById(settingDocument._id));
+};
 
 const serializeHomePageContent = (settingDocument) => {
   const stored = settingDocument?.value || {};
@@ -299,7 +422,9 @@ const serializeHomePageContent = (settingDocument) => {
 };
 
 export const getHomePageContentSettingDocument = async () =>
-  populateUpdatedBy(AppSetting.findOne({ key: HOME_PAGE_CONTENT_SETTINGS_KEY }));
+  migrateHomePageContentImages(
+    await populateUpdatedBy(AppSetting.findOne({ key: HOME_PAGE_CONTENT_SETTINGS_KEY }))
+  );
 
 export const getHomePageContent = async () =>
   serializeHomePageContent(await getHomePageContentSettingDocument());
@@ -331,10 +456,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
             normalizeGalleryImage(
               {
                 ...image,
-                imageUrl: await persistImageReference(image.imageUrl, {
-                  folder: 'gallery/home',
-                  filenamePrefix: 'home-gallery'
-                })
+                imageUrl: await persistImageReference(image.imageUrl, imageOptions.galleryHome)
               },
               index
             )
@@ -349,10 +471,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
             normalizeGalleryImage(
               {
                 ...image,
-                imageUrl: await persistImageReference(image.imageUrl, {
-                  folder: 'gallery/about',
-                  filenamePrefix: 'about-gallery'
-                })
+                imageUrl: await persistImageReference(image.imageUrl, imageOptions.galleryAbout)
               },
               index
             )
@@ -364,10 +483,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
     introDescription: normalizeText(payload.introDescription),
     introActionLabel: normalizeText(payload.introActionLabel),
     introActionHref: normalizeText(payload.introActionHref),
-    introImageUrl: await persistImageReference(payload.introImageUrl, {
-      folder: 'home-page',
-      filenamePrefix: 'intro'
-    }),
+    introImageUrl: await persistImageReference(payload.introImageUrl, imageOptions.intro),
     introImageAlt: normalizeText(payload.introImageAlt),
     speakersTitle: normalizeText(payload.speakersTitle),
     speakersDescription: normalizeText(payload.speakersDescription),
@@ -377,10 +493,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
             normalizeSpeaker(
               {
                 ...speaker,
-                imageUrl: await persistImageReference(speaker.imageUrl, {
-                  folder: 'home-speakers',
-                  filenamePrefix: 'speaker'
-                })
+                imageUrl: await persistImageReference(speaker.imageUrl, imageOptions.speaker)
               },
               index
             )
@@ -396,10 +509,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
             normalizeHighlightImage(
               {
                 ...image,
-                imageUrl: await persistImageReference(image.imageUrl, {
-                  folder: 'home-highlights',
-                  filenamePrefix: 'highlight'
-                })
+                imageUrl: await persistImageReference(image.imageUrl, imageOptions.highlight)
               },
               index
             )
@@ -416,14 +526,8 @@ export const updateHomePageContent = async ({ payload, userId }) => {
             normalizeTestimonial(
               {
                 ...testimonial,
-                imageUrl: await persistImageReference(testimonial.imageUrl, {
-                  folder: 'home-testimonials',
-                  filenamePrefix: 'testimonial'
-                }),
-                avatarUrl: await persistImageReference(testimonial.avatarUrl, {
-                  folder: 'home-avatars',
-                  filenamePrefix: 'avatar'
-                })
+                imageUrl: await persistImageReference(testimonial.imageUrl, imageOptions.testimonial),
+                avatarUrl: await persistImageReference(testimonial.avatarUrl, imageOptions.avatar)
               },
               index
             )
@@ -435,10 +539,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
     ctaDescription: normalizeText(payload.ctaDescription),
     ctaActionLabel: normalizeText(payload.ctaActionLabel),
     ctaActionHref: normalizeText(payload.ctaActionHref),
-    ctaImageUrl: await persistImageReference(payload.ctaImageUrl, {
-      folder: 'home-page',
-      filenamePrefix: 'cta'
-    }),
+    ctaImageUrl: await persistImageReference(payload.ctaImageUrl, imageOptions.cta),
     ctaImageAlt: normalizeText(payload.ctaImageAlt)
   };
 

@@ -33,20 +33,23 @@ const adminLinks = [
   { to: '/admin-portal/settings', label: 'Settings', icon: 'settings', permissions: [adminPermissions.settings] }
 ];
 
+const alwaysVisibleLinks = [{ to: '/admin-portal/user-manual', label: 'User Manual', icon: 'book' }];
+
 export default function AdminNav() {
   const { user } = useAdminAuth();
   const visibleLinks = adminLinks.filter((link) =>
     hasAnyAdminPermission(user, link.permissions)
   );
+  const combinedLinks = [...visibleLinks, ...alwaysVisibleLinks];
 
   return (
-    <div className="mb-8 overflow-x-auto">
-      <div className="inline-flex min-w-full gap-3 rounded-[2rem] border border-slate-200 bg-white/85 p-2 shadow-soft backdrop-blur">
-        {visibleLinks.map((link) => (
+    <div className="mb-8">
+      <div className="grid gap-2 rounded-[2rem] border border-slate-200 bg-white/85 p-2 shadow-soft backdrop-blur sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9">
+        {combinedLinks.map((link) => (
           <NavLink
             key={link.to}
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+              `flex min-h-[52px] items-center justify-center gap-2 rounded-[1.2rem] px-4 py-3 text-center text-sm font-semibold transition ${
                 isActive
                   ? 'bg-brand-blue text-white shadow-sm'
                   : 'text-slate-600 hover:bg-brand-mist hover:text-brand-blue'
@@ -58,7 +61,7 @@ export default function AdminNav() {
             <span className="rounded-full bg-white/15 p-1">
               <AppIcon className="h-4 w-4" name={link.icon} />
             </span>
-            {link.label}
+            <span>{link.label}</span>
           </NavLink>
         ))}
       </div>

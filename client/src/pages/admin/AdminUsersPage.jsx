@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 
 import {
   changeAdminPassword,
+  deleteAdminUser,
   deleteAdminRoleTemplate,
   createAdminRoleTemplate,
   createAdminUser,
   getAdminRoleTemplates,
   getAdminUsers,
+  resetAdminUserPassword,
+  updateAdminUser,
   updateAdminRoleTemplateStatus,
   updateAdminRoleTemplate,
   updateAdminUserAccess
@@ -29,6 +32,7 @@ import {
   getRolePermissions,
   isBuiltInAdminRole
 } from '../../data/adminAccess.js';
+import useAdminAuth from '../../hooks/useAdminAuth.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
 import { formatDate } from '../../utils/formatters.js';
 
@@ -54,16 +58,29 @@ const createInitialRoleEditForm = () => ({
   permissions: []
 });
 
+const createInitialEditUserForm = () => ({
+  name: '',
+  username: '',
+  email: ''
+});
+
 const passwordInitialForm = {
   currentPassword: '',
   newPassword: ''
 };
 
+const adminPasswordResetInitialForm = {
+  userId: '',
+  newPassword: ''
+};
+
 const permissionOptions = Object.values(adminPermissions);
+const managedCoreUsernames = ['tricore', 'kenny', 'vinod'];
 
 const userTabs = [
   { key: 'accounts', label: 'Admin Accounts', icon: 'users' },
   { key: 'create', label: 'Create Admin User', icon: 'userPlus' },
+  { key: 'edit', label: 'Edit Admin User', icon: 'settings' },
   { key: 'roles', label: 'Create Roles', icon: 'role' },
   { key: 'access', label: 'Modify Role Access', icon: 'security' },
   { key: 'password', label: 'Change Password', icon: 'key' }
@@ -194,21 +211,30 @@ function TabButton({ active, icon, label, onClick }) {
 }
 
 export default function AdminUsersPage() {
+  const { user: currentAdmin } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('accounts');
   const [users, setUsers] = useState([]);
   const [roleTemplates, setRoleTemplates] = useState([]);
   const [createForm, setCreateForm] = useState(createInitialUserForm);
   const [createRoleForm, setCreateRoleForm] = useState(createInitialRoleForm);
+  const [editUserForm, setEditUserForm] = useState(createInitialEditUserForm);
   const [passwordForm, setPasswordForm] = useState(passwordInitialForm);
+  const [adminPasswordResetForm, setAdminPasswordResetForm] = useState(adminPasswordResetInitialForm);
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedEditableUserId, setSelectedEditableUserId] = useState('');
   const [selectedRoleKey, setSelectedRoleKey] = useState('');
   const [accessForm, setAccessForm] = useState(buildAccessForm(null));
   const [editRoleForm, setEditRoleForm] = useState(createInitialRoleEditForm);
   const [createMessage, setCreateMessage] = useState('');
   const [createError, setCreateError] = useState('');
+  const [editUserMessage, setEditUserMessage] = useState('');
+  const [editUserError, setEditUserError] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [adminPasswordResetMessage, setAdminPasswordResetMessage] = useState('');
+  const [adminPasswordResetError, setAdminPasswordResetError] = useState('');
   const [listError, setListError] = useState('');
+  const [listMessage, setListMessage] = useState('');
   const [listLoading, setListLoading] = useState(true);
   const [roleTemplatesLoading, setRoleTemplatesLoading] = useState(true);
   const [roleTemplatesError, setRoleTemplatesError] = useState('');
@@ -216,9 +242,12 @@ export default function AdminUsersPage() {
   const [accessMessage, setAccessMessage] = useState('');
   const [accessError, setAccessError] = useState('');
   const [accessSaving, setAccessSaving] = useState(false);
+  const [editUserSaving, setEditUserSaving] = useState(false);
   const [roleTemplateSaving, setRoleTemplateSaving] = useState(false);
   const [roleStatusSavingKey, setRoleStatusSavingKey] = useState('');
   const [deletingRoleKey, setDeletingRoleKey] = useState('');
+  const [adminPasswordResetSaving, setAdminPasswordResetSaving] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState('');
 
   const loadUsers = async () => {
     setListLoading(true);
@@ -254,13 +283,18 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (!users.length) {
       setSelectedUserId('');
+      setSelectedEditableUserId('');
       return;
     }
 
     if (!users.some((user) => user._id === selectedUserId)) {
       setSelectedUserId(users[0]._id);
     }
-  }, [selectedUserId, users]);
+
+    if (!users.some((user) => user._id === selectedEditableUserId)) {
+      setSelectedEditableUserId(users[0]._id);
+    }
+  }, [selectedEditableUserId, selectedUserId, users]);
 
   useEffect(() => {
     if (!roleTemplates.length) {
@@ -277,6 +311,11 @@ export default function AdminUsersPage() {
   const selectedUser = useMemo(
     () => users.find((user) => user._id === selectedUserId) || null,
     [selectedUserId, users]
+  );
+
+  const selectedEditableUser = useMemo(
+    () => users.find((user) => user._id === selectedEditableUserId) || null,
+    [selectedEditableUserId, users]
   );
 
   const selectedRoleTemplate = useMemo(
@@ -344,6 +383,28 @@ export default function AdminUsersPage() {
     setAccessError('');
     setAccessMessage('');
   }, [selectedUser]);
+
+  useEffect(() => {
+    if (!selectedEditableUser) {
+      setEditUserForm(createInitialEditUserForm());
+      setAdminPasswordResetForm(adminPasswordResetInitialForm);
+      return;
+    }
+
+    setEditUserForm({
+      name: selectedEditableUser.name || '',
+      username: selectedEditableUser.username || '',
+      email: selectedEditableUser.email || ''
+    });
+    setAdminPasswordResetForm((current) => ({
+      ...current,
+      userId: selectedEditableUser._id
+    }));
+    setEditUserError('');
+    setEditUserMessage('');
+    setAdminPasswordResetError('');
+    setAdminPasswordResetMessage('');
+  }, [selectedEditableUser]);
 
   useEffect(() => {
     if (!selectedRoleTemplate) {
@@ -444,22 +505,60 @@ export default function AdminUsersPage() {
         accessor: () => '',
         exportable: false,
         sortable: false,
-        cell: (user) => (
-          <button
-            className="btn-secondary gap-2 px-4 py-2"
-            onClick={() => {
-              setSelectedUserId(user._id);
-              setActiveTab('access');
-            }}
-            type="button"
-          >
-            <AppIcon className="h-4 w-4" name="security" />
-            Manage Access
-          </button>
-        )
+        cell: (user) => {
+          const isCurrentAccount = String(user._id) === String(currentAdmin?._id);
+          const isManagedCoreUser = managedCoreUsernames.includes(String(user.username || '').toLowerCase());
+
+          return (
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="btn-secondary gap-2 px-4 py-2"
+                onClick={() => {
+                  setSelectedEditableUserId(user._id);
+                  setActiveTab('edit');
+                }}
+                type="button"
+              >
+                <AppIcon className="h-4 w-4" name="settings" />
+                Edit
+              </button>
+              <button
+                className="btn-secondary gap-2 px-4 py-2"
+                onClick={() => {
+                  setSelectedUserId(user._id);
+                  setActiveTab('access');
+                }}
+                type="button"
+              >
+                <AppIcon className="h-4 w-4" name="security" />
+                Access
+              </button>
+              <button
+                className="btn-secondary gap-2 px-4 py-2"
+                onClick={() => {
+                  setSelectedEditableUserId(user._id);
+                  setActiveTab('password');
+                }}
+                type="button"
+              >
+                <AppIcon className="h-4 w-4" name="key" />
+                Password
+              </button>
+              <button
+                className="btn-secondary gap-2 border-rose-200 px-4 py-2 text-rose-600 hover:bg-rose-50"
+                disabled={isCurrentAccount || isManagedCoreUser || deletingUserId === user._id}
+                onClick={() => handleDeleteUser(user)}
+                type="button"
+              >
+                <AppIcon className="h-4 w-4" name="warning" />
+                {deletingUserId === user._id ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          );
+        }
       }
     ],
-    [roleTemplates]
+    [currentAdmin?._id, deletingUserId, roleTemplates]
   );
 
   const roleTemplateColumns = useMemo(
@@ -658,6 +757,52 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleEditUser = async (event) => {
+    event.preventDefault();
+
+    if (!selectedEditableUser?._id) {
+      setEditUserError('Select an admin user first.');
+      return;
+    }
+
+    if (!editUserForm.name.trim()) {
+      setEditUserError('Full name is required.');
+      return;
+    }
+
+    if (editUserForm.username.trim().length < 3) {
+      setEditUserError('Username must be at least 3 characters.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUserForm.email.trim())) {
+      setEditUserError('Enter a valid email address.');
+      return;
+    }
+
+    setEditUserSaving(true);
+    setEditUserError('');
+    setEditUserMessage('');
+    setListError('');
+    setListMessage('');
+
+    try {
+      const response = await updateAdminUser(selectedEditableUser._id, {
+        name: editUserForm.name.trim(),
+        username: editUserForm.username.trim().toLowerCase(),
+        email: editUserForm.email.trim().toLowerCase()
+      });
+
+      setUsers((current) => current.map((user) => (user._id === response._id ? response : user)));
+      setEditUserMessage(`User details updated for ${response.name}.`);
+      setListMessage(`User details updated for ${response.name}.`);
+    } catch (requestError) {
+      setEditUserError(getApiErrorMessage(requestError, 'Unable to update admin user details.'));
+    } finally {
+      setEditUserSaving(false);
+    }
+  };
+
   const handleCreateRoleTemplate = async (event) => {
     event.preventDefault();
 
@@ -789,6 +934,72 @@ export default function AdminUsersPage() {
       setPasswordForm({ ...passwordInitialForm });
     } catch (requestError) {
       setPasswordError(getApiErrorMessage(requestError, 'Unable to update password.'));
+    }
+  };
+
+  const handleResetAdminUserPassword = async (event) => {
+    event.preventDefault();
+
+    if (!selectedEditableUser?._id) {
+      setAdminPasswordResetError('Select an admin user first.');
+      return;
+    }
+
+    if (adminPasswordResetForm.newPassword.length < 6) {
+      setAdminPasswordResetError('New password must be at least 6 characters.');
+      return;
+    }
+
+    setAdminPasswordResetSaving(true);
+    setAdminPasswordResetError('');
+    setAdminPasswordResetMessage('');
+    setListError('');
+    setListMessage('');
+
+    try {
+      await resetAdminUserPassword(selectedEditableUser._id, {
+        newPassword: adminPasswordResetForm.newPassword
+      });
+      setAdminPasswordResetMessage(`Password updated for ${selectedEditableUser.name}.`);
+      setListMessage(`Password updated for ${selectedEditableUser.name}.`);
+      setAdminPasswordResetForm((current) => ({
+        ...current,
+        newPassword: ''
+      }));
+    } catch (requestError) {
+      setAdminPasswordResetError(
+        getApiErrorMessage(requestError, 'Unable to update this admin password.')
+      );
+    } finally {
+      setAdminPasswordResetSaving(false);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!user?._id) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Delete the admin user "${user.name}" (${user.username})? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingUserId(user._id);
+    setListError('');
+    setListMessage('');
+
+    try {
+      await deleteAdminUser(user._id);
+      setUsers((current) => current.filter((currentUser) => currentUser._id !== user._id));
+      setListMessage(`Deleted admin user ${user.username}.`);
+    } catch (requestError) {
+      setListError(getApiErrorMessage(requestError, 'Unable to delete the admin user.'));
+    } finally {
+      setDeletingUserId('');
     }
   };
 
@@ -947,6 +1158,7 @@ export default function AdminUsersPage() {
 
             <div className="mt-4">
               <FormAlert message={listError} />
+              <FormAlert message={listMessage} type="success" />
             </div>
 
             <div className="mt-6">
@@ -1175,6 +1387,174 @@ export default function AdminUsersPage() {
               <div className="mt-3">
                 <PermissionBadgeCloud permissions={createRolePreviewPermissions} />
               </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {activeTab === 'edit' ? (
+        <div className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
+          <form className="panel space-y-5 p-6" onSubmit={handleEditUser}>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Edit Admin User</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Update the basic identity details for the selected admin account. Page access is
+                  still managed from the Modify Role Access tab.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-brand-mist p-3 text-brand-blue">
+                <AppIcon className="h-5 w-5" name="settings" />
+              </div>
+            </div>
+
+            <FormAlert message={editUserError} />
+            <FormAlert message={editUserMessage} type="success" />
+
+            <div>
+              <label className="label" htmlFor="edit-admin-user">
+                Select Admin User
+              </label>
+              <TypeaheadSelect
+                disabled={!users.length}
+                id="edit-admin-user"
+                noOptionsMessage="No admin users available."
+                onChange={(event) => setSelectedEditableUserId(event.target.value)}
+                options={adminUserOptions}
+                placeholder="Select admin user"
+                searchPlaceholder="Search admin users"
+                value={selectedEditableUserId}
+              />
+            </div>
+
+            {selectedEditableUser ? (
+              <>
+                <div className="rounded-3xl bg-slate-50 p-5">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                    Current Account
+                  </p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">{selectedEditableUser.name}</p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {selectedEditableUser.email || selectedEditableUser.username}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Role: {getAdminRoleLabel(selectedEditableUser)}
+                  </p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div>
+                    <label className="label" htmlFor="edit-admin-name">
+                      Full Name
+                    </label>
+                    <input
+                      className="input"
+                      id="edit-admin-name"
+                      onChange={(event) =>
+                        setEditUserForm((current) => ({ ...current, name: event.target.value }))
+                      }
+                      required
+                      value={editUserForm.name}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label" htmlFor="edit-admin-username">
+                      Username
+                    </label>
+                    <input
+                      className="input"
+                      id="edit-admin-username"
+                      onChange={(event) =>
+                        setEditUserForm((current) => ({ ...current, username: event.target.value }))
+                      }
+                      required
+                      value={editUserForm.username}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="label" htmlFor="edit-admin-email">
+                      Email
+                    </label>
+                    <input
+                      className="input"
+                      id="edit-admin-email"
+                      onChange={(event) =>
+                        setEditUserForm((current) => ({ ...current, email: event.target.value }))
+                      }
+                      required
+                      type="email"
+                      value={editUserForm.email}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <button className="btn-primary gap-2" disabled={editUserSaving} type="submit">
+                    <AppIcon className="h-4 w-4" name="check" />
+                    {editUserSaving ? 'Saving...' : 'Save User Details'}
+                  </button>
+                  <button
+                    className="btn-secondary gap-2"
+                    onClick={() => {
+                      setSelectedUserId(selectedEditableUser._id);
+                      setActiveTab('access');
+                    }}
+                    type="button"
+                  >
+                    <AppIcon className="h-4 w-4" name="security" />
+                    Open Access Settings
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                No admin user is available to edit.
+              </p>
+            )}
+          </form>
+
+          <section className="panel p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Managed Core Accounts</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  The requested working set is limited to tricore, kenny, and vinod. Other admin
+                  users can be deleted from the directory.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-brand-mist p-3 text-brand-blue">
+                <AppIcon className="h-5 w-5" name="users" />
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {managedCoreUsernames.map((username) => {
+                const matchingUser = users.find(
+                  (user) => String(user.username || '').toLowerCase() === username
+                );
+
+                return (
+                  <div className="rounded-3xl bg-slate-50 p-4" key={username}>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-slate-900">{matchingUser?.name || username}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {matchingUser?.email || 'Account not found'}
+                        </p>
+                      </div>
+                      <span
+                        className={`badge ${
+                          matchingUser ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        }`}
+                      >
+                        {matchingUser ? 'Present' : 'Missing'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
@@ -1577,62 +1957,134 @@ export default function AdminUsersPage() {
       ) : null}
 
       {activeTab === 'password' ? (
-        <form className="panel max-w-3xl space-y-5 p-6" onSubmit={handleChangePassword}>
-          <div className="flex items-center justify-between gap-4">
+        <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <form className="panel space-y-5 p-6" onSubmit={handleChangePassword}>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Change Your Password</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Update the current admin password used to access the admin portal.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-brand-mist p-3 text-brand-blue">
+                <AppIcon className="h-5 w-5" name="key" />
+              </div>
+            </div>
+
+            <FormAlert message={passwordError} />
+            <FormAlert message={passwordMessage} type="success" />
+
             <div>
-              <h2 className="text-2xl font-bold">Change Your Password</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Update the current admin password used to access the admin portal.
-              </p>
+              <label className="label" htmlFor="current-password">
+                Current Password
+              </label>
+              <input
+                className="input"
+                id="current-password"
+                onChange={(event) =>
+                  setPasswordForm((current) => ({
+                    ...current,
+                    currentPassword: event.target.value
+                  }))
+                }
+                required
+                type="password"
+                value={passwordForm.currentPassword}
+              />
             </div>
-            <div className="rounded-2xl bg-brand-mist p-3 text-brand-blue">
-              <AppIcon className="h-5 w-5" name="key" />
+
+            <div>
+              <label className="label" htmlFor="new-password">
+                New Password
+              </label>
+              <input
+                className="input"
+                id="new-password"
+                onChange={(event) =>
+                  setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
+                }
+                required
+                type="password"
+                value={passwordForm.newPassword}
+              />
             </div>
-          </div>
 
-          <FormAlert message={passwordError} />
-          <FormAlert message={passwordMessage} type="success" />
+            <button className="btn-primary gap-2" type="submit">
+              <AppIcon className="h-4 w-4" name="key" />
+              Update Password
+            </button>
+          </form>
 
-          <div>
-            <label className="label" htmlFor="current-password">
-              Current Password
-            </label>
-            <input
-              className="input"
-              id="current-password"
-              onChange={(event) =>
-                setPasswordForm((current) => ({
-                  ...current,
-                  currentPassword: event.target.value
-                }))
-              }
-              required
-              type="password"
-              value={passwordForm.currentPassword}
-            />
-          </div>
+          <form className="panel space-y-5 p-6" onSubmit={handleResetAdminUserPassword}>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Reset Admin Password</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Select an admin user and set a new portal password securely without editing
+                  other account details.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-brand-mist p-3 text-brand-blue">
+                <AppIcon className="h-5 w-5" name="security" />
+              </div>
+            </div>
 
-          <div>
-            <label className="label" htmlFor="new-password">
-              New Password
-            </label>
-            <input
-              className="input"
-              id="new-password"
-              onChange={(event) =>
-                setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
-              }
-              required
-              type="password"
-              value={passwordForm.newPassword}
-            />
-          </div>
+            <FormAlert message={adminPasswordResetError} />
+            <FormAlert message={adminPasswordResetMessage} type="success" />
 
-          <button className="btn-primary gap-2" type="submit">
-            <AppIcon className="h-4 w-4" name="key" />
-            Update Password
-          </button>
-        </form>
+            <div>
+              <label className="label" htmlFor="admin-password-user">
+                Select Admin User
+              </label>
+              <TypeaheadSelect
+                disabled={!users.length}
+                id="admin-password-user"
+                noOptionsMessage="No admin users available."
+                onChange={(event) => setSelectedEditableUserId(event.target.value)}
+                options={adminUserOptions}
+                placeholder="Select admin user"
+                searchPlaceholder="Search admin users"
+                value={selectedEditableUserId}
+              />
+            </div>
+
+            {selectedEditableUser ? (
+              <div className="rounded-3xl bg-slate-50 p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                  Selected Account
+                </p>
+                <p className="mt-3 text-xl font-bold text-slate-950">{selectedEditableUser.name}</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  {selectedEditableUser.username} • {selectedEditableUser.email}
+                </p>
+              </div>
+            ) : null}
+
+            <div>
+              <label className="label" htmlFor="admin-reset-password">
+                New Password
+              </label>
+              <input
+                className="input"
+                id="admin-reset-password"
+                onChange={(event) =>
+                  setAdminPasswordResetForm((current) => ({
+                    ...current,
+                    newPassword: event.target.value
+                  }))
+                }
+                required
+                type="password"
+                value={adminPasswordResetForm.newPassword}
+              />
+            </div>
+
+            <button className="btn-primary gap-2" disabled={adminPasswordResetSaving} type="submit">
+              <AppIcon className="h-4 w-4" name="key" />
+              {adminPasswordResetSaving ? 'Updating...' : 'Reset Selected Password'}
+            </button>
+          </form>
+        </div>
       ) : null}
     </AdminPageShell>
   );

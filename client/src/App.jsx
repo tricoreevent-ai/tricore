@@ -16,6 +16,7 @@ const AdminMatchesPage = lazy(() => import('./pages/admin/AdminMatchesPage.jsx')
 const AdminRegistrationsPage = lazy(() => import('./pages/admin/AdminRegistrationsPage.jsx'));
 const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage.jsx'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage.jsx'));
+const AdminUserManualPage = lazy(() => import('./pages/admin/AdminUserManualPage.jsx'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.jsx'));
 const AboutPage = lazy(() => import('./pages/public/AboutPage.jsx'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage.jsx'));
@@ -106,6 +107,10 @@ export default function App() {
               {renderLazyPage(<AdminSettingsPage />, 'Loading settings...')}
             </AdminPermissionGuard>
           }
+        />
+        <Route
+          path="/admin-portal/user-manual"
+          element={renderLazyPage(<AdminUserManualPage />, 'Loading user manual...')}
         />
       </Route>
 

@@ -53,13 +53,6 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
   const heroGradient = {
     backgroundImage: `linear-gradient(135deg, ${activeTheme.secondaryColor}, ${activeTheme.primaryColor}, ${activeTheme.highlightColor})`
   };
-  const bannerImageStyle = currentBanner?.imageUrl
-    ? {
-        backgroundImage: `url(${currentBanner.imageUrl})`,
-        backgroundPosition: 'center',
-        backgroundSize: 'cover'
-      }
-    : null;
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -77,6 +70,21 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
     return () => window.clearInterval(timer);
   }, [banners.length, hasMultipleBanners]);
 
+  useEffect(() => {
+    if (!banners.length) {
+      return;
+    }
+
+    const nextBanner = banners[(currentIndex + 1) % banners.length];
+
+    if (!nextBanner?.imageUrl) {
+      return;
+    }
+
+    const preloadImage = new Image();
+    preloadImage.src = nextBanner.imageUrl;
+  }, [banners, currentIndex]);
+
   if (!currentBanner) {
     return null;
   }
@@ -84,8 +92,15 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
   return (
     <section className="relative overflow-hidden text-white">
       <div className="absolute inset-0" style={heroGradient} />
-      {bannerImageStyle ? (
-        <div className="absolute inset-0 opacity-20" style={bannerImageStyle} />
+      {currentBanner?.imageUrl ? (
+        <img
+          alt={currentBanner.imageAlt || currentBanner.title || 'TriCore banner'}
+          className="absolute inset-0 h-full w-full object-cover opacity-20"
+          decoding="async"
+          fetchPriority="high"
+          loading="eager"
+          src={currentBanner.imageUrl}
+        />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/20" />
       <div

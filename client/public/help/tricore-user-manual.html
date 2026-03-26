@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TriCore Events User Manual</title>
+    <style>
+      :root {
+        --navy: #0f1f5d;
+        --blue: #2f5de0;
+        --blue-soft: #e9f0ff;
+        --orange: #ff7a1a;
+        --paper: #ffffff;
+        --mist: #f4f7fc;
+        --text: #18233f;
+        --muted: #5f6f91;
+        --border: rgba(24, 35, 63, 0.12);
+        --shadow: 0 24px 60px rgba(15, 31, 93, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top right, rgba(255, 122, 26, 0.18), transparent 28%),
+          radial-gradient(circle at top left, rgba(47, 93, 224, 0.16), transparent 32%),
+          linear-gradient(180deg, #f8fbff 0%, #eef3fb 100%);
+      }
+
+      .shell {
+        width: min(1320px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 24px 0 48px;
+      }
+
+      .hero,
+      .toc,
+      .section,
+      .image-band {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        overflow: hidden;
+        padding: 32px;
+        background: linear-gradient(135deg, rgba(15, 31, 93, 0.98), rgba(47, 93, 224, 0.92));
+        color: #fff;
+      }
+
+      .hero-grid,
+      .manual-grid,
+      .card-grid,
+      .image-grid,
+      .mini-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero-grid { grid-template-columns: 1.65fr 1fr; align-items: start; }
+      .manual-grid { grid-template-columns: 290px minmax(0, 1fr); margin-top: 22px; }
+      .card-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .image-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .mini-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .brand-row img {
+        width: 64px;
+        height: 64px;
+        padding: 10px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .eyebrow,
+      .label {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+
+      .eyebrow { color: #ffbf93; margin: 0 0 8px; }
+      .label { color: var(--orange); margin: 0 0 12px; }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 3.4rem);
+        line-height: 1.06;
+        letter-spacing: -0.03em;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.7rem;
+        letter-spacing: -0.02em;
+      }
+
+      h3 {
+        margin: 22px 0 10px;
+        font-size: 1.08rem;
+      }
+
+      p, li {
+        line-height: 1.8;
+        color: var(--muted);
+        font-size: 0.98rem;
+      }
+
+      .hero p, .hero li { color: rgba(255, 255, 255, 0.9); }
+
+      .hero-card,
+      .mini-card,
+      .flow-step,
+      .callout {
+        border-radius: 22px;
+        border: 1px solid var(--border);
+      }
+
+      .hero-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+
+      .toc {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        padding: 22px;
+      }
+
+      .toc a {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 14px;
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .toc a:hover { background: var(--blue-soft); color: var(--blue); }
+      .content { display: grid; gap: 20px; }
+      .section, .image-band { padding: 26px; }
+      .mini-card { background: linear-gradient(180deg, #fff, #f7f9fe); padding: 18px; }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        font-size: 0.86rem;
+        font-weight: 700;
+        margin-bottom: 14px;
+      }
+
+      .flow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+      .flow-step { flex: 1 1 190px; background: linear-gradient(180deg, #fff, #f4f7fd); padding: 16px; }
+      .flow-step strong { display: block; color: var(--navy); margin-bottom: 8px; }
+
+      .callout { background: #fff7f0; border-left: 4px solid var(--orange); padding: 16px 18px; margin-top: 18px; }
+
+      .image-grid figure {
+        margin: 0;
+        overflow: hidden;
+        border-radius: 22px;
+        background: #fff;
+        border: 1px solid var(--border);
+      }
+
+      .image-grid img { display: block; width: 100%; height: 180px; object-fit: cover; }
+      .image-grid figcaption { padding: 12px 14px 16px; font-size: 0.9rem; color: var(--muted); }
+
+      footer { padding: 18px 10px 10px; text-align: center; color: var(--muted); }
+
+      @media (max-width: 1080px) {
+        .hero-grid, .manual-grid { grid-template-columns: 1fr; }
+        .toc { position: static; }
+      }
+
+      @media (max-width: 720px) {
+        .shell { width: min(100% - 18px, 1320px); padding-top: 14px; }
+        .hero, .toc, .section, .image-band { padding: 20px; border-radius: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <div class="brand-row">
+              <img alt="TriCore Events logo" src="/tricore-mark.svg" />
+              <div>
+                <p class="eyebrow">TriCore Events</p>
+                <h1>User Manual & Daily Help Guide</h1>
+              </div>
+            </div>
+            <p>
+              This help guide explains the TriCore Events platform in simple language. It is meant
+              for staff who want a clear day-to-day reference for registrations, payments,
+              accounting, reports, users, and settings.
+            </p>
+            <div class="card-grid" style="margin-top: 18px;">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Admin</h3>
+                <p>Full access to events, users, settings, reports, and final approvals.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Operations</h3>
+                <p>Works with event planning, registrations, schedules, and match flow.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Accounting</h3>
+                <p>Handles transactions, ledger, invoices, reports, and finance records.</p>
+              </div>
+            </div>
+          </div>
+          <aside class="hero-card">
+            <h2 style="font-size: 1.1rem;">Manual Coverage</h2>
+            <ul>
+              <li>Public website pages and registration journey</li>
+              <li>Admin portal menu-by-menu explanation</li>
+              <li>Payment review and participant follow-up</li>
+              <li>Accounting, invoices, reports, users, and settings</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="manual-grid">
+        <nav class="toc" aria-label="Table of contents">
+          <h2 style="font-size: 1.05rem;">Quick Navigation</h2>
+          <a href="#overview">1. Platform Overview</a>
+          <a href="#website">2. Public Website Guide</a>
+          <a href="#admin">3. Admin Portal Guide</a>
+          <a href="#registration">4. Registration Process</a>
+          <a href="#payment">5. Payment Process</a>
+          <a href="#admin-actions">6. Admin Actions</a>
+          <a href="#accounting">7. Accounting Guide</a>
+          <a href="#reports">8. Reports</a>
+          <a href="#users-settings">9. Users and Settings</a>
+          <a href="#visuals">10. Visual Aids</a>
+          <a href="#troubleshooting">11. Troubleshooting</a>
+          <a href="#best-practices">12. Best Practices</a>
+        </nav>
+
+        <div class="content">
+          <section class="section" id="overview">
+            <span class="badge">Platform Overview</span>
+            <h2>What TriCore Events does</h2>
+            <p>
+              TriCore Events is a sports event management system. It helps the team publish events,
+              collect registrations, review payments, manage schedules, record finance, and control
+              the whole website from one admin portal.
+            </p>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Public users</h3>
+                <p>Find events, register, pay, upload proof, and check their own status.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Internal staff</h3>
+                <p>Create events, approve registrations, track finance, manage access, and run reports.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">System purpose</h3>
+                <p>Keep event operations, participant communication, and business records in one place.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="image-band">
+            <span class="badge">Training Visuals</span>
+            <h2>Sports visuals for onboarding and help</h2>
+            <p>These visuals make the manual easier to use during staff training and onboarding.</p>
+            <div class="image-grid">
+              <figure>
+                <img alt="Cricket venue visual" src="/uploads/gallery/sample-cricket-dawn.svg" />
+                <figcaption>Use the Events pages to plan public listings and registration flow.</figcaption>
+              </figure>
+              <figure>
+                <img alt="Training visual" src="/uploads/gallery/sample-training-drill.svg" />
+                <figcaption>Operations users rely on registrations, matches, and schedule control.</figcaption>
+              </figure>
+              <figure>
+                <img alt="Audience visual" src="/uploads/gallery/sample-cheer-stand.svg" />
+                <figcaption>Reports and alerts help the team review activity and exceptions quickly.</figcaption>
+              </figure>
+              <figure>
+                <img alt="Finals visual" src="/uploads/gallery/sample-night-finals.svg" />
+                <figcaption>Accounting supports sponsors, vendors, expenses, and invoices.</figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <section class="section" id="website">
+            <span class="badge">Public Website</span>
+            <h2>Simple guide to the public pages</h2>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Home</h3>
+                <p>Shows banners, upcoming events, highlights, process cards, and public updates.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">About</h3>
+                <p>Explains the TriCore story, partners, experience, and gallery content.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Events</h3>
+                <p>Shows all visible events. Upcoming events appear first with open or coming soon status.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Contact</h3>
+                <p>Shows contact details, partner names, and the Reach Out enquiry form.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="admin">
+            <span class="badge">Admin Portal</span>
+            <h2>Main menu guide</h2>
+            <p>
+              After login, the admin portal shows the main work areas. Different roles may see
+              different items depending on access permissions.
+            </p>
+            <div class="card-grid">
+              <div class="mini-card"><h3 style="margin-top: 0;">Overview</h3><p>Quick summary cards, charts, alerts, recent payments, and planning calendar.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Events</h3><p>Create and edit events, manage visibility, calendar view, and interested users.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Registrations</h3><p>Review new sign-ups, payment states, proof uploads, and export records.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Matches</h3><p>Create fixtures manually or generate brackets after teams are confirmed.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Accounting</h3><p>Record transactions, open the ledger, and manage history categories.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Reports</h3><p>Open overview, finance, activity, and security reports with date filters.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Users</h3><p>Create admin accounts, define roles, and update who can open each page.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Settings</h3><p>Configure email, invoice, appearance, website, backups, security, and payments.</p></div>
+            </div>
+          </section>
+
+          <section class="section" id="registration">
+            <span class="badge">Registration Process</span>
+            <h2>How a participant registers</h2>
+            <div class="flow">
+              <div class="flow-step">
+                <strong>Step 1</strong>
+                Open the website and click <strong>Events</strong>.
+              </div>
+              <div class="flow-step">
+                <strong>Step 2</strong>
+                Choose an open event and select <strong>View Event</strong>.
+              </div>
+              <div class="flow-step">
+                <strong>Step 3</strong>
+                Fill the registration form with personal or team details.
+              </div>
+              <div class="flow-step">
+                <strong>Step 4</strong>
+                Submit the form. Free events save directly. Paid events move to payment.
+              </div>
+            </div>
+            <div class="callout">
+              <strong>Coming Soon events:</strong> when an event is not open yet, users see
+              <strong> Notify Later</strong> instead of the registration form. Their contact details
+              are saved for future follow-up.
+            </div>
+          </section>
+
+          <section class="section" id="payment">
+            <span class="badge">Payment Process</span>
+            <h2>How payment works for paid events</h2>
+            <div class="mini-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Available methods</h3>
+                <p>QR, UPI, or bank transfer, depending on what the admin has enabled in settings.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">What the user submits</h3>
+                <p>Payment amount, reference number if available, and screenshot or proof.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Possible statuses</h3>
+                <p>Pending, Under Review, Confirmed, or Failed after admin verification.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="admin-actions">
+            <span class="badge">Admin Actions</span>
+            <h2>What the admin does after registration and payment</h2>
+            <ol>
+              <li>Open <strong>Registrations</strong> from the admin portal.</li>
+              <li>Select the date range and click <strong>Apply Filters</strong>.</li>
+              <li>Open the registration record and review the payment status.</li>
+              <li>Check proof, amount, reference, and event details.</li>
+              <li>Confirm, follow up, or reject based on the case.</li>
+              <li>Export the list if finance or operations needs an offline file.</li>
+            </ol>
+          </section>
+
+          <section class="section" id="accounting">
+            <span class="badge">Accounting Guide</span>
+            <h2>Detailed guide to Accounting</h2>
+            <p>
+              The Accounting page has three main work areas: <strong>Record Transaction</strong>,
+              <strong> Transaction Ledger</strong>, and <strong>Manage Categories</strong>.
+            </p>
+
+            <h3>Record Transaction</h3>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Core fields</h3>
+                <p>Transaction type, date, event or common ledger, category, amount, payment method, and reference.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Supporting details</h3>
+                <p>Document number, payment reference, voucher number, and notes for clarity.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Invoice option</h3>
+                <p>Turn on invoice generation only when a sponsor or vendor needs a formal document.</p>
+              </div>
+            </div>
+
+            <h3>Transaction Ledger</h3>
+            <p>
+              The ledger loads only after filters are applied. Use the date range first, then add
+              event, type, scope, category, payment mode, or source as needed, and click
+              <strong> Apply Filters</strong>.
+            </p>
+
+            <h3>Manage Categories</h3>
+            <p>
+              This section keeps the financial category list clean. Admins can add, edit, and delete
+              categories so reports stay consistent and duplicate labels are avoided.
+            </p>
+
+            <div class="flow">
+              <div class="flow-step"><strong>1. Record</strong>Enter the main money movement first.</div>
+              <div class="flow-step"><strong>2. Explain</strong>Add notes or supporting reference details.</div>
+              <div class="flow-step"><strong>3. Invoice</strong>Open billing fields only if a document is needed.</div>
+              <div class="flow-step"><strong>4. Save</strong>Save the entry and print or export later if needed.</div>
+            </div>
+          </section>
+
+          <section class="section" id="reports">
+            <span class="badge">Reports</span>
+            <h2>How to use the report center</h2>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Overview</h3>
+                <p>High-level event, participation, and business summaries.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Finance</h3>
+                <p>Income, expenses, payment groups, event-wise finance, and profit and loss.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Activity</h3>
+                <p>Operational history showing major changes and user actions.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Security</h3>
+                <p>Alerts, suspicious API activity, contact warnings, and critical notifications.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="users-settings">
+            <span class="badge">Users & Settings</span>
+            <h2>Access control and system configuration</h2>
+            <div class="mini-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Users</h3>
+                <p>Create admin accounts, define roles, modify page access, and change passwords.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Settings</h3>
+                <p>Control contact forwarding, SMTP, invoices, appearance, galleries, backups, website URL, security, and payments.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="visuals">
+            <span class="badge">Visual Aids</span>
+            <h2>Simple workflow diagrams for staff training</h2>
+            <div class="flow">
+              <div class="flow-step"><strong>Registration flow</strong>Events → Event Details → Registration Form → Payment if required → Admin Review</div>
+              <div class="flow-step"><strong>Coming Soon flow</strong>Coming Soon Event → Notify Later → Contact saved → Email later when registration opens</div>
+              <div class="flow-step"><strong>Accounting flow</strong>Record Transaction → Add Notes → Optional Invoice → Ledger / Export</div>
+              <div class="flow-step"><strong>Review flow</strong>Registrations → Apply Filters → Check Proof → Confirm / Follow Up / Reject</div>
+            </div>
+          </section>
+
+          <section class="section" id="troubleshooting">
+            <span class="badge">Troubleshooting</span>
+            <h2>Common problems and quick checks</h2>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Transaction missing</h3>
+                <p>Check the date range, filters, and whether the transaction was saved successfully.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Payment still pending</h3>
+                <p>Check if proof was uploaded, the amount matches, and the reference number is clear.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Event not visible</h3>
+                <p>Check if it is hidden, filtered out, or outside the active date window.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Report is empty</h3>
+                <p>Check the selected date range and confirm records actually exist for that period.</p>
+              </div>
+            </div>
+            <div class="callout">
+              Support email: <strong>contact@tricoreevents.online</strong>
+            </div>
+          </section>
+
+          <section class="section" id="best-practices">
+            <span class="badge">Best Practices</span>
+            <h2>Daily habits for smooth operations</h2>
+            <ul>
+              <li>Always check the date range before saying data is missing.</li>
+              <li>Use clear references when recording transactions.</li>
+              <li>Confirm payments before generating schedules.</li>
+              <li>Keep accounting categories clean and avoid duplicates.</li>
+              <li>Use exports for offline records and sharing.</li>
+              <li>Review alerts from Overview or Reports every day.</li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+      <footer>
+        Based on the TriCore Events staff guide in <strong>TRICORE_USER_MANUAL.md</strong>.
+      </footer>
+    </main>
+  </body>
+</html>

@@ -16,11 +16,39 @@ const getRegistrationDeadlineCutoff = (value) => {
 };
 
 const optionalEventDateSchema = z.string().trim().optional().or(z.literal(''));
+const isValidBannerImageReference = (value) => {
+  const normalized = String(value || '').trim();
+
+  if (!normalized) {
+    return true;
+  }
+
+  if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(normalized)) {
+    return true;
+  }
+
+  if (/^\/uploads\//.test(normalized)) {
+    return true;
+  }
+
+  try {
+    const url = new URL(normalized);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
 
 const eventFieldsSchema = z.object({
   name: z.string().trim().min(3, 'Event name is required.'),
   description: optionalTextSchema,
-  bannerImage: z.string().trim().url('Banner image must be a valid URL.').optional().or(z.literal('')),
+  bannerImage: z
+    .string()
+    .trim()
+    .max(8_000_000)
+    .refine(isValidBannerImageReference, 'Banner image must be a valid URL or uploaded image.')
+    .optional()
+    .or(z.literal('')),
   sportType: z.enum(sportTypes),
   venue: z.string().trim().min(3, 'Venue is required.'),
   startDate: dateStringSchema,

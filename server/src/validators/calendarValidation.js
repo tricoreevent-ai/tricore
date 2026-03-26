@@ -17,19 +17,36 @@ const dateRangeQuery = z
     }
   );
 
-const sportsCalendarEventBody = z
-  .object({
-    name: z.string().trim().min(3, 'Event name is required.'),
-    description: optionalTextSchema,
-    sportType: z.enum(calendarSportTypes),
-    startDate: z.string().datetime().or(z.string().date()),
-    endDate: z.string().datetime().or(z.string().date()),
-    location: optionalTextSchema
-  })
-  .refine((body) => new Date(body.startDate) <= new Date(body.endDate), {
+const sportsCalendarEventFields = z.object({
+  name: z.string().trim().min(3, 'Event name is required.'),
+  description: optionalTextSchema,
+  sportType: z.enum(calendarSportTypes),
+  startDate: z.string().datetime().or(z.string().date()),
+  endDate: z.string().datetime().or(z.string().date()),
+  location: optionalTextSchema
+});
+
+const sportsCalendarEventBody = sportsCalendarEventFields.refine(
+  (body) => new Date(body.startDate) <= new Date(body.endDate),
+  {
     message: 'Start date must be on or before end date.',
     path: ['startDate']
-  });
+  }
+);
+
+const partialSportsCalendarEventBody = sportsCalendarEventFields.partial().refine(
+  (body) => {
+    if (!body.startDate || !body.endDate) {
+      return true;
+    }
+
+    return new Date(body.startDate) <= new Date(body.endDate);
+  },
+  {
+    message: 'Start date must be on or before end date.',
+    path: ['startDate']
+  }
+);
 
 export const calendarFeedQuerySchema = z.object({
   query: dateRangeQuery
@@ -43,7 +60,7 @@ export const updateSportsCalendarEventSchema = z.object({
   params: z.object({
     id: objectIdSchema
   }),
-  body: sportsCalendarEventBody.partial()
+  body: partialSportsCalendarEventBody
 });
 
 export const sportsCalendarEventIdSchema = z.object({

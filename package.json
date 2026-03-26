@@ -18,9 +18,6 @@
     "lint": "npm --prefix client run lint",
     "postinstall": "npm --prefix server install --omit=dev && npm --prefix client install --include=dev && npm --prefix client run build"
   },
-  "dependencies": {
-    "express": "^4.21.1"
-  },
   "devDependencies": {
     "concurrently": "^9.0.1"
   },

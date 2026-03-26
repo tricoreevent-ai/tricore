@@ -56,6 +56,32 @@ export const updateAdminUserAccessSchema = z.object({
     })
 });
 
+export const updateAdminUserSchema = z.object({
+  params: z.object({
+    id: z.string().trim().min(1, 'Admin user id is required.')
+  }),
+  body: z.object({
+    name: z.string().trim().min(2, 'Name is required.'),
+    username: z.string().trim().min(3, 'Username is required.'),
+    email: z.string().trim().email('A valid email address is required.')
+  })
+});
+
+export const resetAdminUserPasswordSchema = z.object({
+  params: z.object({
+    id: z.string().trim().min(1, 'Admin user id is required.')
+  }),
+  body: z.object({
+    newPassword: z.string().min(6, 'New password must be at least 6 characters.')
+  })
+});
+
+export const deleteAdminUserSchema = z.object({
+  params: z.object({
+    id: z.string().trim().min(1, 'Admin user id is required.')
+  })
+});
+
 export const createAdminRoleTemplateSchema = z.object({
   body: z.object({
     name: z.string().trim().min(2, 'Role name is required.'),

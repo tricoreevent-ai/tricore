@@ -34,6 +34,30 @@
     @apply mb-2 block text-sm font-medium text-slate-700;
   }
 
+  .floating-field {
+    @apply relative;
+  }
+
+  .floating-input {
+    @apply input px-4 pb-2 pt-6 placeholder-transparent;
+  }
+
+  .floating-textarea {
+    @apply input min-h-24 px-4 pb-3 pt-7 placeholder-transparent;
+  }
+
+  .floating-label {
+    @apply pointer-events-none absolute left-4 top-3 text-xs font-medium text-slate-500 transition-all duration-200;
+  }
+
+  .floating-label-empty {
+    @apply top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500;
+  }
+
+  .floating-label-empty-textarea {
+    @apply top-4 translate-y-0 text-sm font-medium text-slate-500;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
   }

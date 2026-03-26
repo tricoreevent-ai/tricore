@@ -27,14 +27,7 @@ const normalizeStoredValue = (value = {}) => ({
   registrationFollowUpEmails: normalizeEmailList(value.registrationFollowUpEmails || [])
 });
 
-const buildEffectiveEmailList = (storedEmails = []) => {
-  const normalizedStored = normalizeEmailList(storedEmails);
-  if (normalizedStored.length) {
-    return normalizedStored;
-  }
-
-  return normalizeEmailList(env.contactForwardEmails);
-};
+const getEnvContactInquiryFallbackEmails = () => normalizeEmailList(env.contactForwardEmails);
 
 const hasStoredContactSettings = (value = {}) => {
   const normalized = normalizeStoredValue(value);
@@ -96,19 +89,23 @@ export const ensureContactForwardingSettingDocument = async () => {
 export const getContactForwardingSettingDocument = async () => ensureContactForwardingSettingDocument();
 
 export const serializeContactForwardingSettings = (settingDocument) => {
+  const hasStoredDocument = Boolean(settingDocument);
   const storedValue = normalizeStoredValue(settingDocument?.value || {});
+  const contactInquiryEmails = hasStoredDocument
+    ? storedValue.contactInquiryEmails
+    : getEnvContactInquiryFallbackEmails();
 
   return {
-    emails: buildEffectiveEmailList(storedValue.contactInquiryEmails),
-    contactInquiryEmails: buildEffectiveEmailList(storedValue.contactInquiryEmails),
-    registrationCompletedEmails: buildEffectiveEmailList(storedValue.registrationCompletedEmails),
-    registrationFollowUpEmails: buildEffectiveEmailList(storedValue.registrationFollowUpEmails),
-    contactInquiryUsesEnvDefaults: !storedValue.contactInquiryEmails.length,
-    registrationCompletedUsesEnvDefaults: !storedValue.registrationCompletedEmails.length,
-    registrationFollowUpUsesEnvDefaults: !storedValue.registrationFollowUpEmails.length,
+    emails: contactInquiryEmails,
+    contactInquiryEmails,
+    registrationCompletedEmails: storedValue.registrationCompletedEmails,
+    registrationFollowUpEmails: storedValue.registrationFollowUpEmails,
+    contactInquiryUsesEnvDefaults: !hasStoredDocument && Boolean(contactInquiryEmails.length),
+    registrationCompletedUsesEnvDefaults: false,
+    registrationFollowUpUsesEnvDefaults: false,
     updatedAt: settingDocument?.updatedAt || null,
     updatedBy: settingDocument?.updatedBy || null,
-    usesEnvDefaults: !settingDocument || !hasStoredContactSettings(settingDocument.value || {})
+    usesEnvDefaults: !hasStoredDocument || !hasStoredContactSettings(settingDocument.value || {})
   };
 };
 

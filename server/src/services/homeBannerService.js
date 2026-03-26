@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { AppSetting } from '../models/AppSetting.js';
-import { persistImageReference } from './imageStorageService.js';
+import { isImageDataUrl, persistImageReference } from './imageStorageService.js';
 
 export const HOME_BANNER_SETTINGS_KEY = 'home-banner-config';
 
@@ -17,6 +17,13 @@ const normalizeBoolean = (value, fallback = false) => {
 
 const populateUpdatedBy = (query) => query.populate('updatedBy', 'name username email');
 
+const bannerImageOptions = {
+  folder: 'home-banners',
+  filenamePrefix: 'banner',
+  maxWidth: 1920,
+  quality: 80
+};
+
 const normalizeBanner = (banner = {}, index = 0) => ({
   id: normalizeText(banner.id) || randomUUID(),
   badge: normalizeText(banner.badge),
@@ -30,6 +37,47 @@ const normalizeBanner = (banner = {}, index = 0) => ({
   secondaryActionHref: normalizeText(banner.secondaryActionHref),
   isActive: normalizeBoolean(banner.isActive, true)
 });
+
+const migrateStoredBannerImages = async (settingDocument) => {
+  if (!settingDocument) {
+    return null;
+  }
+
+  const storedBanners = Array.isArray(settingDocument.value?.banners)
+    ? settingDocument.value.banners
+    : [];
+  let hasChanges = false;
+  const migratedBanners = await Promise.all(
+    storedBanners.map(async (banner, index) => {
+      if (!isImageDataUrl(banner.imageUrl)) {
+        return normalizeBanner(banner, index);
+      }
+
+      hasChanges = true;
+
+      return normalizeBanner(
+        {
+          ...banner,
+          imageUrl: await persistImageReference(banner.imageUrl, bannerImageOptions)
+        },
+        index
+      );
+    })
+  );
+
+  if (!hasChanges) {
+    return settingDocument;
+  }
+
+  settingDocument.value = {
+    ...(settingDocument.value || {}),
+    banners: migratedBanners
+  };
+  settingDocument.markModified('value');
+  await settingDocument.save();
+
+  return populateUpdatedBy(AppSetting.findById(settingDocument._id));
+};
 
 const serializeHomeBannerSettings = (settingDocument) => {
   const storedBanners = Array.isArray(settingDocument?.value?.banners) ? settingDocument.value.banners : [];
@@ -46,7 +94,9 @@ const serializeHomeBannerSettings = (settingDocument) => {
 };
 
 export const getHomeBannerSettingDocument = async () =>
-  populateUpdatedBy(AppSetting.findOne({ key: HOME_BANNER_SETTINGS_KEY }));
+  migrateStoredBannerImages(
+    await populateUpdatedBy(AppSetting.findOne({ key: HOME_BANNER_SETTINGS_KEY }))
+  );
 
 export const getHomeBannerSettings = async () =>
   serializeHomeBannerSettings(await getHomeBannerSettingDocument());
@@ -66,10 +116,7 @@ export const updateHomeBannerSettings = async ({ payload, userId }) => {
             normalizeBanner(
               {
                 ...banner,
-                imageUrl: await persistImageReference(banner.imageUrl, {
-                  folder: 'home-banners',
-                  filenamePrefix: 'banner'
-                })
+                imageUrl: await persistImageReference(banner.imageUrl, bannerImageOptions)
               },
               index
             )

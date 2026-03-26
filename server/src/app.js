@@ -50,7 +50,14 @@ app.use((req, res, next) => {
 
   next();
 });
-app.use('/uploads', express.static(uploadsPath));
+app.use(
+  '/uploads',
+  express.static(uploadsPath, {
+    etag: true,
+    immutable: true,
+    maxAge: '365d'
+  })
+);
 
 app.use('/api', routes);
 

@@ -67,6 +67,59 @@ const validatePlayerDraft = (player) => {
   return '';
 };
 
+function FloatingField({
+  id,
+  label,
+  onChange,
+  required = false,
+  textarea = false,
+  type = 'text',
+  value
+}) {
+  const labelClassName = textarea
+    ? value
+      ? 'floating-label'
+      : 'floating-label floating-label-empty-textarea'
+    : value
+      ? 'floating-label'
+      : 'floating-label floating-label-empty';
+
+  if (textarea) {
+    return (
+      <div className="floating-field">
+        <textarea
+          className="floating-textarea peer"
+          id={id}
+          onChange={onChange}
+          placeholder={label}
+          required={required}
+          value={value}
+        />
+        <label className={labelClassName} htmlFor={id}>
+          {label}
+        </label>
+      </div>
+    );
+  }
+
+  return (
+    <div className="floating-field">
+      <input
+        className="floating-input peer"
+        id={id}
+        onChange={onChange}
+        placeholder={label}
+        required={required}
+        type={type}
+        value={value}
+      />
+      <label className={labelClassName} htmlFor={id}>
+        {label}
+      </label>
+    </div>
+  );
+}
+
 export default function RegistrationForm({ event, onSuccess }) {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -363,59 +416,64 @@ export default function RegistrationForm({ event, onSuccess }) {
 
       <fieldset className="space-y-6 border-0 p-0" disabled={Boolean(existingRegistration)}>
         {event.teamSize === 1 ? (
-          <div>
-            <label className="label" htmlFor="name">
-              Participant Name
-            </label>
-            <input className="input" id="name" onChange={(e) => updateField('name', e.target.value)} required value={form.name} />
-          </div>
+          <FloatingField
+            id="name"
+            label="Participant Name"
+            onChange={(eventValue) => updateField('name', eventValue.target.value)}
+            required
+            value={form.name}
+          />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="label" htmlFor="teamName">
-                Team Name
-              </label>
-              <input className="input" id="teamName" onChange={(e) => updateField('teamName', e.target.value)} required value={form.teamName} />
-            </div>
+            <FloatingField
+              id="teamName"
+              label="Team Name"
+              onChange={(eventValue) => updateField('teamName', eventValue.target.value)}
+              required
+              value={form.teamName}
+            />
             {event.sportType === 'Cricket' ? (
-              <div>
-                <label className="label" htmlFor="captainName">
-                  Captain Name
-                </label>
-                <input className="input" id="captainName" onChange={(e) => updateField('captainName', e.target.value)} required value={form.captainName} />
-              </div>
+              <FloatingField
+                id="captainName"
+                label="Captain Name"
+                onChange={(eventValue) => updateField('captainName', eventValue.target.value)}
+                required
+                value={form.captainName}
+              />
             ) : null}
           </div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="email">
-              Email
-            </label>
-            <input className="input" id="email" onChange={(e) => updateField('email', e.target.value)} required type="email" value={form.email} />
-          </div>
-          <div>
-            <label className="label" htmlFor="phone1">
-              Primary Phone
-            </label>
-            <input className="input" id="phone1" onChange={(e) => updateField('phone1', e.target.value)} required value={form.phone1} />
-          </div>
-          <div>
-            <label className="label" htmlFor="phone2">
-              Secondary Phone
-            </label>
-            <input className="input" id="phone2" onChange={(e) => updateField('phone2', e.target.value)} required value={form.phone2} />
-          </div>
+          <FloatingField
+            id="email"
+            label="Email"
+            onChange={(eventValue) => updateField('email', eventValue.target.value)}
+            required
+            type="email"
+            value={form.email}
+          />
+          <FloatingField
+            id="phone1"
+            label="Primary Phone"
+            onChange={(eventValue) => updateField('phone1', eventValue.target.value)}
+            required
+            value={form.phone1}
+          />
+          <FloatingField
+            id="phone2"
+            label="Secondary Phone"
+            onChange={(eventValue) => updateField('phone2', eventValue.target.value)}
+            required
+            value={form.phone2}
+          />
           <div className="md:col-span-2">
-            <label className="label" htmlFor="address">
-              Address
-            </label>
-            <textarea
-              className="input min-h-24"
+            <FloatingField
               id="address"
-              onChange={(e) => updateField('address', e.target.value)}
+              label="Address"
+              onChange={(eventValue) => updateField('address', eventValue.target.value)}
               required
+              textarea
               value={form.address}
             />
           </div>
@@ -462,27 +520,30 @@ export default function RegistrationForm({ event, onSuccess }) {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <input
-                className="input"
-                onChange={(eventValue) => updatePlayerDraft('name', eventValue.target.value)}
-                onKeyDown={handlePlayerEditorKeyDown}
-                placeholder="Player name"
-                value={playerDraft.name}
-              />
-              <input
-                className="input"
-                onChange={(eventValue) => updatePlayerDraft('phone', eventValue.target.value)}
-                onKeyDown={handlePlayerEditorKeyDown}
-                placeholder="Phone"
-                value={playerDraft.phone}
-              />
-              <input
-                className="input md:col-span-2"
-                onChange={(eventValue) => updatePlayerDraft('address', eventValue.target.value)}
-                onKeyDown={handlePlayerEditorKeyDown}
-                placeholder="Address"
-                value={playerDraft.address}
-              />
+              <div onKeyDown={handlePlayerEditorKeyDown}>
+                <FloatingField
+                  id="player-draft-name"
+                  label="Player Name"
+                  onChange={(eventValue) => updatePlayerDraft('name', eventValue.target.value)}
+                  value={playerDraft.name}
+                />
+              </div>
+              <div onKeyDown={handlePlayerEditorKeyDown}>
+                <FloatingField
+                  id="player-draft-phone"
+                  label="Phone"
+                  onChange={(eventValue) => updatePlayerDraft('phone', eventValue.target.value)}
+                  value={playerDraft.phone}
+                />
+              </div>
+              <div className="md:col-span-2" onKeyDown={handlePlayerEditorKeyDown}>
+                <FloatingField
+                  id="player-draft-address"
+                  label="Address"
+                  onChange={(eventValue) => updatePlayerDraft('address', eventValue.target.value)}
+                  value={playerDraft.address}
+                />
+              </div>
             </div>
 
             {playerError ? (

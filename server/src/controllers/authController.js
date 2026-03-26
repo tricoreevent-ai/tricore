@@ -283,6 +283,50 @@ export const createAdminUser = asyncHandler(async (req, res) => {
   });
 });
 
+export const updateAdminUser = asyncHandler(async (req, res) => {
+  const user = await User.findOne({
+    ...adminUserQuery,
+    _id: req.params.id
+  });
+
+  if (!user) {
+    throw new ApiError(404, 'Admin user not found.');
+  }
+
+  const username = req.body.username.trim().toLowerCase();
+  const email = req.body.email.trim().toLowerCase();
+
+  const conflictingUsername = await User.findOne({
+    authProvider: 'local',
+    username,
+    _id: { $ne: user._id }
+  });
+
+  if (conflictingUsername) {
+    throw new ApiError(409, 'An admin user with this username already exists.');
+  }
+
+  const conflictingEmail = await User.findOne({
+    email,
+    _id: { $ne: user._id }
+  });
+
+  if (conflictingEmail) {
+    throw new ApiError(409, 'A user with this email address already exists.');
+  }
+
+  user.name = req.body.name.trim();
+  user.username = username;
+  user.email = email;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    data: serializeAdminUser(user)
+  });
+});
+
 export const updateAdminUserAccess = asyncHandler(async (req, res) => {
   const user = await User.findOne({
     ...adminUserQuery,
@@ -307,6 +351,51 @@ export const updateAdminUserAccess = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: serializeAdminUser(user)
+  });
+});
+
+export const resetAdminUserPassword = asyncHandler(async (req, res) => {
+  const user = await User.findOne({
+    ...adminUserQuery,
+    _id: req.params.id
+  }).select('+passwordHash');
+
+  if (!user) {
+    throw new ApiError(404, 'Admin user not found.');
+  }
+
+  user.passwordHash = await hashPassword(req.body.newPassword);
+  await user.save();
+
+  res.json({
+    success: true,
+    message: `Password updated successfully for ${user.name}.`,
+    data: serializeAdminUser(user)
+  });
+});
+
+export const deleteAdminUser = asyncHandler(async (req, res) => {
+  const user = await User.findOne({
+    ...adminUserQuery,
+    _id: req.params.id
+  });
+
+  if (!user) {
+    throw new ApiError(404, 'Admin user not found.');
+  }
+
+  if (String(user._id) === String(req.user._id)) {
+    throw new ApiError(400, 'You cannot delete the admin account that is currently signed in.');
+  }
+
+  await user.deleteOne();
+
+  res.json({
+    success: true,
+    data: {
+      _id: req.params.id,
+      username: user.username
+    }
   });
 });
 

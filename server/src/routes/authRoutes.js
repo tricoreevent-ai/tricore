@@ -5,14 +5,17 @@ import {
   changeAdminPassword,
   createAdminRoleTemplate,
   deleteAdminRoleTemplate,
+  deleteAdminUser,
   createAdminUser,
   getAdminRoleTemplates,
   getCurrentAdminPermissions,
   getAdminUsers,
   getCurrentUser,
   googleAuth,
+  resetAdminUserPassword,
   updateAdminRoleTemplateStatus,
   updateAdminRoleTemplate,
+  updateAdminUser,
   updateAdminUserAccess,
   updateCurrentUserPayoutDetails
 } from '../controllers/authController.js';
@@ -24,10 +27,13 @@ import {
   changeAdminPasswordSchema,
   createAdminRoleTemplateSchema,
   createAdminUserSchema,
+  deleteAdminUserSchema,
   deleteAdminRoleTemplateSchema,
   googleAuthSchema,
+  resetAdminUserPasswordSchema,
   updateAdminRoleTemplateStatusSchema,
   updateAdminRoleTemplateSchema,
+  updateAdminUserSchema,
   updateAdminUserAccessSchema,
   updatePayoutDetailsSchema
 } from '../validators/authValidation.js';
@@ -58,6 +64,13 @@ router.post(
   validate(createAdminUserSchema),
   createAdminUser
 );
+router.put(
+  '/admin/users/:id',
+  authenticate,
+  authorizePermissions(adminPermissions.users),
+  validate(updateAdminUserSchema),
+  updateAdminUser
+);
 router.post(
   '/admin/role-templates',
   authenticate,
@@ -71,6 +84,20 @@ router.put(
   authorizePermissions(adminPermissions.users),
   validate(updateAdminUserAccessSchema),
   updateAdminUserAccess
+);
+router.post(
+  '/admin/users/:id/password',
+  authenticate,
+  authorizePermissions(adminPermissions.users),
+  validate(resetAdminUserPasswordSchema),
+  resetAdminUserPassword
+);
+router.delete(
+  '/admin/users/:id',
+  authenticate,
+  authorizePermissions(adminPermissions.users),
+  validate(deleteAdminUserSchema),
+  deleteAdminUser
 );
 router.put(
   '/admin/role-templates/:key',
