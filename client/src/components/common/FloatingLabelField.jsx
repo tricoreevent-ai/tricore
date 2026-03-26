@@ -19,9 +19,9 @@ export default function FloatingLabelField({
     .join(' ');
 
   const labelClasses =
-    'pointer-events-none absolute left-3 top-2 z-10 origin-[0] -translate-y-4 scale-75 bg-white px-2 text-xs font-medium text-slate-500 transition-all duration-200 ' +
+    'pointer-events-none absolute left-3 top-2 z-10 origin-[0] -translate-y-3.5 scale-90 bg-white px-2 text-xs font-medium text-slate-500 transition-all duration-200 ' +
     'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 ' +
-    'peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-brand-blue';
+    'peer-focus:top-2 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-brand-blue';
 
   return (
     <div className="relative">
