@@ -23,7 +23,7 @@
     "mongodb-memory-server": "^11.0.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "type": "module",
   "dependencies": {
