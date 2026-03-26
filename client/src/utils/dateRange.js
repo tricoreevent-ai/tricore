@@ -17,13 +17,14 @@ const addDays = (value, days) => {
   return date;
 };
 
-export const getDefaultDateRangeValues = (referenceDate = new Date(), daysForward = 30) => ({
-  dateFrom: toDateInputValue(referenceDate),
-  dateTo: toDateInputValue(addDays(referenceDate, daysForward))
+// Default: last 30 days, ending today
+export const getDefaultDateRangeValues = (referenceDate = new Date(), daysBack = 30) => ({
+  dateFrom: toDateInputValue(addDays(referenceDate, -Math.abs(daysBack))),
+  dateTo: toDateInputValue(referenceDate)
 });
 
-export const createDefaultDateRangeFilters = (extraFilters = {}, referenceDate = new Date(), daysForward = 30) => ({
-  ...getDefaultDateRangeValues(referenceDate, daysForward),
+export const createDefaultDateRangeFilters = (extraFilters = {}, referenceDate = new Date(), daysBack = 30) => ({
+  ...getDefaultDateRangeValues(referenceDate, daysBack),
   ...extraFilters
 });
 
