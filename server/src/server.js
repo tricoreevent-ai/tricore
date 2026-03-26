@@ -11,6 +11,10 @@ import { initializeFileLogging } from './utils/fileLogger.js';
 
 initializeFileLogging();
 
+const DB_RETRY_DELAY_MS = 30000;
+let persistenceBootstrapCompleted = false;
+let dbRetryTimer = null;
+
 const primeAppSettings = async () => {
   try {
     await Promise.all([
@@ -24,20 +28,49 @@ const primeAppSettings = async () => {
   }
 };
 
-const start = async () => {
+const scheduleDbReconnect = () => {
+  if (dbRetryTimer) {
+    return;
+  }
+
+  console.warn(`Retrying database bootstrap in ${DB_RETRY_DELAY_MS / 1000} seconds.`);
+  dbRetryTimer = setTimeout(() => {
+    dbRetryTimer = null;
+    void connectAndBootstrapPersistence();
+  }, DB_RETRY_DELAY_MS);
+
+  if (typeof dbRetryTimer.unref === 'function') {
+    dbRetryTimer.unref();
+  }
+};
+
+const bootstrapPersistenceServices = async () => {
+  if (persistenceBootstrapCompleted) {
+    return;
+  }
+
+  await ensureUserUniqueIndexes();
+  await ensureDefaultAdmin();
+  await primeAppSettings();
+  startBackupScheduler();
+  persistenceBootstrapCompleted = true;
+};
+
+const connectAndBootstrapPersistence = async () => {
   try {
     await connectDB();
-    await ensureUserUniqueIndexes();
-    await ensureDefaultAdmin();
-    await primeAppSettings();
-    startBackupScheduler();
-    app.listen(env.port, env.host, () => {
-      console.log(`TriCore Events API listening on ${env.host}:${env.port}`);
-    });
+    await bootstrapPersistenceServices();
   } catch (error) {
-    console.error('Unable to start server', error);
-    process.exit(1);
+    console.error('Database bootstrap warning:', error);
+    scheduleDbReconnect();
   }
+};
+
+const start = () => {
+  app.listen(env.port, env.host, () => {
+    console.log(`TriCore Events API listening on ${env.host}:${env.port}`);
+    void connectAndBootstrapPersistence();
+  });
 };
 
 start();

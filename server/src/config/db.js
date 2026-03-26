@@ -238,6 +238,8 @@ export const recoverDbConnection = async ({ forceReconnect = false } = {}) => {
 };
 
 export const connectDB = async () => {
+  // Fail queries fast when the DB is unavailable instead of buffering them indefinitely.
+  mongoose.set('bufferCommands', false);
   mongoose.set('strictQuery', true);
   registerConnectionListeners();
   await recoverDbConnection({ forceReconnect: mongoose.connection.readyState !== 0 });
