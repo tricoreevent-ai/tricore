@@ -164,7 +164,9 @@ export const isMongoConnectivityError = (error) => {
     /SSL routines/i.test(message) ||
     /tlsv1 alert/i.test(message) ||
     /topology was destroyed/i.test(message) ||
-    /connection .* closed/i.test(message)
+    /connection .* closed/i.test(message) ||
+    /before initial connection is complete/i.test(message) ||
+    /bufferCommands\s*=\s*false/i.test(message)
   );
 };
 
