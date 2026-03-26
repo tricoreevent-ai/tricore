@@ -1,0 +1,34 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#E2E8F0"/>
+  <rect width="1600" height="540" fill="url(#sky)"/>
+  <rect y="540" width="1600" height="460" fill="#14532D"/>
+  <path d="M0 731C119 694 231 685 337 702C496 728 616 818 789 821C951 824 1072 740 1208 711C1332 684 1459 696 1600 746V1000H0V731Z" fill="#16A34A"/>
+  <path d="M154 798L258 688L366 798" stroke="#F97316" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M460 798L564 688L672 798" stroke="#F97316" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M766 798L870 688L978 798" stroke="#F97316" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1072 798L1176 688L1284 798" stroke="#F97316" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="484" cy="590" r="44" fill="#0F172A"/>
+  <circle cx="804" cy="590" r="44" fill="#0F172A"/>
+  <circle cx="1124" cy="590" r="44" fill="#0F172A"/>
+  <path d="M484 640V783" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M804 640V783" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1124 640V783" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M484 704L420 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M484 704L548 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M804 704L740 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M804 704L868 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1124 704L1060 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1124 704L1188 744" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M484 783L431 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M484 783L536 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M804 783L751 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M804 783L856 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1124 783L1071 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1124 783L1176 863" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#BFDBFE"/>
+    </linearGradient>
+  </defs>
+</svg>

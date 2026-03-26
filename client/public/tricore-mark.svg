@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bgGlowBlue" cx="0" cy="0" r="1" gradientTransform="translate(180 230) rotate(43) scale(230 200)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DE3FF" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#8DE3FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlowOrange" cx="0" cy="0" r="1" gradientTransform="translate(350 220) rotate(130) scale(240 220)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD15C" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#FFD15C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="blueFace" x1="100" y1="350" x2="280" y2="95" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0E3EBD"/>
+      <stop offset=".45" stop-color="#29B8FF"/>
+      <stop offset="1" stop-color="#1130B5"/>
+    </linearGradient>
+    <linearGradient id="blueEdge" x1="135" y1="326" x2="260" y2="134" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6EDCFF" stop-opacity=".18"/>
+      <stop offset=".55" stop-color="#E5FFFF" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#6EDCFF" stop-opacity=".15"/>
+    </linearGradient>
+    <linearGradient id="orangeFace" x1="300" y1="92" x2="428" y2="374" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFAE1D"/>
+      <stop offset=".42" stop-color="#FF6A00"/>
+      <stop offset="1" stop-color="#D91800"/>
+    </linearGradient>
+    <linearGradient id="orangeEdge" x1="306" y1="120" x2="390" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4B8" stop-opacity=".08"/>
+      <stop offset=".5" stop-color="#FFF7E7" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#FFF4B8" stop-opacity=".05"/>
+    </linearGradient>
+    <linearGradient id="silverFace" x1="118" y1="330" x2="402" y2="426" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8E2F0"/>
+      <stop offset=".25" stop-color="#FFFFFF"/>
+      <stop offset=".58" stop-color="#BFCADD"/>
+      <stop offset="1" stop-color="#7F90AA"/>
+    </linearGradient>
+    <linearGradient id="silverShade" x1="156" y1="348" x2="374" y2="386" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#71839D" stop-opacity=".7"/>
+      <stop offset=".28" stop-color="#FFFFFF" stop-opacity=".95"/>
+      <stop offset=".78" stop-color="#7C8FA9" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#66748C" stop-opacity=".95"/>
+    </linearGradient>
+    <linearGradient id="innerMetal" x1="202" y1="194" x2="334" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6C7891"/>
+      <stop offset=".45" stop-color="#1C2335"/>
+      <stop offset="1" stop-color="#8A98B3"/>
+    </linearGradient>
+    <filter id="softShadow" x="64" y="48" width="384" height="392" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#0F172A" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <circle cx="176" cy="242" r="184" fill="url(#bgGlowBlue)" opacity=".7"/>
+  <circle cx="348" cy="224" r="198" fill="url(#bgGlowOrange)" opacity=".72"/>
+  <ellipse cx="256" cy="404" rx="202" ry="42" fill="#A7B6CF" opacity=".22"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M95 348C146 247 196 154 258 74c16 24 29 50 39 80-51 55-100 126-147 211L95 348Z" fill="url(#blueFace)"/>
+    <path d="M124 332C159 263 202 190 252 123" stroke="url(#blueEdge)" stroke-width="15" stroke-linecap="round"/>
+
+    <path d="M258 74c96 74 148 170 165 286l-83 4c-7-101-25-170-82-290Z" fill="url(#orangeFace)"/>
+    <path d="M294 104c54 81 84 149 99 235" stroke="url(#orangeEdge)" stroke-width="14" stroke-linecap="round"/>
+
+    <path d="M150 364c58 29 120 44 185 44 37 0 69-5 95-11-41 32-93 53-156 57-72 4-131-23-180-90l56 0Z" fill="url(#silverFace)"/>
+    <path d="M134 345c96 26 197 31 293 13 10-2 16 10 8 17-41 33-109 58-184 59-67 1-123-18-170-68-8-8-3-24 10-21Z" fill="url(#silverShade)" opacity=".82"/>
+
+    <path d="M210 287c22-45 50-91 87-134 18 55 27 112 28 170-37-16-71-36-102-66-11-11-17-24-13-30Z" fill="url(#innerMetal)" opacity=".96"/>
+
+    <path d="M149 363c82 18 171 22 263 9" stroke="#FFF" stroke-opacity=".75" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="174" cy="210" r="14" fill="#fff" fill-opacity=".96"/>
+    <circle cx="345" cy="210" r="11" fill="#fff" fill-opacity=".9"/>
+    <circle cx="280" cy="242" r="9" fill="#fff" fill-opacity=".82"/>
+  </g>
+</svg>

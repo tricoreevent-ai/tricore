@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 font-body text-slate-900 antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-slate-950;
+  }
+}
+
+@layer components {
+  .container-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .panel {
+    @apply rounded-3xl border border-slate-200 bg-white shadow-soft;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20;
+  }
+
+  .label {
+    @apply mb-2 block text-sm font-medium text-slate-700;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-brand-blue/20 bg-white px-5 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue hover:bg-brand-mist;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .admin-theme-dark {
+    color: rgb(226 232 240);
+  }
+
+  .admin-theme-dark h1,
+  .admin-theme-dark h2,
+  .admin-theme-dark h3,
+  .admin-theme-dark h4 {
+    color: rgb(248 250 252);
+  }
+
+  .admin-theme-dark .panel {
+    @apply border-slate-800 bg-slate-900 text-slate-100;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+  }
+
+  .admin-theme-dark .input {
+    @apply border-slate-700 bg-slate-950 text-slate-100;
+  }
+
+  .admin-theme-dark .input::placeholder {
+    color: rgb(148 163 184);
+  }
+
+  .admin-theme-dark .label {
+    @apply text-slate-300;
+  }
+
+  .admin-theme-dark .btn-secondary {
+    @apply border-slate-700 bg-slate-900 text-slate-100 hover:border-slate-500 hover:bg-slate-800;
+  }
+
+  .admin-theme-dark .bg-white,
+  .admin-theme-dark .bg-white\/75,
+  .admin-theme-dark .bg-white\/85,
+  .admin-theme-dark .bg-white\/90,
+  .admin-theme-dark .bg-white\/92 {
+    background-color: rgba(15, 23, 42, 0.92);
+  }
+
+  .admin-theme-dark .bg-slate-50 {
+    background-color: rgba(15, 23, 42, 0.78);
+  }
+
+  .admin-theme-dark .bg-slate-100 {
+    background-color: rgba(30, 41, 59, 0.92);
+  }
+
+  .admin-theme-dark .bg-brand-mist {
+    background-color: rgba(37, 99, 235, 0.18);
+  }
+
+  .admin-theme-dark .border-slate-100,
+  .admin-theme-dark .border-slate-200 {
+    border-color: rgb(51 65 85);
+  }
+
+  .admin-theme-dark .text-slate-950,
+  .admin-theme-dark .text-slate-900 {
+    color: rgb(248 250 252);
+  }
+
+  .admin-theme-dark .text-slate-800,
+  .admin-theme-dark .text-slate-700,
+  .admin-theme-dark .text-slate-600 {
+    color: rgb(203 213 225);
+  }
+
+  .admin-theme-dark .text-slate-500,
+  .admin-theme-dark .text-slate-400 {
+    color: rgb(148 163 184);
+  }
+
+  .admin-theme-dark .shadow-soft {
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+  }
+}
