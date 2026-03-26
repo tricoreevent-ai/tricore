@@ -1,0 +1,17 @@
+TriCore Events Hostinger Deployment
+==================================
+Deployment model (do not change):
+- Monorepo flattened at root. Root package.json runs server from server/src/server.js and builds client via npm run build.
+- Commands for Hostinger GitHub deploy:
+  * Install command: npm install
+  * Build command: npm run build
+  * Start command: npm start
+- Repo/branch: https://github.com/tricoreevent-ai/tricore.git (main)
+- Root directory: /
+- Node.js: 22.x
+
+Hostinger checklist (kept for future reference):
+1) Node.js app flow -> Connect with GitHub -> repo tricoreevent-ai/tricore -> branch main.
+2) Set commands exactly as above; do not alter structure or scripts.
+3) Ensure environment variables (copy from server/.env) are added in Hostinger dashboard.
+4) After deploy, API served by server/src/server.js and client from client/dist.
