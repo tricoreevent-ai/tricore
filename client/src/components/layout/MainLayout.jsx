@@ -11,9 +11,9 @@ const normalizeBaseUrl = (value) =>
     .replace(/\/+$/, '');
 
 const HOME_SEO = {
-  title: 'TriCore Events - Corporate Sports Tournament Management | Cricket Events',
+  title: 'TriCore Events - Corporate Events, Sports Tournaments, and Cricket Experiences',
   description:
-    'TriCore Events delivers corporate sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.'
+    'TriCore Events delivers corporate events, sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.'
 };
 
 export default function MainLayout() {
@@ -34,6 +34,14 @@ export default function MainLayout() {
         title: 'About TriCore Events | Corporate Sports and Cricket Event Experience',
         description:
           'Learn how TriCore Events delivers disciplined sports tournaments, corporate cricket experiences, and community events with a people-first operations team.'
+      };
+    }
+
+    if (pathname === '/corporate-events') {
+      return {
+        title: 'Corporate Events & Experiences | TriCore Events',
+        description:
+          'Explore TriCore corporate event services including conferences, team building programs, strategic offsites, AGMs, employee engagement events, and product launches.'
       };
     }
 

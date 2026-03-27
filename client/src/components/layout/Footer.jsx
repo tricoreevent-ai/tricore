@@ -6,6 +6,7 @@ import { contactContent } from '../../data/siteContent.js';
 const quickLinks = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
+  { to: '/corporate-events', label: 'Corporate Events' },
   { to: '/events', label: 'Events' },
   { to: '/contact', label: 'Contact' }
 ];
@@ -23,8 +24,8 @@ export default function Footer() {
             subtitle="Sports tournaments and corporate event execution"
           />
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-600">
-            TriCore Events streamlines registrations, schedules, tournament accounting, and public
-            event discovery for corporate sports operations teams.
+            TriCore Events delivers corporate experiences, sports tournaments, registrations,
+            schedules, and event operations with a people-first execution mindset.
           </p>
         </div>
 

@@ -7,7 +7,7 @@ export const homeExpertise = [
   {
     title: 'Corporate Events',
     description:
-      'We design bespoke team-building programs, engagement days, and offsites aligned with business goals.'
+      'We plan conferences, offsites, launches, and team-building experiences that reflect your culture and business goals.'
   },
   {
     title: 'Community Competitions',
@@ -24,16 +24,16 @@ export const homeExpertise = [
 export const homeHeroFallbackBanners = [
   {
     id: 'tricore-home-default',
-    badge: '20+ years of sports and corporate event execution',
+    badge: 'Corporate events, sports tournaments, and team experiences',
     title: 'Where passion meets precision.',
     description:
-      'TriCore Events crafts high-energy sports tournaments and seamless corporate experiences that build teams, spark competition, and create community.',
+      'TriCore Events crafts high-energy sports tournaments and seamless corporate experiences that build teams, strengthen culture, and create community.',
     imageUrl: '',
     imageAlt: 'TriCore Events homepage banner',
     primaryActionLabel: 'Explore Our Events',
     primaryActionHref: '/events',
-    secondaryActionLabel: 'Learn About TriCore',
-    secondaryActionHref: '/about',
+    secondaryActionLabel: 'Corporate Experiences',
+    secondaryActionHref: '/corporate-events',
     isActive: true
   }
 ];
@@ -249,6 +249,170 @@ export const corporateTournamentSpotlight = {
   secondaryActionHref: '/contact'
 };
 
+export const corporateEventsHomeFeature = {
+  badge: 'Corporate Events & Experiences',
+  title:
+    'From leadership meetings to large-scale launches, TriCore manages corporate experiences end to end.',
+  description:
+    'We combine operational discipline, creative planning, and calm on-site coordination to deliver polished corporate events that reflect your brand and keep your teams focused on outcomes.',
+  points: [
+    'Meetings, conferences, and executive gatherings with venue, vendor, AV, and registration support.',
+    'Purpose-driven team building programs, retreats, and strategic offsites designed around your culture goals.',
+    'AGMs, employee engagement events, product launches, and brand activations executed with professional precision.'
+  ],
+  primaryActionLabel: 'Explore Corporate Events',
+  primaryActionHref: '/corporate-events',
+  secondaryActionLabel: 'Get a Quick Quote',
+  secondaryActionHref: '/contact'
+};
+
+export const corporateEventsContent = {
+  heroBadge: 'Corporate Events & Experiences',
+  heroTitle: 'Seamless Planning, Flawless Execution, Unforgettable Moments',
+  heroDescription:
+    "TriCore Events is more than an event management company. We are your strategic partner in creating impactful corporate experiences that reflect your brand's culture, values, and vision.",
+  heroSupportingCopy:
+    'From intimate boardroom meetings to high-stakes company-wide conferences, we blend meticulous planning with creative flair to deliver events that run smoothly from start to finish. Our team handles every detail so you can stay focused on your people, your message, and your goals.',
+  focusAreas: [
+    'Corporate meetings and conferences',
+    'Team building programs',
+    'Corporate camps and offsites',
+    'AGMs and shareholder events',
+    'Employee engagement celebrations',
+    'Product launches and brand activations'
+  ],
+  introTitle: 'What We Do',
+  introDescription:
+    "We do not just manage events; we engineer experiences. Our mission is to transform your organizational needs into memorable and productive events that continue to resonate long after the event concludes.",
+  introSupportingCopy:
+    'We work closely with you to understand your objectives, then use our expertise in logistics, design, and coordination to build a seamless attendee journey from invitation to wrap-up.',
+  servicesTitle: 'Types of Corporate Events We Handle',
+  servicesDescription:
+    'Our service suite is tailored to the specific needs of modern organizations, whether you are planning an internal culture initiative, a formal stakeholder gathering, or a high-visibility launch.',
+  services: [
+    {
+      icon: 'events',
+      title: 'Corporate Meetings & Conferences',
+      description:
+        'Elevate business gatherings from standard to strategic while we manage the moving pieces behind the scenes.',
+      points: [
+        'End-to-end logistics including venue sourcing, contract negotiation, and vendor management.',
+        'Advanced technical production with AV, lighting, live streaming, and presentation support.',
+        'On-site coordination for registration, speaker flow, guest handling, and timeline control.'
+      ]
+    },
+    {
+      icon: 'users',
+      title: 'Team Building Programs',
+      description:
+        'Invest in team cohesion with engaging activities designed to strengthen real connection and collaboration.',
+      points: [
+        'Tailored formats such as escape-room challenges, outdoor adventures, cooking workshops, or music-led sessions.',
+        'Facilitated debriefs that turn the experience into practical insights on teamwork, communication, and leadership.',
+        'Inclusive design so activities remain accessible, thoughtful, and engaging for every participant.'
+      ]
+    },
+    {
+      icon: 'calendar',
+      title: 'Corporate Camps & Strategic Offsites',
+      description:
+        'Move your team into an environment that encourages innovation, sharper thinking, and stronger bonding.',
+      points: [
+        'Destination discovery with travel, accommodation, and resort or retreat logistics handled by our team.',
+        'Balanced programming that combines strategic sessions with recreation and informal connection.',
+        'Full event-flow ownership from welcome dinner to closing session so leadership can stay present.'
+      ]
+    },
+    {
+      icon: 'bank',
+      title: 'Annual General Meetings & Shareholder Events',
+      description:
+        'Deliver a professional, transparent, and well-managed AGM that reinforces stakeholder confidence.',
+      points: [
+        'Formal venue setup with seating plans, stage design, signage, and registration zones.',
+        'Operational support for proxy management, ballot handling, and structured attendee flow.',
+        'Professional protocol management that keeps timing, agenda, and event tone firmly on track.'
+      ]
+    },
+    {
+      icon: 'trophy',
+      title: 'Employee Engagement & Appreciation Events',
+      description:
+        'Celebrate your people with events that strengthen morale, recognition, and workplace culture.',
+      points: [
+        'Themed annual days, festive celebrations, galas, and holiday gatherings with decor, catering, and entertainment.',
+        'Internal competitions, sports days, quiz nights, and awards ceremonies that drive participation and pride.',
+        'Wellness workshops, family days, and CSR-style initiatives that help build a connected internal community.'
+      ]
+    },
+    {
+      icon: 'sparkle',
+      title: 'Product Launches & Brand Activations',
+      description:
+        'Create momentum and make a strong first impression with launch experiences designed around your story.',
+      points: [
+        'Venue selection and thematic design aligned with your product narrative and brand identity.',
+        'Guest, media, and invitation management for a polished, high-impact experience.',
+        'Interactive demonstration zones, photo moments, and experiential touchpoints that keep audiences engaged.'
+      ]
+    }
+  ],
+  whyChooseTitle: 'Why Choose TriCore Events',
+  whyChooseItems: [
+    'A partnership mindset that aligns event execution with your business goals and brand standards.',
+    'Proven experience managing both high-pressure sports events and large-scale corporate functions.',
+    'End-to-end accountability from first concept through final breakdown, with one reliable point of contact.',
+    'Flexible planning shaped around your audience, objectives, operating style, and budget realities.',
+    'Professional delivery grounded in punctuality, transparency, preparation, and calm problem-solving.'
+  ],
+  processTitle: 'Our Proven Process',
+  processDescription:
+    'Our approach is collaborative, transparent, and designed to reduce pressure for your internal team while keeping every stage visible and under control.',
+  process: [
+    {
+      icon: 'search',
+      title: 'Discovery & Strategy',
+      description:
+        'We begin by listening closely to your goals, audience, budget, and vision so we can shape the right event roadmap.'
+    },
+    {
+      icon: 'edit',
+      title: 'Concept & Planning',
+      description:
+        'We present a detailed proposal covering venue options, creative direction, timelines, and vendor recommendations.'
+    },
+    {
+      icon: 'settings',
+      title: 'Coordination & Logistics',
+      description:
+        'Our team manages contracts, production details, staffing, and on-site logistics well before event day begins.'
+    },
+    {
+      icon: 'check',
+      title: 'Seamless Execution',
+      description:
+        'On event day we run the flow, solve issues quietly behind the scenes, and protect a polished guest experience.'
+    },
+    {
+      icon: 'chart',
+      title: 'Post-Event Review',
+      description:
+        'We close with a thoughtful debrief, key learnings, and feedback review so future initiatives start stronger.'
+    }
+  ],
+  credibilityTitle: 'Our Experience & Credibility',
+  credibilityDescription:
+    'TriCore Events is built on real-world execution. Our leadership team has managed high-stakes sports events, large-scale corporate gatherings, and intimate executive retreats, giving us the systems, resourcefulness, and situational calm needed to deliver consistently strong outcomes.',
+  credibilitySupportingCopy:
+    'We understand the pressure that comes with representing a brand in front of employees, leaders, clients, or shareholders. That is why we focus on preparation, accountability, and practical problem-solving at every stage.',
+  ctaTitle: 'Ready to create a corporate event that is as productive as it is memorable?',
+  ctaDescription: "Let's plan your next experience.",
+  primaryActionLabel: 'Get a Quick Quote',
+  primaryActionHref: '/contact',
+  secondaryActionLabel: 'Contact Us Today',
+  secondaryActionHref: '/contact'
+};
+
 export const partnerHighlights = [
   {
     name: 'Spark 7 Sports Arena',
@@ -272,10 +436,10 @@ export const eventsContent = {
     'Custom tournament management with bespoke formats, scoring, and multi-venue logistics.'
   ],
   corporate: [
-    'Team-building activities focused on communication, trust, and problem-solving.',
-    'Corporate sports days that combine wellness, morale-building, and participation.',
-    'Employee engagement programs designed to strengthen company culture.',
-    'Brand activation events that create memorable on-ground interactions.'
+    'Corporate meetings, conferences, and leadership sessions with logistics and technical production support.',
+    'Team-building programs, corporate camps, and strategic offsites aligned with culture and business goals.',
+    'Employee engagement days, AGMs, appreciation events, and internal celebrations managed end to end.',
+    'Product launches and brand activations that combine guest management, storytelling, and live experience design.'
   ],
   process: [
     {

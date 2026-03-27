@@ -8,6 +8,7 @@ import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
 import AboutPage from './pages/public/AboutPage.jsx';
 import ContactPage from './pages/public/ContactPage.jsx';
+import CorporateEventsPage from './pages/public/CorporateEventsPage.jsx';
 import EventDetailPage from './pages/public/EventDetailPage.jsx';
 import EventsPage from './pages/public/EventsPage.jsx';
 import HomePage from './pages/public/HomePage.jsx';
@@ -117,6 +118,7 @@ export default function App() {
       <Route element={<MainLayout />}>
         <Route index element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/corporate-events" element={<CorporateEventsPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/partner-access" element={<SponsorshipPage />} />

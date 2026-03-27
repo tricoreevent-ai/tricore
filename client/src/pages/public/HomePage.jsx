@@ -25,10 +25,12 @@ import {
 } from '../../utils/eventTimeline.js';
 
 const DEFAULT_SEO_TITLE =
-  'TriCore Events - Corporate Sports Tournament Management | Cricket Events';
+  'TriCore Events - Corporate Events, Sports Tournaments, and Cricket Experiences';
 const DEFAULT_SEO_DESCRIPTION =
-  'TriCore Events delivers corporate sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.';
+  'TriCore Events delivers corporate events, sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.';
 const DEFAULT_SEO_KEYWORDS = [
+  'corporate events',
+  'corporate experiences',
   'corporate sports tournaments',
   'corporate cricket events',
   'cricket tournament management',

@@ -8,6 +8,7 @@ import TriCoreLogo from '../common/TriCoreLogo.jsx';
 const links = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
+  { to: '/corporate-events', label: 'Corporate' },
   { to: '/events', label: 'Events' },
   { to: '/contact', label: 'Contact' }
 ];

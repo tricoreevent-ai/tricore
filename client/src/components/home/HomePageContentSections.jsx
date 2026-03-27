@@ -6,6 +6,7 @@ import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import PartnerHighlights from '../common/PartnerHighlights.jsx';
 import {
   aboutHighlights,
+  corporateEventsHomeFeature,
   corporateTournamentSpotlight,
   eventsContent,
   partnerHighlights,
@@ -103,6 +104,56 @@ export default function HomePageContentSections({ content, events, eventsError, 
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container-shell mt-24">
+        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="panel p-8 sm:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+              {corporateEventsHomeFeature.badge}
+            </p>
+            <h2 className="mt-4 text-4xl font-bold text-slate-950">
+              {corporateEventsHomeFeature.title}
+            </h2>
+            <p className="mt-5 text-base leading-8 text-slate-700">
+              {corporateEventsHomeFeature.description}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link className="btn-primary" to={corporateEventsHomeFeature.primaryActionHref}>
+                {corporateEventsHomeFeature.primaryActionLabel}
+              </Link>
+              <Link className="btn-secondary" to={corporateEventsHomeFeature.secondaryActionHref}>
+                {corporateEventsHomeFeature.secondaryActionLabel}
+              </Link>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-[2rem] text-white" style={highlightPanelStyle}>
+            <div className="p-8 sm:p-10">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">
+                Corporate planning, without the chaos
+              </p>
+              <h2 className="mt-4 text-3xl font-bold text-white">
+                A sharper corporate offering for teams, leaders, and stakeholders
+              </h2>
+              <div className="mt-6 grid gap-4">
+                {corporateEventsHomeFeature.points.map((item, index) => (
+                  <div
+                    className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm"
+                    key={item}
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-sm font-bold text-white">
+                        0{index + 1}
+                      </span>
+                      <p className="text-sm leading-7 text-blue-50">{item}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
