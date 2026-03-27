@@ -53,6 +53,31 @@ export const saveMatchConfiguration = async (eventId, payload) => {
   return response.data.data;
 };
 
+export const getExperimentalFixturePlan = async (eventId) => {
+  const response = await adminApi.get(`/matches/event/${eventId}/experimental-ai-plan`);
+  return response.data.data;
+};
+
+export const generateExperimentalFixturePlan = async (eventId, payload) => {
+  const response = await adminApi.post(`/matches/event/${eventId}/experimental-ai-plan/generate`, payload);
+  return response.data.data;
+};
+
+export const saveExperimentalFixturePlanDraft = async (eventId, payload) => {
+  const response = await adminApi.put(`/matches/event/${eventId}/experimental-ai-plan`, payload);
+  return response.data.data;
+};
+
+export const approveExperimentalFixturePlan = async (eventId, payload = {}) => {
+  const response = await adminApi.post(`/matches/event/${eventId}/experimental-ai-plan/approve`, payload);
+  return response.data.data;
+};
+
+export const rejectExperimentalFixturePlan = async (eventId) => {
+  const response = await adminApi.post(`/matches/event/${eventId}/experimental-ai-plan/reject`, {});
+  return response.data.data;
+};
+
 export const generateKnockoutBracket = async (payload) => {
   const response = await adminApi.post('/matches/generate-knockout', payload);
   return response.data.data;

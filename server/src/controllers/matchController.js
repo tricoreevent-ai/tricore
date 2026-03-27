@@ -5,6 +5,13 @@ import {
   getMatchConfiguration,
   updateMatchConfiguration as saveMatchConfiguration
 } from '../services/matchConfigurationService.js';
+import {
+  approveFixtureAiPlan as approveExperimentalFixtureAiPlan,
+  generateFixtureAiPlan as generateExperimentalFixtureAiPlan,
+  getFixtureAiPlan as getExperimentalFixtureAiPlan,
+  rejectFixtureAiPlan as rejectExperimentalFixtureAiPlan,
+  saveFixtureAiPlanDraft as saveExperimentalFixtureAiPlanDraft
+} from '../services/fixtureAiService.js';
 import { isPaymentConfirmed } from '../services/paymentStatusService.js';
 import { serializeRegistrationRecord } from '../services/registrationViewService.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -412,6 +419,70 @@ export const saveMatchConfigurationForEvent = asyncHandler(async (req, res) => {
     success: true,
     message: 'Match configuration updated successfully.',
     data: configuration
+  });
+});
+
+export const getExperimentalFixturePlanForEvent = asyncHandler(async (req, res) => {
+  const plan = await getExperimentalFixtureAiPlan(req.params.eventId);
+
+  res.json({
+    success: true,
+    data: plan
+  });
+});
+
+export const generateExperimentalFixturePlanForEvent = asyncHandler(async (req, res) => {
+  const plan = await generateExperimentalFixtureAiPlan({
+    eventId: req.params.eventId,
+    payload: req.body,
+    userId: req.user._id
+  });
+
+  res.json({
+    success: true,
+    message: 'Experimental AI fixture plan generated successfully.',
+    data: plan
+  });
+});
+
+export const saveExperimentalFixturePlanDraftForEvent = asyncHandler(async (req, res) => {
+  const plan = await saveExperimentalFixtureAiPlanDraft({
+    eventId: req.params.eventId,
+    payload: req.body,
+    userId: req.user._id
+  });
+
+  res.json({
+    success: true,
+    message: 'Experimental AI fixture draft saved successfully.',
+    data: plan
+  });
+});
+
+export const approveExperimentalFixturePlanForEvent = asyncHandler(async (req, res) => {
+  const result = await approveExperimentalFixtureAiPlan({
+    eventId: req.params.eventId,
+    payload: req.body,
+    userId: req.user._id
+  });
+
+  res.json({
+    success: true,
+    message: 'Experimental AI fixture plan approved and published to the core fixture system.',
+    data: result
+  });
+});
+
+export const rejectExperimentalFixturePlanForEvent = asyncHandler(async (req, res) => {
+  const plan = await rejectExperimentalFixtureAiPlan({
+    eventId: req.params.eventId,
+    userId: req.user._id
+  });
+
+  res.json({
+    success: true,
+    message: 'Experimental AI fixture plan rejected.',
+    data: plan
   });
 });
 

@@ -1,12 +1,17 @@
 import { Router } from 'express';
 
 import {
+  approveExperimentalFixturePlanForEvent,
   autoGenerateFixtures,
   createMatch,
+  generateExperimentalFixturePlanForEvent,
+  getExperimentalFixturePlanForEvent,
   getMatchConfigurationForEvent,
   generateKnockoutBracket,
   getConfirmedTeamsByEvent,
   getMatchesByEvent,
+  rejectExperimentalFixturePlanForEvent,
+  saveExperimentalFixturePlanDraftForEvent,
   saveMatchConfigurationForEvent,
   updateMatch
 } from '../controllers/matchController.js';
@@ -37,6 +42,41 @@ router.put(
   authorizePermissions(adminPermissions.matches),
   validate(matchConfigurationSchema),
   saveMatchConfigurationForEvent
+);
+router.get(
+  '/event/:eventId/experimental-ai-plan',
+  authenticate,
+  authorizePermissions(adminPermissions.matches),
+  validate(eventMatchesSchema),
+  getExperimentalFixturePlanForEvent
+);
+router.post(
+  '/event/:eventId/experimental-ai-plan/generate',
+  authenticate,
+  authorizePermissions(adminPermissions.matches),
+  validate(matchConfigurationSchema),
+  generateExperimentalFixturePlanForEvent
+);
+router.put(
+  '/event/:eventId/experimental-ai-plan',
+  authenticate,
+  authorizePermissions(adminPermissions.matches),
+  validate(matchConfigurationSchema),
+  saveExperimentalFixturePlanDraftForEvent
+);
+router.post(
+  '/event/:eventId/experimental-ai-plan/approve',
+  authenticate,
+  authorizePermissions(adminPermissions.matches),
+  validate(matchConfigurationSchema),
+  approveExperimentalFixturePlanForEvent
+);
+router.post(
+  '/event/:eventId/experimental-ai-plan/reject',
+  authenticate,
+  authorizePermissions(adminPermissions.matches),
+  validate(matchConfigurationSchema),
+  rejectExperimentalFixturePlanForEvent
 );
 router.post(
   '/',

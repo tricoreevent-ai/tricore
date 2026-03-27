@@ -1,4 +1,5 @@
 const normalizeText = (value) => String(value || '').trim();
+const DEFAULT_FIXTURE_AI_TIME_SLOTS = ['09:00', '12:00', '15:00', '18:00'];
 
 const normalizeNumber = (value, fallback = 0) => {
   if (value === undefined || value === null || value === '') {
@@ -8,6 +9,164 @@ const normalizeNumber = (value, fallback = 0) => {
   const numericValue = Number(value);
   return Number.isFinite(numericValue) ? numericValue : fallback;
 };
+
+const toDateOnly = (value) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0')
+  ].join('-');
+};
+
+const enumerateDateRange = (startDate, endDate, maxDays = 31) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+    return [];
+  }
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const dates = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end && dates.length < maxDays) {
+    dates.push(toDateOnly(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
+};
+
+const getFixtureAiDefaultFormat = (configuration = {}) => {
+  if (configuration.groupStageEnabled) {
+    return 'group-stage';
+  }
+
+  if (configuration.knockoutStageEnabled) {
+    return 'knockout';
+  }
+
+  return 'round-robin';
+};
+
+export const parseFixtureAiCsv = (value) =>
+  String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+export const serializeFixtureAiPreferredTimings = (preferredMatchTimings = {}) =>
+  Object.entries(preferredMatchTimings || {})
+    .map(([teamName, timings]) => {
+      const normalizedTimings = Array.isArray(timings)
+        ? timings.map((timing) => normalizeText(timing)).filter(Boolean)
+        : [];
+
+      return teamName && normalizedTimings.length
+        ? `${normalizeText(teamName)}:${normalizedTimings.join('|')}`
+        : '';
+    })
+    .filter(Boolean)
+    .join('; ');
+
+export const parseFixtureAiPreferredTimings = (value) =>
+  String(value || '')
+    .split(';')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .reduce((accumulator, entry) => {
+      const [teamNamePart, timingsPart = ''] = entry.split(':');
+      const teamName = normalizeText(teamNamePart);
+      const timings = timingsPart
+        .split('|')
+        .map((timing) => timing.trim())
+        .filter(Boolean);
+
+      if (teamName && timings.length) {
+        accumulator[teamName] = timings;
+      }
+
+      return accumulator;
+    }, {});
+
+export const createInitialFixtureAiPlan = (plan = {}) => ({
+  experimental: true,
+  status: normalizeText(plan.status || 'empty'),
+  generatedAt: plan.generatedAt || null,
+  approvedAt: plan.approvedAt || null,
+  rejectedAt: plan.rejectedAt || null,
+  optimizationScore: normalizeNumber(plan.optimizationScore, 0),
+  inputs: plan.inputs || null,
+  groupSuggestions: Array.isArray(plan.groupSuggestions) ? plan.groupSuggestions : [],
+  fixtures: Array.isArray(plan.fixtures) ? plan.fixtures : [],
+  suggestions: Array.isArray(plan.suggestions) ? plan.suggestions : [],
+  alerts: Array.isArray(plan.alerts) ? plan.alerts : [],
+  rescheduleSuggestions: Array.isArray(plan.rescheduleSuggestions) ? plan.rescheduleSuggestions : [],
+  updatedAt: plan.updatedAt || null,
+  updatedBy: plan.updatedBy || null
+});
+
+export const createInitialFixtureAiForm = (event = null, configuration = {}, plan = {}) => {
+  const inputs = plan.inputs || {};
+  const startDate = normalizeText(inputs.startDate) || toDateOnly(event?.startDate);
+  const endDate = normalizeText(inputs.endDate) || toDateOnly(event?.endDate || event?.startDate);
+  const availableDates =
+    Array.isArray(inputs.availableDates) && inputs.availableDates.length
+      ? inputs.availableDates
+      : enumerateDateRange(startDate, endDate);
+  const venues =
+    Array.isArray(inputs.venues) && inputs.venues.length
+      ? inputs.venues
+      : [normalizeText(event?.venue)].filter(Boolean);
+  const timeSlots =
+    Array.isArray(inputs.timeSlots) && inputs.timeSlots.length
+      ? inputs.timeSlots
+      : DEFAULT_FIXTURE_AI_TIME_SLOTS;
+
+  return {
+    format: normalizeText(inputs.format) || getFixtureAiDefaultFormat(configuration),
+    startDate,
+    endDate,
+    availableDatesText: availableDates.join(', '),
+    venuesText: venues.join(', '),
+    timeSlotsText: timeSlots.join(', '),
+    noTeamPlaysTwoMatchesSameDay:
+      inputs.constraints?.noTeamPlaysTwoMatchesSameDay === undefined
+        ? true
+        : Boolean(inputs.constraints?.noTeamPlaysTwoMatchesSameDay),
+    minimumRestDays: normalizeNumber(inputs.constraints?.minimumRestDays, 1),
+    primeTimeMatchesText: Array.isArray(inputs.constraints?.primeTimeMatches)
+      ? inputs.constraints.primeTimeMatches.join(', ')
+      : '',
+    preferredMatchTimingsText: serializeFixtureAiPreferredTimings(
+      inputs.constraints?.preferredMatchTimings
+    )
+  };
+};
+
+export const buildFixtureAiRequestPayload = (form = {}) => ({
+  format: normalizeText(form.format),
+  startDate: normalizeText(form.startDate),
+  endDate: normalizeText(form.endDate),
+  availableDates: parseFixtureAiCsv(form.availableDatesText),
+  venues: parseFixtureAiCsv(form.venuesText),
+  timeSlots: parseFixtureAiCsv(form.timeSlotsText),
+  constraints: {
+    noTeamPlaysTwoMatchesSameDay: Boolean(form.noTeamPlaysTwoMatchesSameDay),
+    minimumRestDays: normalizeNumber(form.minimumRestDays, 1),
+    primeTimeMatches: parseFixtureAiCsv(form.primeTimeMatchesText),
+    preferredMatchTimings: parseFixtureAiPreferredTimings(form.preferredMatchTimingsText)
+  }
+});
 
 export const getMatchFormatOptions = (sportType) => {
   const normalizedSportType = normalizeText(sportType).toLowerCase();

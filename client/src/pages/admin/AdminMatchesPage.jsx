@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  approveExperimentalFixturePlan,
   autoGenerateFixtures,
   createMatch,
+  generateExperimentalFixturePlan,
   getAdminMatchesByEvent,
   getConfirmedTeamsByEvent,
+  getExperimentalFixturePlan,
   getMatchConfiguration,
+  rejectExperimentalFixturePlan,
+  saveExperimentalFixturePlanDraft,
   saveMatchConfiguration,
   updateMatch
 } from '../../api/dashboardApi.js';
@@ -13,13 +18,17 @@ import { getAdminEvents } from '../../api/eventsApi.js';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ExperimentalFixtureLab from '../../components/matches/ExperimentalFixtureLab.jsx';
 import TypeaheadSelect from '../../components/common/TypeaheadSelect.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
 import { formatDate, formatDateTime } from '../../utils/formatters.js';
 import {
+  buildFixtureAiRequestPayload,
   computeMatchStandings,
   createEditableMatchDraft,
+  createInitialFixtureAiForm,
+  createInitialFixtureAiPlan,
   createInitialFixtureBatchForm,
   createInitialMatchConfiguration,
   createInitialMatchForm,
@@ -31,6 +40,7 @@ import {
 const matchWorkspaceTabs = [
   { key: 'configuration', label: 'Match Configuration', icon: 'settings' },
   { key: 'fixtures', label: 'Fixture Management', icon: 'calendar' },
+  { key: 'aiLab', label: 'AI Fixture Lab', icon: 'sparkle' },
   { key: 'points', label: 'Points System', icon: 'chart' },
   { key: 'teams', label: 'Team Registration', icon: 'users' },
   { key: 'players', label: 'Player Management', icon: 'userPlus' },
@@ -160,6 +170,8 @@ export default function AdminMatchesPage() {
   const [configuration, setConfiguration] = useState(createInitialMatchConfiguration());
   const [form, setForm] = useState(createInitialMatchForm());
   const [fixtureBatch, setFixtureBatch] = useState(createInitialFixtureBatchForm());
+  const [fixtureAiPlan, setFixtureAiPlan] = useState(createInitialFixtureAiPlan());
+  const [fixtureAiForm, setFixtureAiForm] = useState(createInitialFixtureAiForm());
   const [editableMatch, setEditableMatch] = useState(createEditableMatchDraft());
   const [selectedMatchId, setSelectedMatchId] = useState('');
   const [selectedTeamProfileId, setSelectedTeamProfileId] = useState('');
@@ -171,12 +183,22 @@ export default function AdminMatchesPage() {
   const [configSaving, setConfigSaving] = useState(false);
   const [creatingMatch, setCreatingMatch] = useState(false);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const [fixtureAiGenerating, setFixtureAiGenerating] = useState(false);
+  const [fixtureAiSaving, setFixtureAiSaving] = useState(false);
+  const [fixtureAiApproving, setFixtureAiApproving] = useState(false);
+  const [fixtureAiRejecting, setFixtureAiRejecting] = useState(false);
   const [updatingMatchRecord, setUpdatingMatchRecord] = useState(false);
 
   const selectedEvent = useMemo(
     () => events.find((event) => event._id === selectedEventId) || null,
     [events, selectedEventId]
   );
+
+  const syncFixtureAiState = (planResponse, eventRecord, configurationRecord) => {
+    const nextPlan = createInitialFixtureAiPlan(planResponse);
+    setFixtureAiPlan(nextPlan);
+    setFixtureAiForm(createInitialFixtureAiForm(eventRecord, configurationRecord, nextPlan));
+  };
 
   const eventOptions = useMemo(
     () => [
@@ -305,10 +327,12 @@ export default function AdminMatchesPage() {
       setContextLoading(true);
 
       try {
-        const [configurationResponse, matchesResponse, teamsResponse] = await Promise.all([
+        const [configurationResponse, matchesResponse, teamsResponse, fixtureAiPlanResponse] =
+          await Promise.all([
           getMatchConfiguration(selectedEventId),
           getAdminMatchesByEvent(selectedEventId),
-          getConfirmedTeamsByEvent(selectedEventId)
+          getConfirmedTeamsByEvent(selectedEventId),
+          getExperimentalFixturePlan(selectedEventId)
         ]);
 
         const nextConfiguration = createInitialMatchConfiguration(
@@ -323,6 +347,7 @@ export default function AdminMatchesPage() {
         setConfirmedTeams(Array.isArray(teamsResponse) ? teamsResponse : []);
         setForm(createInitialMatchForm(selectedEventId, nextVenue));
         setFixtureBatch(createInitialFixtureBatchForm(nextVenue));
+        syncFixtureAiState(fixtureAiPlanResponse, selectedEvent, nextConfiguration);
         setError('');
       } catch (requestError) {
         setError(getApiErrorMessage(requestError, 'Unable to load the match workspace.'));
@@ -361,15 +386,20 @@ export default function AdminMatchesPage() {
       return;
     }
 
-    const [configurationResponse, matchesResponse, teamsResponse] = await Promise.all([
+    const [configurationResponse, matchesResponse, teamsResponse, fixtureAiPlanResponse] =
+      await Promise.all([
       getMatchConfiguration(selectedEventId),
       getAdminMatchesByEvent(selectedEventId),
-      getConfirmedTeamsByEvent(selectedEventId)
+      getConfirmedTeamsByEvent(selectedEventId),
+      getExperimentalFixturePlan(selectedEventId)
     ]);
 
-    setConfiguration(createInitialMatchConfiguration(configurationResponse, selectedEvent));
+    const nextConfiguration = createInitialMatchConfiguration(configurationResponse, selectedEvent);
+
+    setConfiguration(nextConfiguration);
     setMatches(Array.isArray(matchesResponse) ? matchesResponse : []);
     setConfirmedTeams(Array.isArray(teamsResponse) ? teamsResponse : []);
+    syncFixtureAiState(fixtureAiPlanResponse, selectedEvent, nextConfiguration);
   };
 
   const handleEventChange = (eventValue) => {
@@ -377,6 +407,8 @@ export default function AdminMatchesPage() {
     setSelectedMatchId('');
     setSelectedTeamProfileId('');
     setCalendarTeamFilter('');
+    setFixtureAiPlan(createInitialFixtureAiPlan());
+    setFixtureAiForm(createInitialFixtureAiForm());
     setError('');
     setSuccess('');
   };
@@ -551,6 +583,152 @@ export default function AdminMatchesPage() {
       setError(getApiErrorMessage(requestError, 'Unable to auto-generate fixtures.'));
     } finally {
       setAutoGenerating(false);
+    }
+  };
+
+  const buildFixtureAiDraftPayload = () => ({
+    optimizationScore: fixtureAiPlan.optimizationScore,
+    inputs: buildFixtureAiRequestPayload(fixtureAiForm),
+    groupSuggestions: fixtureAiPlan.groupSuggestions,
+    fixtures: fixtureAiPlan.fixtures,
+    suggestions: fixtureAiPlan.suggestions,
+    alerts: fixtureAiPlan.alerts,
+    rescheduleSuggestions: fixtureAiPlan.rescheduleSuggestions
+  });
+
+  const handleGenerateFixtureAiPlan = async () => {
+    if (!selectedEventId) {
+      setError('Select an event before generating an experimental AI fixture plan.');
+      return;
+    }
+
+    if (confirmedTeams.length < 2) {
+      setError('At least two confirmed teams are required for the experimental AI planner.');
+      return;
+    }
+
+    setFixtureAiGenerating(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await generateExperimentalFixturePlan(
+        selectedEventId,
+        buildFixtureAiRequestPayload(fixtureAiForm)
+      );
+      syncFixtureAiState(response, selectedEvent, configuration);
+      setSuccess('Experimental AI fixture draft generated successfully.');
+    } catch (requestError) {
+      setError(
+        getApiErrorMessage(requestError, 'Unable to generate the experimental AI fixture plan.')
+      );
+    } finally {
+      setFixtureAiGenerating(false);
+    }
+  };
+
+  const handleSaveFixtureAiDraft = async () => {
+    if (!selectedEventId) {
+      setError('Select an event before saving the experimental AI fixture draft.');
+      return;
+    }
+
+    if (!fixtureAiPlan.fixtures.length) {
+      setError('Generate an experimental AI fixture draft before saving edits.');
+      return;
+    }
+
+    setFixtureAiSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await saveExperimentalFixturePlanDraft(
+        selectedEventId,
+        buildFixtureAiDraftPayload()
+      );
+      syncFixtureAiState(response, selectedEvent, configuration);
+      setSuccess('Experimental AI fixture draft saved successfully.');
+    } catch (requestError) {
+      setError(
+        getApiErrorMessage(requestError, 'Unable to save the experimental AI fixture draft.')
+      );
+    } finally {
+      setFixtureAiSaving(false);
+    }
+  };
+
+  const handleApproveFixtureAiPlan = async () => {
+    if (!selectedEventId) {
+      setError('Select an event before approving the experimental AI plan.');
+      return;
+    }
+
+    if (!fixtureAiPlan.fixtures.length) {
+      setError('Generate and review an experimental AI plan before approving it.');
+      return;
+    }
+
+    let replaceExisting = false;
+
+    if (matches.length) {
+      replaceExisting = window.confirm(
+        'Live fixtures already exist for this event. Replace the current live fixture list with the approved AI plan?'
+      );
+
+      if (!replaceExisting) {
+        return;
+      }
+    }
+
+    setFixtureAiApproving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await approveExperimentalFixturePlan(selectedEventId, { replaceExisting });
+      await refreshWorkspace();
+      setSuccess(
+        `Experimental AI plan approved successfully. ${response.appliedFixtures || 0} fixtures were published to the live schedule.`
+      );
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Unable to approve the experimental AI plan.'));
+    } finally {
+      setFixtureAiApproving(false);
+    }
+  };
+
+  const handleRejectFixtureAiPlan = async () => {
+    if (!selectedEventId) {
+      setError('Select an event before rejecting the experimental AI plan.');
+      return;
+    }
+
+    if (!fixtureAiPlan.fixtures.length) {
+      setError('There is no experimental AI plan to reject.');
+      return;
+    }
+
+    const shouldReject = window.confirm(
+      'Reject this experimental AI plan? The draft will remain separate from the live schedule and will be marked as rejected.'
+    );
+
+    if (!shouldReject) {
+      return;
+    }
+
+    setFixtureAiRejecting(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await rejectExperimentalFixturePlan(selectedEventId);
+      syncFixtureAiState(response, selectedEvent, configuration);
+      setSuccess('Experimental AI fixture plan rejected.');
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Unable to reject the experimental AI plan.'));
+    } finally {
+      setFixtureAiRejecting(false);
     }
   };
 
@@ -1093,6 +1271,28 @@ export default function AdminMatchesPage() {
         ) : null}
       </div>
     </div>
+  );
+
+  const renderAiLabTab = () => (
+    <ExperimentalFixtureLab
+      approving={fixtureAiApproving}
+      configuration={configuration}
+      confirmedTeams={confirmedTeams}
+      event={selectedEvent}
+      form={fixtureAiForm}
+      generating={fixtureAiGenerating}
+      loading={contextLoading}
+      matches={matches}
+      onApprove={handleApproveFixtureAiPlan}
+      onGenerate={handleGenerateFixtureAiPlan}
+      onReject={handleRejectFixtureAiPlan}
+      onSaveDraft={handleSaveFixtureAiDraft}
+      plan={fixtureAiPlan}
+      rejecting={fixtureAiRejecting}
+      saving={fixtureAiSaving}
+      setForm={setFixtureAiForm}
+      setPlan={setFixtureAiPlan}
+    />
   );
 
   const renderPointsTab = () => (
@@ -1710,6 +1910,8 @@ export default function AdminMatchesPage() {
         return renderConfigurationTab();
       case 'fixtures':
         return renderFixturesTab();
+      case 'aiLab':
+        return renderAiLabTab();
       case 'points':
         return renderPointsTab();
       case 'teams':
@@ -1733,7 +1935,7 @@ export default function AdminMatchesPage() {
 
   return (
     <AdminPageShell
-      description="Configure tournament formats, generate fixtures, manage squads, enter results, and review standings from one ordered match operations workspace."
+      description="Configure tournament formats, generate fixtures, test experimental AI scheduling, manage squads, enter results, and review standings from one ordered match operations workspace."
       title="Schedule Management"
     >
       <div className="space-y-8">
@@ -1742,7 +1944,7 @@ export default function AdminMatchesPage() {
             <div>
               <h2 className="text-2xl font-bold text-slate-950">Event Match Operations</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-                Select an event to unlock its full match workspace, including format setup, auto fixture generation, team and player records, results entry, and rankings.
+                Select an event to unlock its full match workspace, including format setup, live fixture generation, an experimental AI planning lab, team and player records, results entry, and rankings.
               </p>
             </div>
             <TypeaheadSelect className="max-w-sm" disabled={eventsLoading} onChange={handleEventChange} options={eventOptions} placeholder="Select event" searchPlaceholder="Search events" value={selectedEventId} />
