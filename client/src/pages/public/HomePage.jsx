@@ -17,6 +17,7 @@ import {
 } from '../../data/siteContent.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
 import {
+  getPublicEventRegistrationStatus,
   isRegistrationOpenForEvent,
   isUpcomingOrOngoingEvent,
   isVisiblePublicEvent,
@@ -62,6 +63,11 @@ const buildEventDescription = (event) =>
     event?.description ||
       `${event?.sportType || 'Sports'} tournament by TriCore Events at ${event?.venue || 'the venue'}`
   ).trim();
+
+const toIsoDateOrNull = (value) => {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+};
 
 const buildHomePageStructuredData = ({ baseUrl, events, imageUrl }) => {
   const organizationId = `${baseUrl}/#organization`;
@@ -111,24 +117,33 @@ const buildHomePageStructuredData = ({ baseUrl, events, imageUrl }) => {
   }
 
   (Array.isArray(events) ? events : []).forEach((event) => {
-    const eventUrl = `${baseUrl}/events/${event._id}`;
+    const eventId = String(event?._id || '').trim();
+    const eventUrl = eventId ? `${baseUrl}/events/${eventId}` : `${baseUrl}/events`;
+    const startDate = toIsoDateOrNull(event?.startDate);
+    const endDate = toIsoDateOrNull(event?.endDate || event?.startDate);
+
+    if (!event?.name || !startDate || !endDate) {
+      return;
+    }
+
     const registrationStatus = getPublicEventRegistrationStatus(event);
     const eventImage = buildAbsoluteUrl(event.bannerImage || imageUrl, baseUrl);
+    const price = Number(event?.entryFee ?? 0);
 
     graph.push({
       '@type': 'Event',
       '@id': `${eventUrl}#event`,
       name: event.name,
       description: buildEventDescription(event),
-      startDate: new Date(event.startDate).toISOString(),
-      endDate: new Date(event.endDate).toISOString(),
+      startDate,
+      endDate,
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       eventStatus: isUpcomingOrOngoingEvent(event)
         ? 'https://schema.org/EventScheduled'
         : 'https://schema.org/EventCompleted',
       location: {
         '@type': 'Place',
-        name: event.venue
+        name: event.venue || 'Venue to be announced'
       },
       organizer: { '@id': organizationId },
       url: eventUrl,
@@ -137,7 +152,7 @@ const buildHomePageStructuredData = ({ baseUrl, events, imageUrl }) => {
         '@type': 'Offer',
         url: eventUrl,
         priceCurrency: 'INR',
-        price: Number(event.entryFee || 0).toFixed(2),
+        price: Number.isFinite(price) ? price.toFixed(2) : '0.00',
         availability:
           registrationStatus === 'open'
             ? 'https://schema.org/InStock'
