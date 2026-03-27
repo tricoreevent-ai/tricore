@@ -85,7 +85,7 @@ function HorizontalBarList({ items = [] }) {
 function QuickActionTile({ description, icon, title, to }) {
   return (
     <Link
-      className="group rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-blue/30"
+      className="group rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-blue/30 sm:p-5"
       to={to}
     >
       <div className="flex items-center justify-between gap-3">
@@ -265,7 +265,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="mt-8 grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
-            <section className="panel p-6">
+            <section className="panel p-4 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
               </div>
             </section>
 
-            <section className="panel p-6">
+            <section className="panel p-4 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -301,7 +301,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="mt-8 grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
-            <section className="panel p-6">
+            <section className="panel p-4 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
               </div>
             </section>
 
-            <section className="panel p-6">
+            <section className="panel p-4 sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -371,7 +371,7 @@ export default function AdminDashboardPage() {
             </section>
           </div>
 
-          <section className="panel mt-8 p-6">
+          <section className="panel mt-8 p-4 sm:p-6">
             <AdminCalendarPanel
               emptyMessage="No events, holidays, or sports fixtures fall inside the current 30-day overview window."
               initialMonth={dashboard.calendarFeed?.dateFrom}
@@ -381,7 +381,7 @@ export default function AdminDashboardPage() {
           </section>
 
           <div className="mt-8 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-            <section className="panel p-6">
+            <section className="panel p-4 sm:p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">Recent Payments</h2>
@@ -405,7 +405,7 @@ export default function AdminDashboardPage() {
             </section>
 
             <div className="space-y-8">
-              <section className="panel p-6">
+              <section className="panel p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-bold">Recent Alerts</h2>
@@ -413,7 +413,7 @@ export default function AdminDashboardPage() {
                       The most recent critical events that may need admin follow-up.
                     </p>
                   </div>
-                  <Link className="btn-secondary gap-2" to="/admin-portal/reports?tab=security">
+                  <Link className="btn-secondary w-full gap-2 sm:w-auto" to="/admin-portal/reports?tab=security">
                     <AppIcon className="h-4 w-4" name="bell" />
                     Open Alerts
                   </Link>
@@ -457,7 +457,7 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
 
-              <section className="panel p-6">
+              <section className="panel p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-bold">Sponsorship Share Link</h2>
@@ -466,7 +466,7 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                   <button
-                    className="btn-secondary gap-2"
+                    className="btn-secondary w-full gap-2 sm:w-auto"
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(sponsorLink);
@@ -487,7 +487,7 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
 
-              <section className="panel p-6">
+              <section className="panel p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-bold">Upcoming Event Window</h2>

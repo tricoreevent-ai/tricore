@@ -38,6 +38,6 @@ router.get(
   validate(eventMatchesSchema),
   getConfirmedTeamsByEvent
 );
-router.get('/:eventId', validate(eventMatchesSchema), getMatchesByEvent);
+router.get('/:eventId', authenticate, validate(eventMatchesSchema), getMatchesByEvent);
 
 export default router;

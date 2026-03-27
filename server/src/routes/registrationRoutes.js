@@ -7,6 +7,7 @@ import {
   getMyRegistrationForEvent,
   getMyRegistrations,
   getRegistrations,
+  updateMyRegistration,
   updateRegistration
 } from '../controllers/registrationController.js';
 import { adminPermissions } from '../constants/adminAccess.js';
@@ -18,6 +19,7 @@ import {
   confirmRegistrationPaymentSchema,
   registrationEventSchema,
   registrationsQuerySchema,
+  updateMyRegistrationSchema,
   updateRegistrationSchema
 } from '../validators/registrationValidation.js';
 
@@ -27,6 +29,7 @@ router.post('/', authenticate, validate(createRegistrationSchema), createRegistr
 router.post('/manual', authenticate, validate(createManualRegistrationSchema), createManualRegistration);
 router.get('/me', authenticate, getMyRegistrations);
 router.get('/me/event/:eventId', authenticate, validate(registrationEventSchema), getMyRegistrationForEvent);
+router.put('/me/:id', authenticate, validate(updateMyRegistrationSchema), updateMyRegistration);
 router.get(
   '/',
   authenticate,

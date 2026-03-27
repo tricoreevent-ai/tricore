@@ -113,6 +113,7 @@ export default function DataTable({
   searchPlaceholder = 'Search this table',
   searchable = true,
   serverPagination = null,
+  showMobileCards = true,
   toolbarClassName = '',
   tableClassName = '',
   headerClassName = '',
@@ -243,13 +244,13 @@ export default function DataTable({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {searchable ? (
             <input
-              className="input min-w-[220px] bg-white"
+              className="input min-w-[220px] bg-white sm:min-w-[220px]"
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={serverPagination ? `${searchPlaceholder} (current page)` : searchPlaceholder}
               value={searchTerm}
             />
           ) : null}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <label className="text-sm text-slate-600" htmlFor={`page-size-${exportFileName}`}>
               Rows
             </label>
@@ -268,7 +269,7 @@ export default function DataTable({
             />
             {toolbarActions}
             {exportable ? (
-              <button className="btn-secondary gap-2" onClick={handleExport} type="button">
+              <button className="btn-secondary w-full gap-2 sm:w-auto" onClick={handleExport} type="button">
                 <AppIcon className="h-4 w-4" name="export" />
                 {exportButtonLabel || (serverPagination ? 'Export This Page' : 'Export CSV')}
               </button>
@@ -277,7 +278,41 @@ export default function DataTable({
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
+      {showMobileCards ? (
+        <div className="space-y-3 p-4 md:hidden">
+          {visibleRows.length ? (
+            visibleRows.map((row, rowIndex) => {
+              const resolvedKey =
+                typeof rowKey === 'function' ? rowKey(row) : row?.[rowKey] || `${rowIndex}`;
+
+              return (
+                <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={resolvedKey}>
+                  <div className="space-y-3">
+                    {columns.map((column) => (
+                      <div className="rounded-2xl bg-white px-4 py-3" key={`${resolvedKey}-${column.key}`}>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                          {column.header}
+                        </p>
+                        <div className="mt-2 text-sm text-slate-700">
+                          {typeof column.cell === 'function'
+                            ? column.cell(row)
+                            : getExportColumnValue(column, row) || '-'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+              {emptyMessage}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      <div className={`${showMobileCards ? 'hidden md:block' : ''} w-full overflow-x-auto`.trim()}>
         <table className={`min-w-full text-left text-sm ${tableClassName}`.trim()}>
           <thead className={`bg-white ${headerClassName}`.trim()}>
             <tr className="border-b border-slate-200 text-slate-500">
@@ -343,9 +378,9 @@ export default function DataTable({
         <p className="text-sm text-slate-600">
           Page {currentPage} of {totalPages}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
-            className="btn-secondary gap-2 px-4 py-2"
+            className="btn-secondary w-full gap-2 px-4 py-2 sm:w-auto"
             disabled={currentPage <= 1}
             onClick={() => handlePageChange(currentPage - 1)}
             type="button"
@@ -354,7 +389,7 @@ export default function DataTable({
             Previous
           </button>
           <button
-            className="btn-secondary gap-2 px-4 py-2"
+            className="btn-secondary w-full gap-2 px-4 py-2 sm:w-auto"
             disabled={currentPage >= totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
             type="button"

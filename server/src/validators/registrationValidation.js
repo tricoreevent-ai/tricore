@@ -84,3 +84,5 @@ export const updateRegistrationSchema = z.object({
     message: 'At least one registration field is required.'
   })
 });
+
+export const updateMyRegistrationSchema = updateRegistrationSchema;

@@ -25,8 +25,8 @@ export default function EventCard({ event }) {
 
   return (
     <article className="panel overflow-hidden">
-      <div className="bg-gradient-to-br from-brand-blue to-brand-navy p-6 text-white">
-        <div className="flex items-start justify-between gap-4">
+      <div className="bg-gradient-to-br from-brand-blue to-brand-navy p-5 text-white sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <span className="badge bg-white/15 text-white">{event.sportType}</span>
             <h3 className="mt-4 text-2xl font-bold text-white">{event.name}</h3>
@@ -34,12 +34,12 @@ export default function EventCard({ event }) {
               {event.description || 'Tournament-ready event operations with structured registrations and scheduling.'}
             </p>
           </div>
-          <span className={`badge ${statusClass}`}>
+          <span className={`badge w-fit ${statusClass}`}>
             {statusLabel}
           </span>
         </div>
       </div>
-      <div className="space-y-4 p-6">
+      <div className="space-y-4 p-5 sm:p-6">
         <div className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
           <p>
             <span className="font-semibold text-slate-900">Venue:</span> {event.venue}
@@ -54,8 +54,8 @@ export default function EventCard({ event }) {
             <span className="font-semibold text-slate-900">Registrations:</span> {event.registrationCount || 0}/{event.maxParticipants}
           </p>
         </div>
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-slate-500">
             {isPast
               ? `Completed: ${formatDate(event.endDate)}`
               : registrationStatus === 'coming_soon'
@@ -64,7 +64,11 @@ export default function EventCard({ event }) {
                   ? `Deadline: ${formatDate(event.registrationDeadline)}`
                   : 'Registration window will be announced shortly.'}
           </p>
-          <Link className="btn-primary" to={`/events/${event._id}`}>
+          <Link
+            className="btn-primary w-full sm:w-auto"
+            state={{ eventPreview: event }}
+            to={`/events/${event._id}`}
+          >
             {registrationStatus === 'coming_soon' ? 'Notify Later' : 'View Event'}
           </Link>
         </div>

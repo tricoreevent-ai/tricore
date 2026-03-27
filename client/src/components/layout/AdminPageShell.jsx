@@ -81,31 +81,31 @@ export default function AdminPageShell({ children, description, title }) {
       data-admin-theme={theme}
     >
       <div
-        className={`relative z-[80] border-b backdrop-blur ${
+        className={`sticky top-0 z-[80] border-b backdrop-blur ${
           isDarkTheme
             ? 'border-slate-800 bg-slate-950/90'
             : 'border-slate-200 bg-white/90'
         }`}
       >
-        <div className="container-shell relative z-[90] flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container-shell relative z-[90] flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
             <TriCoreLogo
               markClassName="h-12 w-12"
               subtitle="Operations Console"
               subtitleClassName="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange"
             />
-            <div>
-              <p className={`text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-500'}`}>
+            <div className="min-w-0">
+              <p className={`break-words text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-500'}`}>
                 Signed in as {user?.name} ({user?.username})
                 {user?.role ? ` • ${getAdminRoleLabel(user)}` : ''}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {canSeeSecurityAlerts ? (
               <div className="relative z-[100]">
                 <button
-                  className="btn-secondary gap-2"
+                  className="btn-secondary w-full gap-2 sm:w-auto"
                   onClick={() => setAlertsOpen((current) => !current)}
                   type="button"
                 >
@@ -118,7 +118,7 @@ export default function AdminPageShell({ children, description, title }) {
                   ) : null}
                 </button>
                 {alertsOpen ? (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-[140] w-[340px] rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-soft">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-[140] w-[min(92vw,340px)] rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-soft">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -172,16 +172,16 @@ export default function AdminPageShell({ children, description, title }) {
                 ) : null}
               </div>
             ) : null}
-            <button className="btn-secondary gap-2" onClick={logout} type="button">
+            <button className="btn-secondary w-full gap-2 sm:w-auto" onClick={logout} type="button">
               <AppIcon className="h-4 w-4" name="logout" />
               Logout
             </button>
           </div>
         </div>
       </div>
-      <div className="container-shell py-16">
+      <div className="container-shell py-6 sm:py-10 lg:py-16">
         <div
-          className={`mb-8 rounded-[2rem] border p-8 shadow-soft backdrop-blur ${
+          className={`mb-6 rounded-[2rem] border p-5 shadow-soft backdrop-blur sm:mb-8 sm:p-8 ${
             isDarkTheme
               ? 'border-slate-800 bg-slate-900/80'
               : 'border-slate-200 bg-white/75'

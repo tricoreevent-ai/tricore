@@ -71,6 +71,28 @@ const buildRegistrationPaymentAlertCandidate = ({
   notifyByEmail: false
 });
 
+const registrationPopulateConfig = [
+  { path: 'userId', select: 'name email role' },
+  { path: 'eventId', select: 'name sportType startDate endDate venue' },
+  {
+    path: 'paymentId',
+    select:
+      'amount status method manualReference paymentId orderId confirmedAt confirmedBy receipt receiptFilename proofSubmittedAt'
+  }
+];
+
+const populateRegistrationRecord = (registrationId) =>
+  Registration.findById(registrationId).populate(registrationPopulateConfig);
+
+const findOwnedRegistration = async (registrationId, user) => {
+  const email = String(user?.email || '').trim().toLowerCase();
+
+  return Registration.findOne({
+    _id: registrationId,
+    $or: [{ userId: user._id }, ...(email ? [{ email }] : [])]
+  });
+};
+
 export const createRegistration = asyncHandler(async (req, res) => {
   const event = await getOpenEvent(req.body.eventId);
   await ensureRegistrationWindow(event);
@@ -417,13 +439,7 @@ export const updateRegistration = asyncHandler(async (req, res) => {
   Object.assign(registration, req.body);
   await registration.save();
 
-  const populated = await Registration.findById(registration._id)
-    .populate('userId', 'name email role')
-    .populate('eventId', 'name sportType startDate endDate venue')
-    .populate(
-      'paymentId',
-      'amount status method manualReference paymentId orderId confirmedAt confirmedBy receipt receiptFilename proofSubmittedAt'
-    );
+  const populated = await populateRegistrationRecord(registration._id);
 
   await recordActivity({
     action: 'update',
@@ -433,6 +449,59 @@ export const updateRegistration = asyncHandler(async (req, res) => {
     subjectId: registration._id.toString(),
     subjectType: 'registration',
     summary: `Updated registration for "${populated?.eventId?.name || 'event'}".`
+  });
+
+  res.json({
+    success: true,
+    data: serializeRegistrationRecord(populated)
+  });
+});
+
+export const updateMyRegistration = asyncHandler(async (req, res) => {
+  const registration = await findOwnedRegistration(req.params.id, req.user);
+
+  if (!registration) {
+    throw new ApiError(404, 'Registration not found for this account.');
+  }
+
+  const event = await getOpenEvent(registration.eventId);
+  await ensureRegistrationWindow(event, { skipCapacityCheck: true });
+
+  const mergedPayload = {
+    name: req.body.name ?? registration.name,
+    teamName: req.body.teamName ?? registration.teamName,
+    captainName: req.body.captainName ?? registration.captainName,
+    email: req.body.email ?? registration.email,
+    phone1: req.body.phone1 ?? registration.phone1,
+    phone2: req.body.phone2 ?? registration.phone2,
+    address: req.body.address ?? registration.address,
+    players: req.body.players ?? registration.players
+  };
+
+  const registrationData = normalizeRegistrationData(mergedPayload);
+  validateRegistrationForEvent(event, registrationData);
+  await ensureUniqueRegistration(event._id, registrationData, registration._id);
+
+  registration.name = registrationData.name;
+  registration.teamName = registrationData.teamName;
+  registration.captainName = registrationData.captainName;
+  registration.email = registrationData.email;
+  registration.phone1 = registrationData.phone1;
+  registration.phone2 = registrationData.phone2;
+  registration.address = registrationData.address;
+  registration.players = registrationData.players;
+  await registration.save();
+
+  const populated = await populateRegistrationRecord(registration._id);
+
+  await recordActivity({
+    action: 'update',
+    category: 'registration',
+    details: `Registrant updated the roster for ${registration.teamName || registration.name || registration.email}.`,
+    performedBy: req.user._id,
+    subjectId: registration._id.toString(),
+    subjectType: 'registration',
+    summary: `Registrant updated registration for "${populated?.eventId?.name || 'event'}".`
   });
 
   res.json({
@@ -462,13 +531,7 @@ export const getMyRegistrationForEvent = asyncHandler(async (req, res) => {
       { userId: req.user._id },
       ...(email ? [{ email }] : [])
     ]
-  })
-    .populate('eventId')
-    .populate(
-      'paymentId',
-      'amount status method manualReference paymentId orderId confirmedAt receipt receiptFilename proofSubmittedAt'
-    )
-    .sort({ createdAt: -1 });
+  }).populate(registrationPopulateConfig);
 
   res.json({
     success: true,

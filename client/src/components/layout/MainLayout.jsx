@@ -5,13 +5,12 @@ import Navbar from './Navbar.jsx';
 
 export default function MainLayout() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen overflow-x-clip bg-slate-50">
       <Navbar />
-      <main>
+      <main className="min-w-0">
         <Outlet />
       </main>
       <Footer />
     </div>
   );
 }
-

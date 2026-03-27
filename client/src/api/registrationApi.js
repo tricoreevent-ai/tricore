@@ -20,6 +20,11 @@ export const getMyRegistrationForEvent = async (eventId) => {
   return response.data.data;
 };
 
+export const updateMyRegistration = async (registrationId, payload) => {
+  const response = await publicApi.put(`/registrations/me/${registrationId}`, payload);
+  return response.data.data;
+};
+
 export const getAdminRegistrations = async (params = {}) => {
   const response = await adminApi.get('/registrations', { params: cleanParams(params) });
   return response.data.data;

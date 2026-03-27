@@ -57,7 +57,10 @@ export const isRegistrationOpenForEvent = (event, referenceDate = new Date()) =>
   hasRegistrationStarted(event, referenceDate) &&
   !hasRegistrationDeadlinePassed(event, referenceDate);
 
-export const ensureRegistrationWindow = async (event) => {
+export const ensureRegistrationWindow = async (
+  event,
+  { skipCapacityCheck = false } = {}
+) => {
   if (!event.registrationEnabled) {
     throw new ApiError(400, 'Registration is currently disabled for this event.');
   }
@@ -70,10 +73,12 @@ export const ensureRegistrationWindow = async (event) => {
     throw new ApiError(400, 'Registration deadline has passed for this event.');
   }
 
-  const registrationCount = await Registration.countDocuments({ eventId: event._id });
+  if (!skipCapacityCheck) {
+    const registrationCount = await Registration.countDocuments({ eventId: event._id });
 
-  if (registrationCount >= event.maxParticipants) {
-    throw new ApiError(400, 'This event has reached its registration limit.');
+    if (registrationCount >= event.maxParticipants) {
+      throw new ApiError(400, 'This event has reached its registration limit.');
+    }
   }
 };
 
@@ -117,9 +122,14 @@ export const validateRegistrationForEvent = (event, registration) => {
   }
 };
 
-export const ensureUniqueRegistration = async (eventId, registration) => {
+export const ensureUniqueRegistration = async (
+  eventId,
+  registration,
+  excludeRegistrationId = null
+) => {
   const duplicate = await Registration.findOne({
     eventId,
+    ...(excludeRegistrationId ? { _id: { $ne: excludeRegistrationId } } : {}),
     $or: [
       { email: registration.email },
       ...(registration.teamName ? [{ teamName: registration.teamName }] : [])

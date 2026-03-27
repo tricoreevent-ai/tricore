@@ -19,7 +19,7 @@
 
 @layer components {
   .container-shell {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8;
   }
 
   .panel {
@@ -59,11 +59,11 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
+    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-full border border-brand-blue/20 bg-white px-5 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue hover:bg-brand-mist;
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-brand-blue/20 bg-white px-5 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue hover:bg-brand-mist;
   }
 
   .badge {

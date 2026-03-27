@@ -110,7 +110,7 @@ router.post(
   validate(sendEventInterestEmailSchema),
   sendAdminEventInterestEmail
 );
-router.get('/:id', validate(eventIdSchema), getEventById);
+router.get('/:id', authenticate, validate(eventIdSchema), getEventById);
 router.post(
   '/',
   authenticate,

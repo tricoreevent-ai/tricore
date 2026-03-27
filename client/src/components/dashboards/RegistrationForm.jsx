@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   createFreeRegistration,
-  getMyRegistrationForEvent
+  getMyRegistrationForEvent,
+  updateMyRegistration
 } from '../../api/registrationApi.js';
 import useAuth from '../../hooks/useAuth.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
@@ -32,7 +33,7 @@ const buildFormFromRegistration = (event, user, registration) => ({
   name: registration.name || '',
   teamName: registration.teamName || '',
   captainName: registration.captainName || '',
-  email: registration.email || user?.email || '',
+  email: user?.email || registration.email || '',
   phone1: registration.phone1 || '',
   phone2: registration.phone2 || '',
   address: registration.address || '',
@@ -109,6 +110,7 @@ export default function RegistrationForm({ event, onSuccess }) {
         }
 
         setExistingRegistration(response);
+        setError('');
 
         if (response) {
           setForm(buildFormFromRegistration(event, user, response));
@@ -220,6 +222,7 @@ export default function RegistrationForm({ event, onSuccess }) {
 
   const buildRegistrationPayload = (players = form.players) => ({
     ...form,
+    email: user?.email || form.email,
     players
   });
 
@@ -261,9 +264,11 @@ export default function RegistrationForm({ event, onSuccess }) {
 
   const handleFreeRegistration = async (registrationPayload) => {
     const response = await createFreeRegistration(registrationPayload);
+    setExistingRegistration(response.registration);
+    setForm(buildFormFromRegistration(event, user, response.registration));
     setSuccess('Registration saved successfully.');
     setError('');
-    onSuccess?.(response);
+    onSuccess?.(response.registration);
   };
 
   const handlePaidRegistration = async (registrationPayload) => {
@@ -271,6 +276,15 @@ export default function RegistrationForm({ event, onSuccess }) {
     setSuccess('Registration details saved. Redirecting to payment methods...');
     setError('');
     navigate(`/events/${event._id}/payment`);
+  };
+
+  const handleRegistrationUpdate = async (registrationPayload) => {
+    const response = await updateMyRegistration(existingRegistration._id, registrationPayload);
+    setExistingRegistration(response);
+    setForm(buildFormFromRegistration(event, user, response));
+    setSuccess('Registration updated successfully.');
+    setError('');
+    onSuccess?.(response);
   };
 
   const handleSubmit = async (submitEvent) => {
@@ -284,6 +298,12 @@ export default function RegistrationForm({ event, onSuccess }) {
     let playersForSubmission = form.players;
     const draftHasValues = hasPlayerDraftValues(playerDraft);
     const playerDraftValidationError = draftHasValues ? validatePlayerDraft(playerDraft) : '';
+
+    if (draftHasValues && playerDraftValidationError) {
+      setPlayerError(playerDraftValidationError);
+      setError('Please save or fix the player currently being edited before continuing.');
+      return;
+    }
 
     if (draftHasValues && !playerDraftValidationError) {
       const nextPlayer = trimPlayer(playerDraft);
@@ -316,7 +336,10 @@ export default function RegistrationForm({ event, onSuccess }) {
     setSuccess('');
 
     try {
-      if (Number(event.entryFee) > 0) {
+      if (existingRegistration) {
+        await handleRegistrationUpdate(registrationPayload);
+        setSubmitting(false);
+      } else if (Number(event.entryFee) > 0) {
         await handlePaidRegistration(registrationPayload);
         setSubmitting(false);
       } else {
@@ -330,16 +353,24 @@ export default function RegistrationForm({ event, onSuccess }) {
   };
 
   return (
-    <form className="panel space-y-6 p-6" onSubmit={handleSubmit}>
+    <form className="panel space-y-5 p-4 sm:p-6" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-2xl font-bold">Register for {event.name}</h3>
+          <h3 className="text-2xl font-bold text-slate-950">
+            {existingRegistration ? 'Update Registration' : `Register for ${event.name}`}
+          </h3>
           <p className="mt-2 text-sm text-slate-500">
-            Fill the registration details and {Number(event.entryFee) > 0 ? 'complete payment' : 'confirm your spot'}.
+            {existingRegistration
+              ? 'Add more players, revise the roster, or update your contact details without creating a second registration.'
+              : `Fill the registration details and ${Number(event.entryFee) > 0 ? 'complete payment' : 'confirm your spot'}.`}
           </p>
         </div>
         <span className="badge bg-brand-mist text-brand-blue">
-          {Number(event.entryFee) > 0 ? 'Payment required' : 'Free event'}
+          {existingRegistration
+            ? 'Already registered'
+            : Number(event.entryFee) > 0
+              ? 'Payment required'
+              : 'Free event'}
         </span>
       </div>
 
@@ -347,6 +378,25 @@ export default function RegistrationForm({ event, onSuccess }) {
         <div className="rounded-2xl border border-dashed border-brand-blue/20 bg-brand-mist/50 p-4">
           <p className="mb-3 text-sm text-slate-600">Use Google sign-in to continue with registration.</p>
           <GoogleLoginButton />
+        </div>
+      ) : null}
+
+      {isAuthenticated ? (
+        <div className="rounded-[1.75rem] border border-brand-blue/10 bg-slate-50 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">
+            Signed in with Google
+          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-lg font-bold text-slate-950">
+                {user?.name || 'TriCore user'}
+              </p>
+              <p className="truncate text-sm text-slate-600">{user?.email}</p>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-soft">
+              This registration will stay linked to your Google account.
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -358,11 +408,11 @@ export default function RegistrationForm({ event, onSuccess }) {
 
       {existingRegistration ? (
         <p className="rounded-2xl bg-brand-mist px-4 py-3 text-sm text-brand-blue">
-          A registration already exists for this event using your signed-in email. The saved player list and registration details are shown below.
+          A registration already exists for this event. You can add more players or refresh the saved contact details below.
         </p>
       ) : null}
 
-      <fieldset className="space-y-6 border-0 p-0" disabled={Boolean(existingRegistration)}>
+      <fieldset className="space-y-5 border-0 p-0">
         {event.teamSize === 1 ? (
           <FloatingLabelField
             id="name"
@@ -395,11 +445,12 @@ export default function RegistrationForm({ event, onSuccess }) {
         <div className="grid gap-4 md:grid-cols-2">
           <FloatingLabelField
             id="email"
-            label="Email"
-            onChange={(eventValue) => updateField('email', eventValue.target.value)}
+            helper="This stays synced with your signed-in Google account."
+            label="Google Account Email"
             required
+            readOnly
             type="email"
-            value={form.email}
+            value={user?.email || form.email}
           />
           <FloatingLabelField
             id="phone1"
@@ -427,141 +478,182 @@ export default function RegistrationForm({ event, onSuccess }) {
           </div>
         </div>
 
-        {event.sportType === 'Cricket' ? (
+        {event.teamSize > 1 ? (
           <div className="space-y-4 rounded-3xl bg-slate-50 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h4 className="text-lg font-bold text-slate-950">Player List</h4>
-              <p className="text-sm text-slate-500">
-                Add up to {event.playerLimit} players now. You can keep the roster partial and update it later.
-              </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-slate-950">Player List</h4>
+                <p className="text-sm text-slate-500">
+                  Add up to {event.playerLimit} players now. You can keep the roster partial and update it later.
+                </p>
+              </div>
+              <span className="badge w-fit bg-brand-mist text-brand-blue">
+                {form.players.length}/{event.playerLimit} players added
+              </span>
             </div>
-            <span className="badge bg-brand-mist text-brand-blue">
-              {form.players.length}/{event.playerLimit} players added
-            </span>
-          </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h5 className="text-sm font-semibold text-slate-800">
-                {editingPlayerIndex === null ? 'Add Player' : `Edit Player ${editingPlayerIndex + 1}`}
-              </h5>
-              {editingPlayerIndex === null ? (
-                <button
-                  className="btn-secondary px-4 py-2"
-                  disabled={form.players.length >= event.playerLimit}
-                  onClick={savePlayerDraft}
-                  type="button"
-                >
-                  Add Player
-                </button>
-              ) : (
-                <div className="flex gap-2">
-                  <button className="btn-secondary px-4 py-2" onClick={resetPlayerEditor} type="button">
-                    Cancel
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h5 className="text-sm font-semibold text-slate-800">
+                  {editingPlayerIndex === null ? 'Add Player' : `Edit Player ${editingPlayerIndex + 1}`}
+                </h5>
+                {editingPlayerIndex === null ? (
+                  <button
+                    className="btn-secondary w-full px-4 py-2 sm:w-auto"
+                    disabled={form.players.length >= event.playerLimit}
+                    onClick={savePlayerDraft}
+                    type="button"
+                  >
+                    Add Player
                   </button>
-                  <button className="btn-primary px-4 py-2" onClick={savePlayerDraft} type="button">
-                    Update
-                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <button className="btn-secondary w-full px-4 py-2 sm:w-auto" onClick={resetPlayerEditor} type="button">
+                      Cancel
+                    </button>
+                    <button className="btn-primary w-full px-4 py-2 sm:w-auto" onClick={savePlayerDraft} type="button">
+                      Update
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div onKeyDown={handlePlayerEditorKeyDown}>
+                  <FloatingLabelField
+                    id="player-draft-name"
+                    label="Player Name"
+                    onChange={(eventValue) => updatePlayerDraft('name', eventValue.target.value)}
+                    value={playerDraft.name}
+                  />
                 </div>
+                <div onKeyDown={handlePlayerEditorKeyDown}>
+                  <FloatingLabelField
+                    id="player-draft-phone"
+                    label="Phone"
+                    onChange={(eventValue) => updatePlayerDraft('phone', eventValue.target.value)}
+                    value={playerDraft.phone}
+                  />
+                </div>
+                <div className="md:col-span-2" onKeyDown={handlePlayerEditorKeyDown}>
+                  <FloatingLabelField
+                    id="player-draft-address"
+                    label="Address"
+                    onChange={(eventValue) => updatePlayerDraft('address', eventValue.target.value)}
+                    value={playerDraft.address}
+                  />
+                </div>
+              </div>
+
+              {playerError ? (
+                <p className="mt-3 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {playerError}
+                </p>
+              ) : (
+                <p className="mt-3 text-xs text-slate-500">
+                  Only saved players below are submitted. Save the draft row before updating the registration.
+                </p>
               )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingLabelField
-                  id="player-draft-name"
-                  label="Player Name"
-                  onChange={(eventValue) => updatePlayerDraft('name', eventValue.target.value)}
-                  value={playerDraft.name}
-                />
-              </div>
-              <div onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingLabelField
-                  id="player-draft-phone"
-                  label="Phone"
-                  onChange={(eventValue) => updatePlayerDraft('phone', eventValue.target.value)}
-                  value={playerDraft.phone}
-                />
-              </div>
-              <div className="md:col-span-2" onKeyDown={handlePlayerEditorKeyDown}>
-                <FloatingLabelField
-                  id="player-draft-address"
-                  label="Address"
-                  onChange={(eventValue) => updatePlayerDraft('address', eventValue.target.value)}
-                  value={playerDraft.address}
-                />
-              </div>
-            </div>
-
-            {playerError ? (
-              <p className="mt-3 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
-                {playerError}
-              </p>
-            ) : (
-              <p className="mt-3 text-xs text-slate-500">
-                Only saved rows from the table are used for registration. You can leave draft changes here and save or edit them later.
-              </p>
-            )}
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Player Name</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">Address</th>
-                  <th className="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {form.players.length ? (
-                  form.players.map((player, index) => (
-                    <tr className="border-t border-slate-100" key={`${player.name}-${player.phone}-${index}`}>
-                      <td className="px-4 py-4 font-semibold text-slate-900">{index + 1}</td>
-                      <td className="px-4 py-4 text-slate-700">{player.name}</td>
-                      <td className="px-4 py-4 text-slate-700">{player.phone}</td>
-                      <td className="px-4 py-4 text-slate-700">{player.address}</td>
-                      <td className="px-4 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            className="btn-secondary px-4 py-2"
-                            onClick={() => editPlayer(index)}
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn-primary px-4 py-2"
-                            onClick={() => removePlayer(index)}
-                            type="button"
-                          >
-                            Delete
-                          </button>
+            {form.players.length ? (
+              <>
+                <div className="space-y-3 md:hidden">
+                  {form.players.map((player, index) => (
+                    <div
+                      className="rounded-2xl border border-slate-200 bg-white p-4"
+                      key={`${player.name}-${player.phone}-${index}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Player {index + 1}
+                          </p>
+                          <p className="mt-2 text-base font-bold text-slate-950">{player.name}</p>
                         </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="px-4 py-6 text-slate-500" colSpan="5">
-                      No players added yet. Add players one by one to build the team list.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                        <span className="badge bg-slate-100 text-slate-700">Saved</span>
+                      </div>
+                      <div className="mt-4 space-y-2 text-sm text-slate-600">
+                        <p><span className="font-semibold text-slate-900">Phone:</span> {player.phone}</p>
+                        <p><span className="font-semibold text-slate-900">Address:</span> {player.address}</p>
+                      </div>
+                      <div className="mt-4 flex flex-col gap-2">
+                        <button
+                          className="btn-secondary w-full px-4 py-2"
+                          onClick={() => editPlayer(index)}
+                          type="button"
+                        >
+                          Edit Player
+                        </button>
+                        <button
+                          className="btn-primary w-full px-4 py-2"
+                          onClick={() => removePlayer(index)}
+                          type="button"
+                        >
+                          Remove Player
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden overflow-x-auto rounded-2xl border border-slate-200 bg-white md:block">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">#</th>
+                        <th className="px-4 py-3">Player Name</th>
+                        <th className="px-4 py-3">Phone</th>
+                        <th className="px-4 py-3">Address</th>
+                        <th className="px-4 py-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {form.players.map((player, index) => (
+                        <tr className="border-t border-slate-100" key={`${player.name}-${player.phone}-${index}`}>
+                          <td className="px-4 py-4 font-semibold text-slate-900">{index + 1}</td>
+                          <td className="px-4 py-4 text-slate-700">{player.name}</td>
+                          <td className="px-4 py-4 text-slate-700">{player.phone}</td>
+                          <td className="px-4 py-4 text-slate-700">{player.address}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                className="btn-secondary px-4 py-2"
+                                onClick={() => editPlayer(index)}
+                                type="button"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="btn-primary px-4 py-2"
+                                onClick={() => removePlayer(index)}
+                                type="button"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
+                No players added yet. Add players one by one to build the team list.
+              </div>
+            )}
           </div>
         ) : null}
 
-        <button className="btn-primary" disabled={submitting || Boolean(existingRegistration)} type="submit">
-          {existingRegistration
-            ? 'Already Registered'
-            : submitting
-              ? 'Processing...'
+        <button className="btn-primary w-full sm:w-auto" disabled={submitting} type="submit">
+          {submitting
+            ? existingRegistration
+              ? 'Updating...'
+              : 'Processing...'
+            : existingRegistration
+              ? 'Update Registration'
               : Number(event.entryFee) > 0
                 ? 'Continue to Payment'
                 : 'Confirm Registration'}

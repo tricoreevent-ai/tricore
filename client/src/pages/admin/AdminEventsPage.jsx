@@ -580,7 +580,7 @@ export default function AdminEventsPage() {
       description="Create, update, hide, disable, and review tournaments from a compact catalog that scales to large event volumes."
       title="Event Management"
     >
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <EventForm
           autoFocusToken={editFocusToken}
           errorMessage={formError}
@@ -600,14 +600,14 @@ export default function AdminEventsPage() {
         <AdminFilterPanel
           actions={
             <>
-          <button className="btn-secondary" onClick={handleApplyFilters} type="button">
+          <button className="btn-secondary w-full sm:w-auto" onClick={handleApplyFilters} type="button">
             Apply Filters
           </button>
-          <button className="btn-secondary" onClick={handleResetFilters} type="button">
+          <button className="btn-secondary w-full sm:w-auto" onClick={handleResetFilters} type="button">
             Reset
           </button>
           <button
-            className="btn-secondary"
+            className="btn-secondary w-full sm:w-auto"
             onClick={handleRefreshHolidays}
             type="button"
           >
@@ -696,7 +696,7 @@ export default function AdminEventsPage() {
         <FormAlert message={calendarMessage} type="success" />
 
         {!hasAppliedFilters ? (
-          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 p-8">
+          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 p-5 sm:p-8">
             <h3 className="text-xl font-bold text-slate-950">Load a filtered catalog</h3>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
               The default range is already set to today through the next 30 days. Apply it or refine
@@ -738,7 +738,7 @@ export default function AdminEventsPage() {
         )}
 
         {interestEvent ? (
-            <div className="mt-8 space-y-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+            <div className="mt-8 space-y-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-4 sm:p-6">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
@@ -750,16 +750,16 @@ export default function AdminEventsPage() {
                     using the configured public registration link.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <button
-                    className="btn-secondary"
+                    className="btn-secondary w-full sm:w-auto"
                     onClick={() => loadEventInterests(interestEvent)}
                     type="button"
                   >
                     Refresh Contacts
                   </button>
                   <button
-                    className="btn-secondary"
+                    className="btn-secondary w-full sm:w-auto"
                     onClick={() => {
                       setInterestEvent(null);
                       setInterestData({
@@ -801,7 +801,7 @@ export default function AdminEventsPage() {
                 </div>
               </div>
 
-              <form className="grid gap-4 rounded-[1.75rem] bg-white p-6 xl:grid-cols-[240px_1fr_auto]" onSubmit={handleManualEmailSubmit}>
+              <form className="grid gap-4 rounded-[1.75rem] bg-white p-4 sm:p-6 xl:grid-cols-[240px_1fr_auto]" onSubmit={handleManualEmailSubmit}>
                 <div>
                   <label className="label" htmlFor="interest-audience">
                     Audience
@@ -838,7 +838,7 @@ export default function AdminEventsPage() {
                   />
                 </div>
                 <div className="xl:self-end">
-                  <button className="btn-primary" disabled={manualEmailPending} type="submit">
+                  <button className="btn-primary w-full sm:w-auto" disabled={manualEmailPending} type="submit">
                     {manualEmailPending ? 'Sending...' : 'Send Event Email'}
                   </button>
                 </div>
@@ -858,11 +858,11 @@ export default function AdminEventsPage() {
                 rows={interestData.items}
                 searchPlaceholder="Search interested contacts"
                 toolbarActions={
-                  <div className="flex flex-wrap gap-2">
-                    <button className="btn-secondary px-4 py-2" onClick={selectAllInterestsOnPage} type="button">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <button className="btn-secondary w-full px-4 py-2 sm:w-auto" onClick={selectAllInterestsOnPage} type="button">
                       Select All
                     </button>
-                    <button className="btn-secondary px-4 py-2" onClick={clearSelectedInterests} type="button">
+                    <button className="btn-secondary w-full px-4 py-2 sm:w-auto" onClick={clearSelectedInterests} type="button">
                       Clear
                     </button>
                   </div>

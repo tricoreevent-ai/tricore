@@ -161,20 +161,20 @@ export default function EventPaymentPage() {
   }
 
   return (
-    <div className="container-shell py-16">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="container-shell py-6 sm:py-10">
+      <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
         <div className="panel overflow-hidden">
-          <div className="bg-gradient-to-br from-brand-blue via-brand-navy to-sky-500 p-8 text-white">
+          <div className="bg-gradient-to-br from-brand-blue via-brand-navy to-sky-500 p-5 text-white sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-100">
               Payment Workflow
             </p>
-            <h1 className="mt-3 text-4xl font-bold">Complete Payment for {event.name}</h1>
-            <p className="mt-4 max-w-3xl text-blue-100">
+            <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Complete Payment for {event.name}</h1>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-100 sm:text-base">
               Your registration details are saved. Use any configured payment method below,
               then upload the payment screenshot for admin confirmation.
             </p>
           </div>
-          <div className="grid gap-4 p-8 md:grid-cols-3">
+          <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3">
             <div className="rounded-3xl bg-slate-50 p-5">
               <p className="text-sm font-semibold text-slate-500">Team / Registrant</p>
               <p className="mt-2 text-lg font-bold text-slate-950">
@@ -201,13 +201,13 @@ export default function EventPaymentPage() {
               No registration draft was found for this event. Go back to the event page, add players,
               and continue again.
             </p>
-            <Link className="btn-secondary mt-4 inline-flex" to={`/events/${eventId}`}>
+            <Link className="btn-secondary mt-4 inline-flex w-full sm:w-auto" to={`/events/${eventId}`}>
               Back to Event
             </Link>
           </div>
         ) : (
           <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
-            <section className="panel space-y-6 p-6">
+            <section className="panel space-y-6 p-4 sm:p-6">
               <div>
                 <h2 className="text-2xl font-bold">Configured Payment Methods</h2>
                 <p className="mt-2 text-sm text-slate-500">
@@ -284,7 +284,7 @@ export default function EventPaymentPage() {
               ) : null}
             </section>
 
-            <form className="panel space-y-6 p-6" onSubmit={handleSubmit}>
+            <form className="panel space-y-6 p-4 sm:p-6" onSubmit={handleSubmit}>
               <div>
                 <h2 className="text-2xl font-bold">Upload Payment Proof</h2>
                 <p className="mt-2 text-sm text-slate-500">
@@ -336,15 +336,15 @@ export default function EventPaymentPage() {
                 Payment status after submission: <strong>Under Review</strong>. Admin will confirm the payment and send the final confirmation email.
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <button
-                  className="btn-primary"
+                  className="btn-primary w-full sm:w-auto"
                   disabled={submitting || !paymentMethods.length || !paymentSettings?.manualPaymentEnabled}
                   type="submit"
                 >
                   {submitting ? 'Submitting...' : 'Submit Payment Proof'}
                 </button>
-                <Link className="btn-secondary" to={`/events/${eventId}`}>
+                <Link className="btn-secondary w-full sm:w-auto" to={`/events/${eventId}`}>
                   Back to Event
                 </Link>
               </div>
