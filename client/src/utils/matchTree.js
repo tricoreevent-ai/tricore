@@ -70,6 +70,9 @@ const getMatchLabel = (match = {}) =>
   normalizeText(match.roundLabel || match.matchType || `Match ${match.matchNumber || ''}`) ||
   'Fixture';
 
+const getFixtureTitle = (match = {}) =>
+  truncate(`${match.teamA || 'Team A'} vs ${match.teamB || 'Team B'}`, 34) || 'Fixture pending';
+
 const getCompactScheduleLabel = (match = {}) => {
   const dateLabel = normalizeText(match.date);
   const timeLabel = normalizeText(match.time);
@@ -204,11 +207,11 @@ const buildStageTreeNodes = (matches = []) => {
           completedCount ? `${completedCount} completed` : 'Published for planning'
         ],
         children: stageMatches.map((match) => ({
-          name: getMatchLabel(match),
+          name: getFixtureTitle(match),
           tone: getMatchTone(match),
           matchId: match._id,
           details: [
-            truncate(`${match.teamA || 'Team A'} vs ${match.teamB || 'Team B'}`, 34),
+            truncate(getMatchLabel(match), 28),
             truncate(`${normalizeText(match.status) || 'Pending'} • ${getCompactScheduleLabel(match)}`, 38)
           ]
         }))
@@ -355,4 +358,113 @@ export const buildFixtureVisualization = ({ eventName = '', matches = [] } = {})
       dependencyCount: dependencyMatches.length
     }
   };
+};
+
+const FORCE_GRAPH_STYLE_BY_TONE = {
+  root: {
+    fill: '#1d4ed8',
+    stroke: '#1e40af',
+    size: 58,
+    shape: 'square'
+  },
+  stage: {
+    fill: '#dbeafe',
+    stroke: '#60a5fa',
+    size: 50,
+    shape: 'square'
+  },
+  matchLeague: {
+    fill: '#ffffff',
+    stroke: '#94a3b8',
+    size: 40,
+    shape: 'hexagon'
+  },
+  matchKnockout: {
+    fill: '#ede9fe',
+    stroke: '#8b5cf6',
+    size: 42,
+    shape: 'hexagon'
+  },
+  matchFinal: {
+    fill: '#ffedd5',
+    stroke: '#f97316',
+    size: 44,
+    shape: 'triangle'
+  },
+  matchCompleted: {
+    fill: '#dcfce7',
+    stroke: '#22c55e',
+    size: 42,
+    shape: 'hexagon'
+  },
+  matchWarning: {
+    fill: '#fee2e2',
+    stroke: '#ef4444',
+    size: 42,
+    shape: 'hexagon'
+  },
+  team: {
+    fill: '#ffffff',
+    stroke: '#cbd5e1',
+    size: 34,
+    shape: 'circle'
+  },
+  seed: {
+    fill: '#f8fafc',
+    stroke: '#cbd5e1',
+    size: 34,
+    shape: 'circle'
+  }
+};
+
+const flattenPlannerNodeToGraph = (node, accumulator, parentId = '', path = 'root') => {
+  const tone = node.tone || 'team';
+  const style = FORCE_GRAPH_STYLE_BY_TONE[tone] || FORCE_GRAPH_STYLE_BY_TONE.team;
+  const nodeId = normalizeText(node.matchId) || `${path}-${accumulator.nodes.length}`;
+
+  accumulator.nodes.push({
+    id: nodeId,
+    label: truncate(node.name, 28) || 'Node',
+    subLabel: (Array.isArray(node.details) ? node.details : [])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' • '),
+    tone,
+    fill: style.fill,
+    stroke: style.stroke,
+    size: style.size,
+    shape: style.shape,
+    matchId: normalizeText(node.matchId)
+  });
+
+  if (parentId) {
+    accumulator.links.push({
+      id: `${parentId}-${nodeId}`,
+      source: parentId,
+      target: nodeId,
+      stroke: tone === 'stage' ? '#93c5fd' : '#cbd5e1',
+      width: tone === 'root' || tone === 'stage' ? 2.2 : 1.8
+    });
+  }
+
+  (Array.isArray(node.children) ? node.children : []).forEach((childNode, index) => {
+    flattenPlannerNodeToGraph(childNode, accumulator, nodeId, `${nodeId}-${index}`);
+  });
+};
+
+export const buildFixtureForceGraphData = (visualization) => {
+  if (!visualization?.data) {
+    return {
+      nodes: [],
+      links: []
+    };
+  }
+
+  const accumulator = {
+    nodes: [],
+    links: []
+  };
+
+  flattenPlannerNodeToGraph(visualization.data, accumulator);
+  return accumulator;
 };

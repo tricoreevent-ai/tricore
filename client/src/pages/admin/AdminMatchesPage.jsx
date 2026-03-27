@@ -41,7 +41,7 @@ import {
 const matchWorkspaceTabs = [
   { key: 'configuration', label: 'Match Configuration', icon: 'settings' },
   { key: 'fixtures', label: 'Fixture Management', icon: 'calendar' },
-  { key: 'planner', label: 'Fixture Planner Tree', icon: 'matches' },
+  { key: 'planner', label: 'Fixture Planner', icon: 'matches' },
   { key: 'aiLab', label: 'AI Fixture Lab', icon: 'sparkle' },
   { key: 'points', label: 'Points System', icon: 'chart' },
   { key: 'teams', label: 'Team Registration', icon: 'users' },
