@@ -223,6 +223,7 @@ export default function AdminDashboardPage() {
   return (
     <AdminPageShell
       description="A visual command center for event health, revenue movement, critical alerts, and the next action your team should take."
+      mobileDescription="Monitor events, revenue, and alerts from one overview."
       title="Admin Overview"
     >
       <FormAlert message={error} />

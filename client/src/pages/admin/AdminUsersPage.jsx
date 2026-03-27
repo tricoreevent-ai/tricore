@@ -80,7 +80,7 @@ const managedCoreUsernames = ['tricore', 'kenny', 'vinod'];
 const userTabs = [
   { key: 'accounts', label: 'Admin Accounts', icon: 'users' },
   { key: 'create', label: 'Create Admin User', icon: 'userPlus' },
-  { key: 'edit', label: 'Edit Admin User', icon: 'settings' },
+  { key: 'edit', label: 'Edit Admin User', icon: 'edit' },
   { key: 'roles', label: 'Create Roles', icon: 'role' },
   { key: 'access', label: 'Modify Role Access', icon: 'security' },
   { key: 'password', label: 'Change Password', icon: 'key' }
@@ -195,11 +195,17 @@ function PermissionBadgeCloud({ permissions }) {
   );
 }
 
-function TabButton({ active, icon, label, onClick }) {
+function TabButton({ active, fullWidth = false, icon, label, onClick }) {
   return (
     <button
-      className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
-        active ? 'bg-brand-blue text-white shadow-sm' : 'text-slate-600 hover:bg-brand-mist'
+      className={`flex items-center gap-2 text-sm font-semibold transition ${
+        fullWidth
+          ? `w-full justify-start rounded-2xl px-4 py-3 text-left ${
+              active ? 'bg-brand-blue text-white shadow-sm' : 'text-slate-600 hover:bg-brand-mist'
+            }`
+          : `rounded-full px-4 py-2.5 ${
+              active ? 'bg-brand-blue text-white shadow-sm' : 'text-slate-600 hover:bg-brand-mist'
+            }`
       }`}
       onClick={onClick}
       type="button"
@@ -210,9 +216,37 @@ function TabButton({ active, icon, label, onClick }) {
   );
 }
 
+function CompactActionButton({
+  disabled = false,
+  icon,
+  label,
+  onClick,
+  tone = 'default'
+}) {
+  const toneClassName =
+    tone === 'danger'
+      ? 'border-rose-200 text-rose-600 hover:bg-rose-50 disabled:border-rose-100 disabled:text-rose-300'
+      : 'border-brand-blue/15 text-brand-blue hover:bg-brand-mist disabled:border-slate-200 disabled:text-slate-300';
+
+  return (
+    <button
+      aria-label={label}
+      className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border bg-white px-3 py-2 text-xs font-semibold transition ${toneClassName}`}
+      disabled={disabled}
+      onClick={onClick}
+      title={label}
+      type="button"
+    >
+      <AppIcon className="h-3.5 w-3.5" name={icon} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
 export default function AdminUsersPage() {
   const { user: currentAdmin } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('accounts');
+  const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [roleTemplates, setRoleTemplates] = useState([]);
   const [createForm, setCreateForm] = useState(createInitialUserForm);
@@ -332,6 +366,10 @@ export default function AdminUsersPage() {
     () => buildRoleOptionSelectGroups(createRoleOptionGroups),
     [createRoleOptionGroups]
   );
+  const activeTabMeta = useMemo(
+    () => userTabs.find((tab) => tab.key === activeTab) || userTabs[0],
+    [activeTab]
+  );
   const accessRoleSelectGroups = useMemo(
     () => buildRoleOptionSelectGroups(accessRoleOptionGroups),
     [accessRoleOptionGroups]
@@ -423,6 +461,10 @@ export default function AdminUsersPage() {
     setRoleTemplatesMessage('');
   }, [selectedRoleTemplate]);
 
+  useEffect(() => {
+    setMobileTabMenuOpen(false);
+  }, [activeTab]);
+
   const userColumns = useMemo(
     () => [
       {
@@ -511,48 +553,37 @@ export default function AdminUsersPage() {
 
           return (
             <div className="flex flex-wrap gap-2">
-              <button
-                className="btn-secondary gap-2 px-4 py-2"
+              <CompactActionButton
+                icon="edit"
+                label="Edit"
                 onClick={() => {
                   setSelectedEditableUserId(user._id);
                   setActiveTab('edit');
                 }}
-                type="button"
-              >
-                <AppIcon className="h-4 w-4" name="settings" />
-                Edit
-              </button>
-              <button
-                className="btn-secondary gap-2 px-4 py-2"
+              />
+              <CompactActionButton
+                icon="security"
+                label="Access"
                 onClick={() => {
                   setSelectedUserId(user._id);
                   setActiveTab('access');
                 }}
-                type="button"
-              >
-                <AppIcon className="h-4 w-4" name="security" />
-                Access
-              </button>
-              <button
-                className="btn-secondary gap-2 px-4 py-2"
+              />
+              <CompactActionButton
+                icon="key"
+                label="Reset"
                 onClick={() => {
                   setSelectedEditableUserId(user._id);
                   setActiveTab('password');
                 }}
-                type="button"
-              >
-                <AppIcon className="h-4 w-4" name="key" />
-                Password
-              </button>
-              <button
-                className="btn-secondary gap-2 border-rose-200 px-4 py-2 text-rose-600 hover:bg-rose-50"
+              />
+              <CompactActionButton
                 disabled={isCurrentAccount || isManagedCoreUser || deletingUserId === user._id}
+                icon="trash"
+                label={deletingUserId === user._id ? 'Deleting' : 'Delete'}
                 onClick={() => handleDeleteUser(user)}
-                type="button"
-              >
-                <AppIcon className="h-4 w-4" name="warning" />
-                {deletingUserId === user._id ? 'Deleting...' : 'Delete'}
-              </button>
+                tone="danger"
+              />
             </div>
           );
         }
@@ -657,20 +688,24 @@ export default function AdminUsersPage() {
         sortable: false,
         cell: (template) => (
           <div className="flex flex-wrap gap-2">
-            <button
-              className="btn-secondary gap-2 px-4 py-2"
+            <CompactActionButton
+              icon="edit"
+              label="Edit"
               onClick={() => {
                 setSelectedRoleKey(template.key);
                 setActiveTab('access');
               }}
-              type="button"
-            >
-              <AppIcon className="h-4 w-4" name="role" />
-              Edit
-            </button>
-            <button
-              className="btn-secondary gap-2 px-4 py-2"
+            />
+            <CompactActionButton
               disabled={roleStatusSavingKey === template.key}
+              icon={template.isActive ? 'warning' : 'check'}
+              label={
+                roleStatusSavingKey === template.key
+                  ? 'Saving'
+                  : template.isActive
+                    ? 'Disable'
+                    : 'Enable'
+              }
               onClick={async () => {
                 setRoleStatusSavingKey(template.key);
                 setRoleTemplatesError('');
@@ -691,15 +726,7 @@ export default function AdminUsersPage() {
                   setRoleStatusSavingKey('');
                 }
               }}
-              type="button"
-            >
-              <AppIcon className="h-4 w-4" name={template.isActive ? 'warning' : 'check'} />
-              {roleStatusSavingKey === template.key
-                ? 'Saving...'
-                : template.isActive
-                  ? 'Deactivate'
-                  : 'Activate'}
-            </button>
+            />
           </div>
         )
       }
@@ -1078,7 +1105,74 @@ export default function AdminUsersPage() {
       description="Create admin accounts, define reusable role templates, and manage page-level accessibility without mixing user setup and access editing into one long form."
       title="Admin Users"
     >
-      <div className="mb-8 inline-flex w-full flex-wrap rounded-[1.75rem] bg-white p-2 shadow-soft lg:w-auto">
+      <div className="mb-6 md:hidden">
+        <button
+          aria-expanded={mobileTabMenuOpen}
+          className="flex w-full items-center justify-between rounded-[1.5rem] border border-slate-200 bg-white px-4 py-3 shadow-soft"
+          onClick={() => setMobileTabMenuOpen(true)}
+          type="button"
+        >
+          <div className="flex min-w-0 items-center gap-3 text-left">
+            <span className="rounded-2xl bg-brand-mist p-2 text-brand-blue">
+              <AppIcon className="h-4 w-4" name={activeTabMeta.icon} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                Admin Sections
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                {activeTabMeta.label}
+              </p>
+            </div>
+          </div>
+          <span className="rounded-full border border-brand-blue/15 p-2 text-brand-blue">
+            <AppIcon className="h-4 w-4" name="menu" />
+          </span>
+        </button>
+      </div>
+
+      {mobileTabMenuOpen ? (
+        <div className="fixed inset-0 z-[120] md:hidden">
+          <button
+            aria-label="Close admin user sections"
+            className="absolute inset-0 bg-slate-950/40"
+            onClick={() => setMobileTabMenuOpen(false)}
+            type="button"
+          />
+          <aside className="absolute right-0 top-0 flex h-full w-[min(84vw,320px)] flex-col border-l border-slate-200 bg-white p-5 shadow-soft">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                  Admin Sections
+                </p>
+                <p className="mt-2 text-lg font-bold text-slate-950">User Management</p>
+              </div>
+              <button
+                aria-label="Close admin user sections"
+                className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-brand-mist hover:text-brand-blue"
+                onClick={() => setMobileTabMenuOpen(false)}
+                type="button"
+              >
+                <AppIcon className="h-4 w-4" name="close" />
+              </button>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {userTabs.map((tab) => (
+                <TabButton
+                  active={activeTab === tab.key}
+                  fullWidth
+                  icon={tab.icon}
+                  key={tab.key}
+                  label={tab.label}
+                  onClick={() => setActiveTab(tab.key)}
+                />
+              ))}
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
+      <div className="mb-8 hidden w-full flex-wrap rounded-[1.75rem] bg-white p-2 shadow-soft md:inline-flex lg:w-auto">
         {userTabs.map((tab) => (
           <TabButton
             active={activeTab === tab.key}

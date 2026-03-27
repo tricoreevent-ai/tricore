@@ -28,6 +28,10 @@ const isActionProtocolHref = (href) =>
   /^(?:https?:\/\/|mailto:|tel:|\/\/)/i.test(String(href || '').trim());
 const looksLikeDomainWithoutProtocol = (href) =>
   /^(?:www\.)[^\s/]+\.[^\s]+/i.test(String(href || '').trim());
+const normalizeInternalPathname = (pathname) => {
+  const normalizedPathname = `/${String(pathname || '').replace(/^\.?\/*/, '')}`.replace(/\/{2,}/g, '/');
+  return normalizedPathname.replace(/^\/event(?=\/|$)/i, '/events');
+};
 
 const normalizeActionHref = (href) => {
   const value = String(href || '').trim();
@@ -45,7 +49,7 @@ const normalizeActionHref = (href) => {
       const resolvedUrl = new URL(value, window.location.origin);
 
       if (resolvedUrl.origin === window.location.origin) {
-        return `${resolvedUrl.pathname}${resolvedUrl.search}${resolvedUrl.hash}`;
+        return `${normalizeInternalPathname(resolvedUrl.pathname)}${resolvedUrl.search}${resolvedUrl.hash}`;
       }
 
       if (isActionProtocolHref(value)) {
@@ -61,10 +65,10 @@ const normalizeActionHref = (href) => {
   }
 
   if (value.startsWith('/')) {
-    return value;
+    return normalizeInternalPathname(value);
   }
 
-  return `/${value.replace(/^\.?\/*/, '')}`;
+  return normalizeInternalPathname(value);
 };
 
 const ActionLink = ({ className, href, label }) => {

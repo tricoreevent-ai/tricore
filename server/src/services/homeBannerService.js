@@ -6,6 +6,17 @@ import { isImageDataUrl, persistImageReference } from './imageStorageService.js'
 export const HOME_BANNER_SETTINGS_KEY = 'home-banner-config';
 
 const normalizeText = (value) => String(value || '').trim();
+const isExternalActionHref = (value) =>
+  /^(?:https?:\/\/|mailto:|tel:|\/\/|#)/i.test(String(value || '').trim());
+const normalizeActionHref = (value) => {
+  const normalized = normalizeText(value);
+
+  if (!normalized || isExternalActionHref(normalized)) {
+    return normalized;
+  }
+
+  return `/${normalized.replace(/^\.?\/*/, '')}`.replace(/^\/event(?=\/|$)/i, '/events');
+};
 
 const normalizeBoolean = (value, fallback = false) => {
   if (value === undefined || value === null) return fallback;
@@ -33,9 +44,9 @@ const normalizeBanner = (banner = {}, index = 0) => ({
   imageUrl: normalizeText(banner.imageUrl),
   imageAlt: normalizeText(banner.imageAlt) || normalizeText(banner.title) || `Banner ${index + 1}`,
   primaryActionLabel: normalizeText(banner.primaryActionLabel),
-  primaryActionHref: normalizeText(banner.primaryActionHref),
+  primaryActionHref: normalizeActionHref(banner.primaryActionHref),
   secondaryActionLabel: normalizeText(banner.secondaryActionLabel),
-  secondaryActionHref: normalizeText(banner.secondaryActionHref),
+  secondaryActionHref: normalizeActionHref(banner.secondaryActionHref),
   isActive: normalizeBoolean(banner.isActive, true)
 });
 

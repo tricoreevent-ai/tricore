@@ -26,7 +26,12 @@ const getAlertIconName = (alert) => {
   return 'security';
 };
 
-export default function AdminPageShell({ children, description, title }) {
+export default function AdminPageShell({
+  children,
+  description,
+  mobileDescription = description,
+  title
+}) {
   const { hasAnyPermission, logout, user } = useAdminAuth();
   const { isDarkTheme, theme } = useAdminTheme();
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -122,11 +127,20 @@ export default function AdminPageShell({ children, description, title }) {
             </span>
           </button>
           <div className="flex items-start gap-4 pr-16 md:pr-0">
-            <TriCoreLogo
-              markClassName="h-12 w-12"
-              subtitle="Operations Console"
-              subtitleClassName="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange"
-            />
+            <Link
+              className="shrink-0 rounded-[1.5rem] transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setAlertsOpen(false);
+              }}
+              to="/admin-portal"
+            >
+              <TriCoreLogo
+                markClassName="h-12 w-12"
+                subtitle="Operations Console"
+                subtitleClassName="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange"
+              />
+            </Link>
             <div className="min-w-0">
               <p className={`break-words text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-500'}`}>
                 Signed in as {user?.name} ({user?.username})
@@ -134,11 +148,11 @@ export default function AdminPageShell({ children, description, title }) {
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-2 sm:justify-end">
             {canSeeSecurityAlerts ? (
               <div className="relative z-[100]">
                 <button
-                  className="btn-secondary w-full gap-2 sm:w-auto"
+                  className="btn-secondary min-h-10 gap-2 px-3 py-2 text-xs sm:min-h-11 sm:px-5 sm:py-3 sm:text-sm"
                   onClick={() => {
                     setAlertsOpen((current) => !current);
                     setMobileNavOpen(false);
@@ -148,7 +162,7 @@ export default function AdminPageShell({ children, description, title }) {
                   <AppIcon className="h-4 w-4" name="bell" />
                   Alerts
                   {alertSummary.openCount ? (
-                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {alertSummary.openCount}
                     </span>
                   ) : null}
@@ -208,7 +222,11 @@ export default function AdminPageShell({ children, description, title }) {
                 ) : null}
               </div>
             ) : null}
-            <button className="btn-secondary w-full gap-2 sm:w-auto" onClick={logout} type="button">
+            <button
+              className="btn-secondary min-h-10 gap-2 px-3 py-2 text-xs sm:min-h-11 sm:px-5 sm:py-3 sm:text-sm"
+              onClick={logout}
+              type="button"
+            >
               <AppIcon className="h-4 w-4" name="logout" />
               Logout
             </button>
@@ -237,9 +255,16 @@ export default function AdminPageShell({ children, description, title }) {
                 Admin Portal
               </p>
               <h1 className="mt-4 text-4xl font-bold">{title}</h1>
-              <p className={`mt-4 max-w-2xl ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
-                {description}
-              </p>
+              {mobileDescription ? (
+                <p className={`mt-4 max-w-2xl sm:hidden ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {mobileDescription}
+                </p>
+              ) : null}
+              {description ? (
+                <p className={`mt-4 hidden max-w-2xl sm:block ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {description}
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className={`rounded-3xl px-5 py-4 ${isDarkTheme ? 'bg-slate-800' : 'bg-brand-mist'}`}>
