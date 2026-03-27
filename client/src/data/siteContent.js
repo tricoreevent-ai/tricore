@@ -232,6 +232,21 @@ export const aboutHighlights = {
     'Youth engagement through structured and positive sports-led environments.',
     'Community cohesion programs that turn events into shared experiences.'
   ],
+  organizersTitle: 'Key Event Organizers',
+  organizersDescription:
+    'TriCore Events partners with experienced organizers who contribute to our events. We value the expertise, reliability, and practical on-ground skill they bring to every project they support.',
+  organizers: [
+    {
+      name: 'Sagar Mohamad',
+      role: 'Experienced event organizer'
+    },
+    {
+      name: 'Sarath KS',
+      role: 'Experienced event organizer'
+    }
+  ],
+  organizersClosing:
+    'Both bring reliability and skill to every project they support.',
   sportsBelief:
     'In a fast-paced and increasingly digital world, sports remain one of the most powerful ways to build discipline, leadership, resilience, and belonging. TriCore uses sport as a force for stronger teams, healthier lifestyles, and more connected communities.'
 };

@@ -89,6 +89,26 @@ export default function AboutPage() {
             or the warm, people-first experience participants remember.
           </p>
         </section>
+
+        <section className="panel mt-10 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+            {aboutHighlights.organizersTitle}
+          </p>
+          <p className="mt-4 max-w-4xl text-base leading-8 text-slate-600">
+            {aboutHighlights.organizersDescription}
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {aboutHighlights.organizers.map((organizer) => (
+              <div className="rounded-3xl bg-slate-50 p-6" key={organizer.name}>
+                <h3 className="text-xl font-bold text-slate-950">{organizer.name}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{organizer.role}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-base leading-8 text-slate-700">
+            {aboutHighlights.organizersClosing}
+          </p>
+        </section>
       </div>
 
       {galleryConfig?.galleryEnabledAbout ? (
