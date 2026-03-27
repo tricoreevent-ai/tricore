@@ -202,6 +202,7 @@ function PermissionBadgeCloud({ permissions }) {
 function TabButton({ active, fullWidth = false, icon, label, onClick }) {
   return (
     <button
+      aria-pressed={active}
       className={`flex items-center gap-2 text-sm font-semibold transition ${
         fullWidth
           ? `w-full justify-start rounded-2xl px-4 py-3 text-left ${
@@ -215,7 +216,7 @@ function TabButton({ active, fullWidth = false, icon, label, onClick }) {
       type="button"
     >
       <AppIcon className="h-4 w-4" name={icon} />
-      {label}
+      <span className={fullWidth ? 'leading-5' : ''}>{label}</span>
     </button>
   );
 }
@@ -1158,7 +1159,7 @@ export default function AdminUsersPage() {
             </span>
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-orange">
-                Admin Sections
+                Users Menu
               </p>
               <p className="mt-1 truncate text-sm font-semibold text-slate-950">
                 {activeTabMeta.label}
@@ -1183,7 +1184,7 @@ export default function AdminUsersPage() {
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange">
-                  Admin Sections
+                  Users Menu
                 </p>
                 <p className="mt-2 text-lg font-bold text-slate-950">User Management</p>
               </div>
@@ -1212,17 +1213,34 @@ export default function AdminUsersPage() {
         </div>
       ) : null}
 
-      <div className="mb-8 hidden w-full flex-wrap rounded-[1.75rem] bg-white p-2 shadow-soft md:inline-flex lg:w-auto">
-        {userTabs.map((tab) => (
-          <TabButton
-            active={activeTab === tab.key}
-            icon={tab.icon}
-            key={tab.key}
-            label={tab.label}
-            onClick={() => setActiveTab(tab.key)}
-          />
-        ))}
-      </div>
+      <div className="grid gap-8 md:grid-cols-[17rem_minmax(0,1fr)] md:items-start">
+        <aside className="hidden md:block md:sticky md:top-28">
+          <div className="rounded-[2rem] border border-slate-200 bg-white/85 p-4 shadow-soft backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange">
+              Users Menu
+            </p>
+            <p className="mt-3 text-xl font-bold text-slate-950">{activeTabMeta.label}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Move between audience users, campaigns, admin accounts, role access, and password
+              tools from one sidebar.
+            </p>
+
+            <div className="mt-6 grid gap-2">
+              {userTabs.map((tab) => (
+                <TabButton
+                  active={activeTab === tab.key}
+                  fullWidth
+                  icon={tab.icon}
+                  key={tab.key}
+                  label={tab.label}
+                  onClick={() => setActiveTab(tab.key)}
+                />
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
 
       {activeTab === 'audience' ? <AudienceUsersWorkspace /> : null}
 
@@ -2224,6 +2242,8 @@ export default function AdminUsersPage() {
           </form>
         </div>
       ) : null}
+        </div>
+      </div>
     </AdminPageShell>
   );
 }
