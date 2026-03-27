@@ -41,6 +41,7 @@ import {
 const matchWorkspaceTabs = [
   { key: 'configuration', label: 'Match Configuration', icon: 'settings' },
   { key: 'fixtures', label: 'Fixture Management', icon: 'calendar' },
+  { key: 'planner', label: 'Fixture Planner Tree', icon: 'matches' },
   { key: 'aiLab', label: 'AI Fixture Lab', icon: 'sparkle' },
   { key: 'points', label: 'Points System', icon: 'chart' },
   { key: 'teams', label: 'Team Registration', icon: 'users' },
@@ -1275,15 +1276,18 @@ export default function AdminMatchesPage() {
 
       </div>
 
-      <FixtureTreePanel
-        eventName={selectedEvent?.name || 'Fixture Planner'}
-        matches={sortedMatches}
-        onPrintError={setError}
-        onPrintSuccess={setSuccess}
-        onSelectMatch={setSelectedMatchId}
-        selectedMatchId={selectedMatchId}
-      />
     </div>
+  );
+
+  const renderPlannerTab = () => (
+    <FixtureTreePanel
+      eventName={selectedEvent?.name || 'Fixture Planner'}
+      matches={sortedMatches}
+      onPrintError={setError}
+      onPrintSuccess={setSuccess}
+      onSelectMatch={setSelectedMatchId}
+      selectedMatchId={selectedMatchId}
+    />
   );
 
   const renderAiLabTab = () => (
@@ -1923,6 +1927,8 @@ export default function AdminMatchesPage() {
         return renderConfigurationTab();
       case 'fixtures':
         return renderFixturesTab();
+      case 'planner':
+        return renderPlannerTab();
       case 'aiLab':
         return renderAiLabTab();
       case 'points':
