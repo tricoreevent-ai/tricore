@@ -24,6 +24,10 @@ const audiencePreferenceSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    tags: {
+      type: [String],
+      default: []
+    },
     emailOptOut: {
       type: Boolean,
       default: false

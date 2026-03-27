@@ -6,6 +6,7 @@ import { ensureBackupSettingDocument } from './services/backupSettingsService.js
 import { startBackupScheduler } from './services/backupSchedulerService.js';
 import { ensureContactForwardingSettingDocument } from './services/contactSettingsService.js';
 import { ensureEmailSettingDocument } from './services/emailSettingsService.js';
+import { startAudienceCampaignScheduler } from './services/audienceCampaignService.js';
 import { startEventInterestScheduler } from './services/eventInterestSchedulerService.js';
 import { ensureInvoiceSettingDocument } from './services/invoiceSettingsService.js';
 import { ensurePublicSiteSettingDocument } from './services/publicSiteSettingsService.js';
@@ -56,6 +57,7 @@ const bootstrapPersistenceServices = async () => {
   await ensureDefaultAdmin();
   await primeAppSettings();
   startBackupScheduler();
+  startAudienceCampaignScheduler();
   startEventInterestScheduler();
   persistenceBootstrapCompleted = true;
 };

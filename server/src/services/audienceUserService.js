@@ -2,6 +2,7 @@ import { AudiencePreference } from '../models/AudiencePreference.js';
 import { EventInterest } from '../models/EventInterest.js';
 import { Registration } from '../models/Registration.js';
 import { User } from '../models/User.js';
+import { normalizePaymentStatus } from './paymentStatusService.js';
 
 const normalizeText = (value) => String(value || '').trim();
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
@@ -51,6 +52,10 @@ const buildSearchText = (record) =>
     record.name,
     record.email,
     record.contactNumber,
+    record.location,
+    record.engagementLevel,
+    ...(record.tags || []),
+    ...(record.paymentStatuses || []),
     ...record.currentEvents.map((item) => item.eventName),
     ...record.previousEvents.map((item) => item.eventName),
     ...record.interestedEvents.map((item) => item.eventName)
@@ -84,7 +89,56 @@ const recordMatchesEvent = (record, eventId) => {
   );
 };
 
-const applyAudienceFilters = (records = [], { eventId = '', search = '', segment = 'all' } = {}) => {
+const recordMatchesPaymentStatus = (record, paymentStatus) => {
+  if (!paymentStatus || paymentStatus === 'all') {
+    return true;
+  }
+
+  return (record.paymentStatuses || []).some(
+    (item) => String(item || '').trim().toLowerCase().replace(/\s+/g, '_') === paymentStatus
+  );
+};
+
+const recordMatchesLocation = (record, location = '') => {
+  const normalizedLocation = normalizeText(location).toLowerCase();
+
+  if (!normalizedLocation) {
+    return true;
+  }
+
+  return normalizeText(record.location).toLowerCase().includes(normalizedLocation);
+};
+
+const recordMatchesTag = (record, tag = '') => {
+  const normalizedTag = normalizeText(tag).toLowerCase();
+
+  if (!normalizedTag) {
+    return true;
+  }
+
+  return (record.tags || []).some((item) => normalizeText(item).toLowerCase() === normalizedTag);
+};
+
+const recordMatchesEngagementLevel = (record, engagementLevel = 'all') => {
+  if (!engagementLevel || engagementLevel === 'all') {
+    return true;
+  }
+
+  return normalizeText(record.engagementLevel).toLowerCase() === normalizeText(engagementLevel).toLowerCase();
+};
+
+const applyAudienceFilters = (
+  records = [],
+  {
+    eventId = '',
+    search = '',
+    segment = 'all',
+    paymentStatus = 'all',
+    location = '',
+    tag = '',
+    engagementLevel = 'all'
+  } = {}
+) => {
   const normalizedSearch = normalizeText(search).toLowerCase();
 
   return records.filter((record) => {
@@ -93,6 +147,22 @@ const applyAudienceFilters = (records = [], { eventId = '', search = '', segment
     }
 
     if (!recordMatchesEvent(record, eventId)) {
+      return false;
+    }
+
+    if (!recordMatchesPaymentStatus(record, paymentStatus)) {
+      return false;
+    }
+
+    if (!recordMatchesLocation(record, location)) {
+      return false;
+    }
+
+    if (!recordMatchesTag(record, tag)) {
+      return false;
+    }
+
+    if (!recordMatchesEngagementLevel(record, engagementLevel)) {
       return false;
     }
 
@@ -134,7 +204,9 @@ const buildSummary = (records = []) => ({
   currentParticipants: records.filter((record) => record.currentEvents.length > 0).length,
   pastParticipants: records.filter((record) => record.previousEvents.length > 0).length,
   interestedContacts: records.filter((record) => record.interestedEvents.length > 0).length,
-  emailOptOutCount: records.filter((record) => record.preferences?.emailOptOut).length
+  emailOptOutCount: records.filter((record) => record.preferences?.emailOptOut).length,
+  confirmedPayments: records.filter((record) => record.paymentStatuses.includes('Confirmed')).length,
+  highEngagementContacts: records.filter((record) => record.engagementLevel === 'high').length
 });
 
 const serializeAudienceRecord = (record) => ({
@@ -145,6 +217,11 @@ const serializeAudienceRecord = (record) => ({
   contactNumber: record.contactNumber,
   avatar: record.avatar,
   authProvider: record.authProvider,
+  location: record.location || '',
+  paymentStatuses: [...new Set(record.paymentStatuses || [])],
+  registrationStatuses: [...new Set(record.registrationStatuses || [])],
+  tags: [...new Set(record.tags || [])],
+  engagementLevel: record.engagementLevel || 'low',
   lastLoginAt: record.lastLoginAt || null,
   lastEngagementAt: record.lastEngagementAt || null,
   currentEvents: sortEventsByDateDesc(uniqueBy(record.currentEvents, (item) => item.eventId || item.eventName)),
@@ -155,8 +232,42 @@ const serializeAudienceRecord = (record) => ({
     smsOptOut: Boolean(record.preferences?.smsOptOut),
     whatsappOptOut: Boolean(record.preferences?.whatsappOptOut),
     emailOptOutAt: record.preferences?.emailOptOutAt || null,
-    lastCampaignAt: record.preferences?.lastCampaignAt || null
+    lastCampaignAt: record.preferences?.lastCampaignAt || null,
+    tags: [...new Set(record.preferences?.tags || [])]
   }
+});
+
+const deriveEngagementLevel = (record) => {
+  const totalTouchpoints =
+    (record.currentEvents?.length || 0) +
+    (record.previousEvents?.length || 0) +
+    (record.interestedEvents?.length || 0);
+
+  if (totalTouchpoints >= 4) {
+    return 'high';
+  }
+
+  if (totalTouchpoints >= 2) {
+    return 'medium';
+  }
+
+  return 'low';
+};
+
+const buildFilterOptions = (records = []) => ({
+  tags: [...new Set(records.flatMap((record) => record.tags || []))].sort((left, right) =>
+    normalizeText(left).localeCompare(normalizeText(right), 'en', {
+      sensitivity: 'base',
+      numeric: true
+    })
+  ),
+  locations: [...new Set(records.map((record) => normalizeText(record.location)).filter(Boolean))].sort(
+    (left, right) =>
+      normalizeText(left).localeCompare(normalizeText(right), 'en', {
+        sensitivity: 'base',
+        numeric: true
+      })
+  )
 });
 
 const buildAudienceRecords = async () => {
@@ -166,6 +277,7 @@ const buildAudienceRecords = async () => {
   const [registrations, interests] = await Promise.all([
     Registration.find({})
       .populate('eventId', 'name sportType venue startDate endDate')
+      .populate('paymentId', 'status')
       .sort({ createdAt: -1 }),
     EventInterest.find({})
       .populate('eventId', 'name sportType venue startDate endDate')
@@ -220,6 +332,11 @@ const buildAudienceRecords = async () => {
         contactNumber: '',
         avatar: '',
         authProvider: '',
+        location: '',
+        paymentStatuses: [],
+        registrationStatuses: [],
+        tags: preferencesByEmail.get(audienceKey)?.tags || [],
+        engagementLevel: 'low',
         lastLoginAt: null,
         lastEngagementAt: null,
         currentEvents: [],
@@ -256,6 +373,9 @@ const buildAudienceRecords = async () => {
       normalizeText(registration.teamName);
     record.contactNumber =
       record.contactNumber || normalizeText(registration.phone1) || normalizeText(registration.phone2);
+    record.location = record.location || normalizeText(registration.address);
+    record.registrationStatuses.push(normalizeText(registration.status || 'Registered'));
+    record.paymentStatuses.push(normalizePaymentStatus(registration.paymentId?.status));
     record.lastEngagementAt =
       toTimestamp(registration.createdAt) > toTimestamp(record.lastEngagementAt)
         ? registration.createdAt
@@ -320,6 +440,8 @@ const buildAudienceRecords = async () => {
         avatar: normalizeText(user?.avatar),
         authProvider: normalizeText(user?.authProvider),
         lastLoginAt: user?.lastLoginAt || null,
+        tags: preference?.tags || record.tags,
+        engagementLevel: deriveEngagementLevel(record),
         preferences: preference
       });
     })
@@ -335,9 +457,29 @@ const buildAudienceRecords = async () => {
     );
 };
 
-export const getAudienceUsersDataset = async ({ eventId = '', search = '', segment = 'all', sort = 'recent' } = {}) => {
+export const getAudienceUsersDataset = async ({
+  eventId = '',
+  search = '',
+  segment = 'all',
+  paymentStatus = 'all',
+  location = '',
+  tag = '',
+  engagementLevel = 'all',
+  sort = 'recent'
+} = {}) => {
   const records = await buildAudienceRecords();
-  return sortAudienceRecords(applyAudienceFilters(records, { eventId, search, segment }), sort);
+  return sortAudienceRecords(
+    applyAudienceFilters(records, {
+      eventId,
+      search,
+      segment,
+      paymentStatus,
+      location,
+      tag,
+      engagementLevel
+    }),
+    sort
+  );
 };
 
 export const getAudienceUsersPage = async ({
@@ -346,12 +488,20 @@ export const getAudienceUsersPage = async ({
   page = 1,
   search = '',
   segment = 'all',
+  paymentStatus = 'all',
+  location = '',
+  tag = '',
+  engagementLevel = 'all',
   sort = 'recent'
 } = {}) => {
   const records = await getAudienceUsersDataset({
     eventId,
     search,
     segment,
+    paymentStatus,
+    location,
+    tag,
+    engagementLevel,
     sort
   });
   const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
@@ -365,7 +515,8 @@ export const getAudienceUsersPage = async ({
     limit: safeLimit,
     totalCount,
     totalPages: Math.max(1, Math.ceil(totalCount / safeLimit)),
-    summary: buildSummary(records)
+    summary: buildSummary(records),
+    filterOptions: buildFilterOptions(records)
   };
 };
 
@@ -376,9 +527,13 @@ export const getAudienceUsersExportRows = async (filters = {}) => {
     name: record.name,
     email: record.email,
     contactNumber: record.contactNumber,
+    location: record.location,
     currentEvents: record.currentEvents.map((item) => item.eventName).join(' | '),
     previousEvents: record.previousEvents.map((item) => item.eventName).join(' | '),
     interestedEvents: record.interestedEvents.map((item) => item.eventName).join(' | '),
+    paymentStatuses: record.paymentStatuses.join(' | '),
+    tags: record.tags.join(' | '),
+    engagementLevel: record.engagementLevel,
     emailOptOut: record.preferences.emailOptOut ? 'Yes' : 'No',
     lastEngagementAt: record.lastEngagementAt || '',
     lastLoginAt: record.lastLoginAt || ''

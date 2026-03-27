@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  createAudienceCampaign,
   exportAudienceUsers,
+  getAudienceUserCampaignHistory,
   getAudienceUsers,
-  sendAudienceCampaign
+  updateAudienceUserPreference
 } from '../../api/audienceApi.js';
 import AppIcon from '../common/AppIcon.jsx';
 import DataTable from '../common/DataTable.jsx';
@@ -27,10 +29,29 @@ const sortOptions = [
   { value: 'name', label: 'Name A-Z' }
 ];
 
+const paymentStatusOptions = [
+  { value: 'all', label: 'All Payment States' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'under_review', label: 'Under Review' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'failed', label: 'Failed' }
+];
+
+const engagementLevelOptions = [
+  { value: 'all', label: 'All Engagement Levels' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' }
+];
+
 const createInitialFilters = () => ({
   search: '',
   segment: 'all',
   eventId: '',
+  paymentStatus: 'all',
+  location: '',
+  tag: '',
+  engagementLevel: 'all',
   sort: 'recent'
 });
 
@@ -84,7 +105,65 @@ function EventSummaryList({ items, emptyLabel, limit = 2 }) {
   );
 }
 
-function AudienceDetailPanel({ user, onClose }) {
+function AudienceDetailPanel({ onClose, onUserUpdated, user }) {
+  const [tagsText, setTagsText] = useState((user?.tags || []).join(', '));
+  const [emailOptOut, setEmailOptOut] = useState(Boolean(user?.preferences?.emailOptOut));
+  const [smsOptOut, setSmsOptOut] = useState(Boolean(user?.preferences?.smsOptOut));
+  const [whatsappOptOut, setWhatsappOptOut] = useState(Boolean(user?.preferences?.whatsappOptOut));
+  const [historyItems, setHistoryItems] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [preferenceSaving, setPreferenceSaving] = useState(false);
+  const [panelError, setPanelError] = useState('');
+  const [panelMessage, setPanelMessage] = useState('');
+
+  useEffect(() => {
+    setTagsText((user?.tags || []).join(', '));
+    setEmailOptOut(Boolean(user?.preferences?.emailOptOut));
+    setSmsOptOut(Boolean(user?.preferences?.smsOptOut));
+    setWhatsappOptOut(Boolean(user?.preferences?.whatsappOptOut));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.email) {
+      setHistoryItems([]);
+      setHistoryLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+
+      try {
+        const response = await getAudienceUserCampaignHistory({
+          email: user.email,
+          page: 1,
+          limit: 6
+        });
+
+        if (!cancelled) {
+          setHistoryItems(response.items || []);
+          setPanelError('');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPanelError(getApiErrorMessage(error, 'Unable to load user campaign history.'));
+        }
+      } finally {
+        if (!cancelled) {
+          setHistoryLoading(false);
+        }
+      }
+    };
+
+    void loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email]);
+
   if (!user) {
     return null;
   }
@@ -92,7 +171,16 @@ function AudienceDetailPanel({ user, onClose }) {
   const infoItems = [
     { label: 'Email', value: user.email || '-' },
     { label: 'Contact', value: user.contactNumber || '-' },
+    { label: 'Location', value: user.location || 'Not captured yet' },
     { label: 'Auth Provider', value: user.authProvider || 'Manual interest' },
+    {
+      label: 'Payment States',
+      value: user.paymentStatuses?.length ? user.paymentStatuses.join(', ') : 'No payment record'
+    },
+    {
+      label: 'Engagement',
+      value: user.engagementLevel ? user.engagementLevel.toUpperCase() : 'LOW'
+    },
     {
       label: 'Last Login',
       value: user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never'
@@ -106,6 +194,33 @@ function AudienceDetailPanel({ user, onClose }) {
       value: user.preferences?.emailOptOut ? 'Unsubscribed from campaigns' : 'Email campaigns enabled'
     }
   ];
+
+  const handleSavePreferences = async () => {
+    setPreferenceSaving(true);
+    setPanelError('');
+    setPanelMessage('');
+
+    try {
+      const saved = await updateAudienceUserPreference(user.email, {
+        name: user.name,
+        phone: user.contactNumber,
+        tags: tagsText
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        emailOptOut,
+        smsOptOut,
+        whatsappOptOut
+      });
+
+      setPanelMessage('Audience preferences updated successfully.');
+      onUserUpdated?.(saved);
+    } catch (error) {
+      setPanelError(getApiErrorMessage(error, 'Unable to update user preferences.'));
+    } finally {
+      setPreferenceSaving(false);
+    }
+  };
 
   return (
     <section className="panel p-6">
@@ -123,6 +238,9 @@ function AudienceDetailPanel({ user, onClose }) {
         </button>
       </div>
 
+      <FormAlert message={panelError} />
+      <FormAlert message={panelMessage} type="success" />
+
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {infoItems.map((item) => (
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4" key={item.label}>
@@ -132,6 +250,86 @@ function AudienceDetailPanel({ user, onClose }) {
             <p className="mt-3 text-sm font-semibold text-slate-900">{item.value}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">
+            Communication Preferences
+          </p>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="label" htmlFor="audience-tags">
+                Tags
+              </label>
+              <input
+                className="input"
+                id="audience-tags"
+                onChange={(event) => setTagsText(event.target.value)}
+                placeholder="vip, finance, spark-arena"
+                value={tagsText}
+              />
+            </div>
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <input checked={emailOptOut} onChange={(event) => setEmailOptOut(event.target.checked)} type="checkbox" />
+              Email campaign opt-out
+            </label>
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <input checked={smsOptOut} onChange={(event) => setSmsOptOut(event.target.checked)} type="checkbox" />
+              SMS opt-out
+            </label>
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <input
+                checked={whatsappOptOut}
+                onChange={(event) => setWhatsappOptOut(event.target.checked)}
+                type="checkbox"
+              />
+              WhatsApp opt-out
+            </label>
+            <button className="btn-primary w-full gap-2" disabled={preferenceSaving} onClick={handleSavePreferences} type="button">
+              <AppIcon className="h-4 w-4" name="check" />
+              {preferenceSaving ? 'Saving...' : 'Save Preferences'}
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">
+            Campaign History
+          </p>
+          <div className="mt-4 space-y-3">
+            {historyLoading ? (
+              <p className="text-sm text-slate-500">Loading campaign history...</p>
+            ) : historyItems.length ? (
+              historyItems.map((item) => (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" key={item._id}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-slate-900">{item.campaignId?.name || 'Campaign'}</p>
+                    <span
+                      className={`badge ${
+                        item.status === 'sent'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : item.status === 'failed'
+                            ? 'bg-rose-50 text-rose-700'
+                            : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-600">{item.subject || item.campaignId?.subject || 'No subject'}</p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {item.sentAt ? `Sent ${formatDateTime(item.sentAt)}` : 'Not sent yet'}
+                    {item.openCount ? ` • Opened ${item.openCount} time(s)` : ''}
+                    {item.clickCount ? ` • Clicked ${item.clickCount} time(s)` : ''}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">No campaign history found for this user yet.</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-3">
@@ -174,9 +372,13 @@ export default function AudienceUsersWorkspace() {
     currentParticipants: 0,
     pastParticipants: 0,
     interestedContacts: 0,
-    emailOptOutCount: 0
+    emailOptOutCount: 0,
+    confirmedPayments: 0,
+    highEngagementContacts: 0
   });
   const [eventOptions, setEventOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [tagOptions, setTagOptions] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -207,6 +409,8 @@ export default function AudienceUsersWorkspace() {
         setRows(response.items || []);
         setSummary(response.summary || {});
         setEventOptions(response.filters?.eventOptions || []);
+        setLocationOptions(response.filters?.locations || []);
+        setTagOptions(response.filters?.tags || []);
         setTotalCount(response.totalCount || 0);
         setError('');
       } catch (requestError) {
@@ -230,6 +434,26 @@ export default function AudienceUsersWorkspace() {
   const eventSelectOptions = useMemo(
     () => [{ value: '', label: 'All Events' }, ...eventOptions],
     [eventOptions]
+  );
+  const locationSelectOptions = useMemo(
+    () => [
+      { value: '', label: 'All Locations' },
+      ...locationOptions.map((item) => ({
+        value: item,
+        label: item
+      }))
+    ],
+    [locationOptions]
+  );
+  const tagSelectOptions = useMemo(
+    () => [
+      { value: '', label: 'All Tags' },
+      ...tagOptions.map((item) => ({
+        value: item,
+        label: item
+      }))
+    ],
+    [tagOptions]
   );
 
   const selectedEventLabel =
@@ -261,6 +485,36 @@ export default function AudienceUsersWorkspace() {
           <div>
             <p className="font-medium text-slate-700">{row.email}</p>
             <p className="mt-1 text-xs text-slate-500">{row.contactNumber || 'No contact number'}</p>
+          </div>
+        )
+      },
+      {
+        key: 'profile',
+        header: 'Profile',
+        sortable: false,
+        accessor: (row) => `${row.location} ${row.engagementLevel}`,
+        exportValue: (row) =>
+          [row.location, row.engagementLevel, row.paymentStatuses?.join(' | '), row.tags?.join(' | ')]
+            .filter(Boolean)
+            .join(' | '),
+        cell: (row) => (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-slate-700">{row.location || 'Location not captured'}</p>
+            <div className="flex flex-wrap gap-2">
+              <span className="badge bg-brand-mist text-brand-blue">
+                {row.engagementLevel || 'low'} engagement
+              </span>
+              {(row.paymentStatuses || []).slice(0, 2).map((status) => (
+                <span className="badge bg-white text-slate-600" key={`${row.audienceKey}-${status}`}>
+                  {status}
+                </span>
+              ))}
+              {(row.tags || []).slice(0, 2).map((tag) => (
+                <span className="badge bg-slate-100 text-slate-600" key={`${row.audienceKey}-${tag}`}>
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         )
       },
@@ -347,6 +601,44 @@ export default function AudienceUsersWorkspace() {
     setPage(1);
   };
 
+  const handleAudienceUserUpdated = (preference) => {
+    setRows((current) =>
+      current.map((row) =>
+        row.email === preference.email
+          ? {
+              ...row,
+              tags: preference.tags || row.tags,
+              preferences: {
+                ...row.preferences,
+                emailOptOut: Boolean(preference.emailOptOut),
+                smsOptOut: Boolean(preference.smsOptOut),
+                whatsappOptOut: Boolean(preference.whatsappOptOut),
+                emailOptOutAt: preference.emailOptOutAt || null,
+                lastCampaignAt: preference.lastCampaignAt || row.preferences?.lastCampaignAt || null
+              }
+            }
+          : row
+      )
+    );
+
+    setActiveUser((current) =>
+      current?.email === preference.email
+        ? {
+            ...current,
+            tags: preference.tags || current.tags,
+            preferences: {
+              ...current.preferences,
+              emailOptOut: Boolean(preference.emailOptOut),
+              smsOptOut: Boolean(preference.smsOptOut),
+              whatsappOptOut: Boolean(preference.whatsappOptOut),
+              emailOptOutAt: preference.emailOptOutAt || null,
+              lastCampaignAt: preference.lastCampaignAt || current.preferences?.lastCampaignAt || null
+            }
+          }
+        : current
+    );
+  };
+
   const handleExport = async () => {
     setExporting(true);
 
@@ -367,8 +659,9 @@ export default function AudienceUsersWorkspace() {
     setReminderMessage('');
 
     try {
-      const response = await sendAudienceCampaign({
+      const response = await createAudienceCampaign({
         name: `Audience Reminder ${new Date().toISOString().slice(0, 10)}`,
+        campaignType: 'reminder',
         subject: reminderForm.subject,
         previewText: `Reminder for ${selectedEventLabel}`,
         message: reminderForm.message,
@@ -379,8 +672,14 @@ export default function AudienceUsersWorkspace() {
         channels: {
           email: true,
           sms: false,
-          whatsapp: false
-        }
+          whatsapp: false,
+          push: false
+        },
+        launchAction: 'send_now',
+        fallbackChannel: 'none',
+        requiresApproval: false,
+        timezone: 'Asia/Calcutta',
+        notes: 'Quick reminder from audience directory.'
       });
 
       setReminderMessage(
@@ -397,7 +696,7 @@ export default function AudienceUsersWorkspace() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <StatCard
           helper="Filtered total"
           icon="users"
@@ -436,6 +735,22 @@ export default function AudienceUsersWorkspace() {
           title="Email Opt Outs"
           tone="rose"
           value={summary.emailOptOutCount || 0}
+        />
+        <StatCard
+          helper="Confirmed"
+          icon="check"
+          subtitle="Contacts with confirmed payments in the current result set."
+          title="Confirmed Payments"
+          tone="orange"
+          value={summary.confirmedPayments || 0}
+        />
+        <StatCard
+          helper="Engagement"
+          icon="sparkle"
+          subtitle="Contacts with repeated interactions across registrations and interests."
+          title="High Engagement"
+          tone="slate"
+          value={summary.highEngagementContacts || 0}
         />
       </div>
 
@@ -477,7 +792,7 @@ export default function AudienceUsersWorkspace() {
 
         <FormAlert message={error} />
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 lg:grid-cols-4 xl:grid-cols-8">
           <div>
             <label className="label" htmlFor="audience-search">
               Search Users
@@ -529,6 +844,58 @@ export default function AudienceUsersWorkspace() {
               value={filters.sort}
             />
           </div>
+          <div>
+            <label className="label" htmlFor="audience-payment-status">
+              Payment
+            </label>
+            <TypeaheadSelect
+              id="audience-payment-status"
+              onChange={(event) => handleFilterChange('paymentStatus', event.target.value)}
+              options={paymentStatusOptions}
+              placeholder="Select payment"
+              searchPlaceholder="Search payment states"
+              value={filters.paymentStatus}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="audience-location">
+              Location
+            </label>
+            <TypeaheadSelect
+              id="audience-location"
+              onChange={(event) => handleFilterChange('location', event.target.value)}
+              options={locationSelectOptions}
+              placeholder="Select location"
+              searchPlaceholder="Search locations"
+              value={filters.location}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="audience-tag">
+              Tag
+            </label>
+            <TypeaheadSelect
+              id="audience-tag"
+              onChange={(event) => handleFilterChange('tag', event.target.value)}
+              options={tagSelectOptions}
+              placeholder="Select tag"
+              searchPlaceholder="Search tags"
+              value={filters.tag}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="audience-engagement">
+              Engagement
+            </label>
+            <TypeaheadSelect
+              id="audience-engagement"
+              onChange={(event) => handleFilterChange('engagementLevel', event.target.value)}
+              options={engagementLevelOptions}
+              placeholder="Select engagement"
+              searchPlaceholder="Search engagement"
+              value={filters.engagementLevel}
+            />
+          </div>
         </div>
 
         <div className="mt-6">
@@ -556,7 +923,11 @@ export default function AudienceUsersWorkspace() {
         </div>
       </section>
 
-      <AudienceDetailPanel onClose={() => setActiveUser(null)} user={activeUser} />
+      <AudienceDetailPanel
+        onClose={() => setActiveUser(null)}
+        onUserUpdated={handleAudienceUserUpdated}
+        user={activeUser}
+      />
 
       <section className="panel p-6">
         <div className="flex items-start justify-between gap-4">
