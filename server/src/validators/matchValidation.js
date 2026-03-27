@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { objectIdSchema } from './common.js';
 
+const looseBodySchema = z.record(z.any());
+
 export const createMatchSchema = z.object({
   body: z.object({
     eventId: objectIdSchema,
@@ -12,7 +14,11 @@ export const createMatchSchema = z.object({
     venue: z.string().trim().min(3, 'Venue is required.'),
     roundNumber: z.coerce.number().int().min(1).optional(),
     roundLabel: z.string().trim().optional(),
-    matchNumber: z.coerce.number().int().min(1).optional()
+    matchNumber: z.coerce.number().int().min(1).optional(),
+    matchType: z.string().trim().optional(),
+    groupName: z.string().trim().optional(),
+    officialName: z.string().trim().optional(),
+    officialRole: z.string().trim().optional()
   })
 });
 
@@ -26,8 +32,24 @@ export const generateKnockoutSchema = z.object({
   })
 });
 
+export const autoGenerateFixturesSchema = generateKnockoutSchema;
+
 export const eventMatchesSchema = z.object({
   params: z.object({
     eventId: objectIdSchema
   })
+});
+
+export const matchConfigurationSchema = z.object({
+  params: z.object({
+    eventId: objectIdSchema
+  }),
+  body: looseBodySchema
+});
+
+export const updateMatchSchema = z.object({
+  params: z.object({
+    matchId: objectIdSchema
+  }),
+  body: looseBodySchema
 });

@@ -43,8 +43,23 @@ export const createMatch = async (payload) => {
   return response.data.data;
 };
 
+export const getMatchConfiguration = async (eventId) => {
+  const response = await adminApi.get(`/matches/event/${eventId}/configuration`);
+  return response.data.data;
+};
+
+export const saveMatchConfiguration = async (eventId, payload) => {
+  const response = await adminApi.put(`/matches/event/${eventId}/configuration`, payload);
+  return response.data.data;
+};
+
 export const generateKnockoutBracket = async (payload) => {
   const response = await adminApi.post('/matches/generate-knockout', payload);
+  return response.data.data;
+};
+
+export const autoGenerateFixtures = async (payload) => {
+  const response = await adminApi.post('/matches/auto-generate', payload);
   return response.data.data;
 };
 
@@ -55,6 +70,11 @@ export const getConfirmedTeamsByEvent = async (eventId) => {
 
 export const getAdminMatchesByEvent = async (eventId) => {
   const response = await adminApi.get(`/matches/${eventId}`);
+  return response.data.data;
+};
+
+export const updateMatch = async (matchId, payload) => {
+  const response = await adminApi.put(`/matches/${matchId}`, payload);
   return response.data.data;
 };
 
