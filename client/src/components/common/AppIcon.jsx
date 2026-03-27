@@ -263,6 +263,30 @@ const icons = {
       <path d="M4.5 16.5h15" />
     </>
   ),
+  expand: (
+    <>
+      <path d="M8 4.5H4.5V8" />
+      <path d="M16 4.5h3.5V8" />
+      <path d="M8 19.5H4.5V16" />
+      <path d="M16 19.5h3.5V16" />
+      <path d="M4.5 4.5 9 9" />
+      <path d="M19.5 4.5 15 9" />
+      <path d="M4.5 19.5 9 15" />
+      <path d="M19.5 19.5 15 15" />
+    </>
+  ),
+  compress: (
+    <>
+      <path d="M8 4.5H4.5V8" />
+      <path d="M16 4.5h3.5V8" />
+      <path d="M8 19.5H4.5V16" />
+      <path d="M16 19.5h3.5V16" />
+      <path d="M9 9 4.5 4.5" />
+      <path d="M15 9 19.5 4.5" />
+      <path d="M9 15 4.5 19.5" />
+      <path d="M15 15 19.5 19.5" />
+    </>
+  ),
   close: (
     <>
       <path d="m6.5 6.5 11 11" />

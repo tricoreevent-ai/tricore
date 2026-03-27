@@ -982,8 +982,9 @@ export default function AdminMatchesPage() {
   );
 
   const renderFixturesTab = () => (
-    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <div className="space-y-6">
+    <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="space-y-6">
         <section className="panel space-y-5 p-6">
           <SectionIntro
             title="Auto Generate Fixtures"
@@ -1158,15 +1159,6 @@ export default function AdminMatchesPage() {
           )}
         </section>
 
-        <FixtureTreePanel
-          eventName={selectedEvent?.name || 'Fixture Planner'}
-          matches={sortedMatches}
-          onPrintError={setError}
-          onPrintSuccess={setSuccess}
-          onSelectMatch={setSelectedMatchId}
-          selectedMatchId={selectedMatchId}
-        />
-
         {editableMatch._id ? (
           <section className="panel space-y-5 p-6">
             <SectionIntro
@@ -1280,6 +1272,17 @@ export default function AdminMatchesPage() {
           </section>
         ) : null}
       </div>
+
+      </div>
+
+      <FixtureTreePanel
+        eventName={selectedEvent?.name || 'Fixture Planner'}
+        matches={sortedMatches}
+        onPrintError={setError}
+        onPrintSuccess={setSuccess}
+        onSelectMatch={setSelectedMatchId}
+        selectedMatchId={selectedMatchId}
+      />
     </div>
   );
 

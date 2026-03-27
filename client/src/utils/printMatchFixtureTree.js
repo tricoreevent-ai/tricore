@@ -60,7 +60,7 @@ export const printMatchFixtureTree = ({
     return false;
   }
 
-  const printWindow = window.open('', '_blank', 'width=1480,height=980');
+  const printWindow = window.open('', '_blank', 'width=1800,height=1120');
 
   if (!printWindow) {
     return false;
@@ -89,16 +89,16 @@ export const printMatchFixtureTree = ({
       }
       body {
         margin: 0;
-        padding: 24px;
+        padding: 18px;
         background: #f8fafc;
         color: #0f172a;
       }
       .sheet {
-        max-width: 1480px;
+        max-width: 1800px;
         margin: 0 auto;
         border: 1px solid #dbeafe;
         border-radius: 28px;
-        padding: 28px;
+        padding: 24px;
         background: white;
         box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
       }
@@ -158,11 +158,13 @@ export const printMatchFixtureTree = ({
         border-radius: 24px;
         border: 1px solid #dbeafe;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-        padding: 18px;
+        padding: 22px;
+        min-height: 760px;
       }
       .svg-shell svg {
         width: 100%;
         height: auto;
+        min-height: 700px;
         display: block;
       }
       .footer {
