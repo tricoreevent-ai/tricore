@@ -145,7 +145,6 @@ git diff --cached --check
 if errorlevel 1 goto :command_error
 echo.
 
-echo === Blocked File Guard ===
 set "BLOCKED_FILES_FOUND="
 for /f "delims=" %%i in ('git diff --cached --name-only 2^>nul') do (
   if /I "%%i"==".env" call :flag_blocked_file "%%i"
@@ -153,7 +152,6 @@ for /f "delims=" %%i in ('git diff --cached --name-only 2^>nul') do (
   if /I "%%i"=="client/.env" call :flag_blocked_file "%%i"
   if /I "%%i"=="server/.env" call :flag_blocked_file "%%i"
 )
-echo === Blocked File Guard Complete ===
 if defined BLOCKED_FILES_FOUND goto :blocked_files_error
 
 echo === Commit Decision ===
