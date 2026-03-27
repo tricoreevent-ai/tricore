@@ -104,6 +104,132 @@ function InsightList({ icon, title, items = [], emptyMessage, tone = 'default' }
   );
 }
 
+function AnalyticsListCard({ icon, title, entries = [], emptyMessage, formatValue }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-brand-blue">
+          <AppIcon className="h-5 w-5" name={icon} />
+        </span>
+        <div>
+          <h3 className="text-lg font-bold text-slate-950">{title}</h3>
+          <p className="text-sm text-slate-500">
+            {entries.length ? `${entries.length} entries in this view.` : emptyMessage}
+          </p>
+        </div>
+      </div>
+
+      {entries.length ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          {entries.map(([label, value]) => (
+            <div
+              className="flex items-start justify-between gap-4 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0"
+              key={`${title}-${label}`}
+            >
+              <span className="min-w-0 font-medium text-slate-700">{label}</span>
+              <span className="shrink-0 rounded-full bg-brand-mist px-3 py-1 font-semibold text-brand-blue">
+                {formatValue ? formatValue(value) : value}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GroupDivisionPanel({ groups = [] }) {
+  return (
+    <section className="panel space-y-5 p-6">
+      <SectionHeader
+        description="Balanced group splits are shown as roomy cards so admins can review seeds without scanning compressed sidebar text."
+        title="Suggested Group Divisions"
+      />
+
+      {groups.length ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {groups.map((group) => (
+            <article className="rounded-3xl border border-slate-200 bg-slate-50 p-5" key={group.label}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                    Group
+                  </p>
+                  <h3 className="mt-2 text-xl font-bold text-slate-950">{group.label}</h3>
+                </div>
+                <span className="badge bg-white text-slate-700">
+                  {group.teams.length} team{group.teams.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {group.teams.map((teamName) => (
+                  <span
+                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                    key={`${group.label}-${teamName}`}
+                  >
+                    {teamName}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-3xl bg-slate-50 px-4 py-5 text-sm text-slate-500">
+          Group recommendations will appear when group-stage planning is used.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function RescheduleSuggestionsPanel({ items = [] }) {
+  return (
+    <section className="panel space-y-5 p-6">
+      <SectionHeader
+        description="When the planner detects disrupted core fixtures, it proposes roomy follow-up options here instead of a narrow stacked list."
+        title="Automatic Reschedule Suggestions"
+      />
+
+      {items.length ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {items.map((item) => (
+            <article className="rounded-3xl border border-slate-200 bg-slate-50 p-5" key={item.matchId || item.fixture}>
+              <p className="text-lg font-bold text-slate-950">{item.fixture}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Date</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {item.suggestedDate || 'Date pending'}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Time</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {item.suggestedTime || 'Time pending'}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Venue</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {item.suggestedVenue || 'Venue pending'}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-500">{item.reason}</p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-3xl bg-slate-50 px-4 py-5 text-sm text-slate-500">
+          No automatic reschedule suggestions yet.
+        </p>
+      )}
+    </section>
+  );
+}
+
 export default function ExperimentalFixtureLab({
   event,
   configuration,
@@ -444,7 +570,7 @@ export default function ExperimentalFixtureLab({
       </section>
 
       {activeFixtures.length ? (
-        <div className="grid gap-6 2xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="space-y-6">
           <section className="panel space-y-6 p-6">
             <SectionHeader
               description="Review every AI-generated fixture, adjust opponents or scheduling details where needed, then save the draft or approve it into the core fixture system."
@@ -543,87 +669,71 @@ export default function ExperimentalFixtureLab({
             </div>
           </section>
 
-          <div className="space-y-6">
-            <section className="panel space-y-5 p-6">
-              <SectionHeader
-                description="Heatmap-style summaries help spot crowded days, overloaded teams, and uneven venue usage before approval."
-                title="Fixture Optimization Heatmaps"
-              />
+          <section className="panel space-y-5 p-6">
+            <SectionHeader
+              description="Heatmap-style summaries now use wide panels and readable lists so crowded dates, overloaded teams, and venue pressure are easy to scan."
+              title="Fixture Optimization Heatmaps"
+            />
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Match Density per Day</p>
-                  <div className="mt-3 grid gap-3">
-                    {planAnalytics.density.length ? (
-                      planAnalytics.density.map(([dateKey, count]) => (
-                        <div className="rounded-2xl bg-slate-50 p-4" key={dateKey}>
-                          <div className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-700">
-                            <span>{dateKey === 'Unscheduled' ? 'Unscheduled' : formatDate(dateKey)}</span>
-                            <span>{count} match{count === 1 ? '' : 'es'}</span>
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Match Density per Day
+                </p>
+                <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {planAnalytics.density.length ? (
+                    planAnalytics.density.map(([dateKey, count]) => (
+                      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5" key={dateKey}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                              Match Day
+                            </p>
+                            <p className="mt-2 text-lg font-bold text-slate-950">
+                              {dateKey === 'Unscheduled' ? 'Unscheduled' : formatDate(dateKey)}
+                            </p>
                           </div>
-                          <div className="mt-3 h-3 overflow-hidden rounded-full bg-white">
-                            <div
-                              className="h-full rounded-full bg-brand-blue"
-                              style={{ width: `${Math.min(100, count * 14)}%` }}
-                            />
-                          </div>
+                          <span className="badge bg-white text-slate-700">
+                            {count} match{count === 1 ? '' : 'es'}
+                          </span>
                         </div>
-                      ))
-                    ) : (
-                      <p className="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-500">No AI fixtures available for density review.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Team Workload</p>
-                    <div className="mt-3 space-y-2">
-                      {planAnalytics.teamLoad.slice(0, 5).map(([teamName, count]) => (
-                        <div className="flex items-center justify-between text-sm text-slate-700" key={teamName}>
-                          <span>{teamName}</span>
-                          <span className="font-semibold">{count}</span>
+                        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white">
+                          <div
+                            className="h-full rounded-full bg-brand-blue"
+                            style={{ width: `${Math.min(100, count * 14)}%` }}
+                          />
                         </div>
-                      ))}
-                      {!planAnalytics.teamLoad.length ? (
-                        <p className="text-sm text-slate-500">No team workload data yet.</p>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Venue Utilization</p>
-                    <div className="mt-3 space-y-2">
-                      {planAnalytics.venueUsage.slice(0, 5).map(([venueName, count]) => (
-                        <div className="flex items-center justify-between text-sm text-slate-700" key={venueName}>
-                          <span>{venueName}</span>
-                          <span className="font-semibold">{count}</span>
-                        </div>
-                      ))}
-                      {!planAnalytics.venueUsage.length ? (
-                        <p className="text-sm text-slate-500">No venue usage data yet.</p>
-                      ) : null}
-                    </div>
-                  </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-3xl bg-slate-50 px-4 py-5 text-sm text-slate-500 md:col-span-2 xl:col-span-3">
+                      No AI fixtures available for density review.
+                    </p>
+                  )}
                 </div>
               </div>
-            </section>
 
-            <InsightList
-              emptyMessage="Group recommendations will appear when group stage planning is used."
-              icon="users"
-              items={(plan?.groupSuggestions || []).map((group) => `${group.label}: ${group.teams.join(', ')}`)}
-              title="Suggested Group Divisions"
-            />
-            <InsightList
-              emptyMessage="No automatic reschedule suggestions yet."
-              icon="refresh"
-              items={(plan?.rescheduleSuggestions || []).map(
-                (item) =>
-                  `${item.fixture}: ${item.suggestedDate || 'date pending'} ${item.suggestedTime || ''} at ${item.suggestedVenue || 'venue pending'}`
-              )}
-              title="Automatic Reschedule Suggestions"
-            />
-          </div>
+              <div className="grid gap-6 xl:grid-cols-2">
+                <AnalyticsListCard
+                  emptyMessage="No team workload data yet."
+                  entries={planAnalytics.teamLoad.slice(0, 8)}
+                  formatValue={(value) => `${value} match${value === 1 ? '' : 'es'}`}
+                  icon="users"
+                  title="Team Workload"
+                />
+                <AnalyticsListCard
+                  emptyMessage="No venue usage data yet."
+                  entries={planAnalytics.venueUsage.slice(0, 8)}
+                  formatValue={(value) => `${value} slot${value === 1 ? '' : 's'}`}
+                  icon="calendar"
+                  title="Venue Utilization"
+                />
+              </div>
+            </div>
+          </section>
+
+          <GroupDivisionPanel groups={plan?.groupSuggestions || []} />
+          <RescheduleSuggestionsPanel items={plan?.rescheduleSuggestions || []} />
         </div>
       ) : (
         <section className="panel p-6">
