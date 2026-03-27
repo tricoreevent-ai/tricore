@@ -1,13 +1,18 @@
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import path from 'node:path';
+import util from 'node:util';
 import { fileURLToPath } from 'node:url';
+
+import FileStreamRotator from 'file-stream-rotator';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const logsDir = path.resolve(__dirname, '../../logs');
-const maxLogFileBytes = 1024 * 1024;
-const writeQueues = new Map();
-let consolePatched = false;
+const logsDir = path.resolve(__dirname, '../../../logs');
+const systemLogBasePath = path.resolve(logsDir, 'system');
+const systemLogAuditPath = path.resolve(logsDir, 'system-audit.json');
+
+let loggingInitialized = false;
+let systemLogStream = null;
 
 const originalConsole = {
   log: console.log.bind(console),
@@ -17,116 +22,120 @@ const originalConsole = {
   debug: console.debug.bind(console)
 };
 
-const serializePart = (value) => {
-  if (value instanceof Error) {
-    return value.stack || value.message;
-  }
+const originalProcessWrite = {
+  stdout: process.stdout.write.bind(process.stdout),
+  stderr: process.stderr.write.bind(process.stderr)
+};
 
-  if (typeof value === 'string') {
-    return value;
-  }
+const ensureLogsDirectory = () => {
+  fs.mkdirSync(logsDir, { recursive: true });
+};
+
+const writeDiagnostic = (message, error) => {
+  const suffix = error ? ` ${error.stack || error.message || String(error)}` : '';
 
   try {
-    return JSON.stringify(value);
+    originalProcessWrite.stderr(`[file-logger] ${message}${suffix}\n`);
   } catch {
-    return String(value);
+    // Ignore logging diagnostics failures to avoid recursive write issues.
   }
 };
 
-const formatLogLine = (level, values) =>
-  `[${new Date().toISOString()}] [${level.toUpperCase()}] ${values.map(serializePart).join(' ')}\n`;
-
-const trimLogFile = async (filePath) => {
-  const stats = await fs.stat(filePath);
-
-  if (stats.size <= maxLogFileBytes) {
-    return;
+const getSystemLogStream = () => {
+  if (systemLogStream) {
+    return systemLogStream;
   }
 
-  const bytesToKeep = maxLogFileBytes;
-  const start = Math.max(0, stats.size - bytesToKeep);
-  const handle = await fs.open(filePath, 'r');
-  const buffer = Buffer.alloc(bytesToKeep);
+  ensureLogsDirectory();
 
+  systemLogStream = FileStreamRotator.getStream({
+    filename: systemLogBasePath,
+    size: '1M',
+    max_logs: '10',
+    audit_file: systemLogAuditPath,
+    extension: '.log',
+    end_stream: true,
+    file_options: { flags: 'a' }
+  });
+
+  systemLogStream.on('error', (error) => {
+    writeDiagnostic('Rotating log stream error.', error);
+  });
+
+  return systemLogStream;
+};
+
+const writeToSystemLog = (chunk, encoding) => {
   try {
-    const { bytesRead } = await handle.read(buffer, 0, bytesToKeep, start);
-    let nextContent = buffer.subarray(0, bytesRead);
-    const firstNewLineIndex = nextContent.indexOf(0x0a);
+    const stream = getSystemLogStream();
 
-    if (firstNewLineIndex >= 0 && firstNewLineIndex < nextContent.length - 1) {
-      nextContent = nextContent.subarray(firstNewLineIndex + 1);
+    if (typeof chunk === 'string') {
+      stream.write(chunk, typeof encoding === 'string' ? encoding : 'utf8');
+      return;
     }
 
-    await fs.writeFile(filePath, nextContent);
-  } finally {
-    await handle.close();
-  }
-};
+    if (Buffer.isBuffer(chunk) || chunk instanceof Uint8Array) {
+      stream.write(chunk);
+      return;
+    }
 
-const queueWrite = async (filePath, content) => {
-  const previous = writeQueues.get(filePath) || Promise.resolve();
-  const next = previous
-    .catch(() => {})
-    .then(async () => {
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
-      await fs.appendFile(filePath, content, 'utf8');
-      await trimLogFile(filePath);
-    });
-
-  writeQueues.set(filePath, next);
-
-  try {
-    await next;
+    if (chunk !== undefined && chunk !== null) {
+      stream.write(Buffer.from(String(chunk), 'utf8'));
+    }
   } catch (error) {
-    originalConsole.error('File logging warning:', error.message);
+    writeDiagnostic('Unable to append to the rotating system log.', error);
   }
 };
 
-export const getLogFilePath = (fileName) => path.resolve(logsDir, fileName);
+const formatConsoleMessage = (level, values) =>
+  `[${new Date().toISOString()}] [${level.toUpperCase()}] ${util.formatWithOptions(
+    { colors: process.stdout.isTTY },
+    ...values
+  )}`;
 
-export const appendLogLine = async (fileName, content) => {
-  await queueWrite(getLogFilePath(fileName), content);
-};
-
-export const createMorganStream = (fileName) => ({
-  write: (message) => {
-    void appendLogLine(fileName, message.endsWith('\n') ? message : `${message}\n`);
-  }
-});
-
-export const initializeFileLogging = () => {
-  if (consolePatched) {
-    return;
-  }
-
-  consolePatched = true;
-
+const patchConsoleMethods = () => {
   console.log = (...values) => {
-    originalConsole.log(...values);
-    void appendLogLine('app.log', formatLogLine('info', values));
+    originalConsole.log(formatConsoleMessage('info', values));
   };
 
   console.info = (...values) => {
-    originalConsole.info(...values);
-    void appendLogLine('app.log', formatLogLine('info', values));
+    originalConsole.info(formatConsoleMessage('info', values));
   };
 
   console.debug = (...values) => {
-    originalConsole.debug(...values);
-    void appendLogLine('app.log', formatLogLine('debug', values));
+    originalConsole.debug(formatConsoleMessage('debug', values));
   };
 
   console.warn = (...values) => {
-    originalConsole.warn(...values);
-    const line = formatLogLine('warn', values);
-    void appendLogLine('app.log', line);
-    void appendLogLine('error.log', line);
+    originalConsole.warn(formatConsoleMessage('warn', values));
   };
 
   console.error = (...values) => {
-    originalConsole.error(...values);
-    const line = formatLogLine('error', values);
-    void appendLogLine('app.log', line);
-    void appendLogLine('error.log', line);
+    originalConsole.error(formatConsoleMessage('error', values));
   };
+};
+
+const patchProcessStreams = () => {
+  process.stdout.write = (chunk, encoding, callback) => {
+    writeToSystemLog(chunk, encoding);
+    return originalProcessWrite.stdout(chunk, encoding, callback);
+  };
+
+  process.stderr.write = (chunk, encoding, callback) => {
+    writeToSystemLog(chunk, encoding);
+    return originalProcessWrite.stderr(chunk, encoding, callback);
+  };
+};
+
+export const getLogsDirectoryPath = () => logsDir;
+
+export const initializeFileLogging = () => {
+  if (loggingInitialized) {
+    return;
+  }
+
+  getSystemLogStream();
+  patchProcessStreams();
+  patchConsoleMethods();
+  loggingInitialized = true;
 };

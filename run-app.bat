@@ -73,6 +73,7 @@ echo Backend Local:  http://localhost:5000
 echo Backend LAN:    http://%LAN_IP%:5000
 echo API LAN:        http://%LAN_IP%:5000/api
 echo Atlas Public IP: %PUBLIC_IP%
+echo Rotating logs:  logs\system*.log ^(1 MB each, 10 files max^)
 if /I "%~1"=="--memory" (
   echo Temporary in-memory MongoDB fallback is ENABLED for this run.
   echo Data created in this mode is not persistent.

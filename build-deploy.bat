@@ -115,7 +115,7 @@ echo Creating codebase backup ZIP...
 
 REM Create codebase backup (excluding node_modules, .git, logs, build temp files)
 powershell -NoProfile -Command "
-$excludePatterns = @('node_modules', '\.git', '\.log$', 'deploy-temp', 'tricore-deploy\.zip', 'tricore-codebase\.zip', 'client\\\.vite', 'client\\dist', '\.env$', '\.DS_Store')
+$excludePatterns = @('node_modules', '\.git', '\.log$', 'deploy-temp', 'tricore-deploy\.zip', 'tricore-codebase\.zip', 'client\\\.vite', 'client\\dist', '\.env$', '\.DS_Store', 'logs\', 'server\\logs\\')
 $files = @()
 Get-ChildItem -Path '.' -Recurse -File | ForEach-Object {
     $relativePath = $_.FullName.Substring((Get-Location).Path.Length + 1)

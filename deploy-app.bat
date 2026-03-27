@@ -67,6 +67,7 @@ echo Application Local: http://localhost:5000
 echo Application LAN:   http://%LAN_IP%:5000
 echo API LAN:           http://%LAN_IP%:5000/api
 echo Atlas Public IP:   %PUBLIC_IP%
+echo Rotating logs:     logs\system*.log ^(1 MB each, 10 files max^)
 echo If MongoDB Atlas blocks startup, add %PUBLIC_IP% in Atlas Network Access.
 echo Google OAuth Authorized JavaScript origins:
 echo   - http://localhost:5173

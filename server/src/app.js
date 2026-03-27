@@ -12,7 +12,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import routes from './routes/index.js';
 import { observeApiRequest } from './services/securityAlertService.js';
-import { createMorganStream } from './utils/fileLogger.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -35,8 +34,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: '100mb' }));
-app.use(morgan('dev'));
-app.use(morgan('combined', { stream: createMorganStream('access.log') }));
+app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use((req, res, next) => {
   const startedAt = Date.now();
 
