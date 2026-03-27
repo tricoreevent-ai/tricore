@@ -6,6 +6,13 @@ import AdminProtectedRoute from './components/common/AdminProtectedRoute.jsx';
 import LoadingSpinner from './components/common/LoadingSpinner.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
+import AboutPage from './pages/public/AboutPage.jsx';
+import ContactPage from './pages/public/ContactPage.jsx';
+import EventDetailPage from './pages/public/EventDetailPage.jsx';
+import EventsPage from './pages/public/EventsPage.jsx';
+import HomePage from './pages/public/HomePage.jsx';
+import NotFoundPage from './pages/public/NotFoundPage.jsx';
+import SponsorshipPage from './pages/public/SponsorshipPage.jsx';
 import { adminPermissions } from './data/adminAccess.js';
 
 const AdminAccountingPage = lazy(() => import('./pages/admin/AdminAccountingPage.jsx'));
@@ -18,14 +25,7 @@ const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage.jsx')
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage.jsx'));
 const AdminUserManualPage = lazy(() => import('./pages/admin/AdminUserManualPage.jsx'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.jsx'));
-const AboutPage = lazy(() => import('./pages/public/AboutPage.jsx'));
-const ContactPage = lazy(() => import('./pages/public/ContactPage.jsx'));
-const EventDetailPage = lazy(() => import('./pages/public/EventDetailPage.jsx'));
 const EventPaymentPage = lazy(() => import('./pages/public/EventPaymentPage.jsx'));
-const EventsPage = lazy(() => import('./pages/public/EventsPage.jsx'));
-const HomePage = lazy(() => import('./pages/public/HomePage.jsx'));
-const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'));
-const SponsorshipPage = lazy(() => import('./pages/public/SponsorshipPage.jsx'));
 const UserDashboardPage = lazy(() => import('./pages/user/UserDashboardPage.jsx'));
 
 const renderLazyPage = (element, label) => (
@@ -115,21 +115,12 @@ export default function App() {
       </Route>
 
       <Route element={<MainLayout />}>
-        <Route index element={renderLazyPage(<HomePage />, 'Loading home page...')} />
-        <Route path="/about" element={renderLazyPage(<AboutPage />, 'Loading about page...')} />
-        <Route path="/events" element={renderLazyPage(<EventsPage />, 'Loading events page...')} />
-        <Route
-          path="/events/:eventId"
-          element={renderLazyPage(<EventDetailPage />, 'Loading event details...')}
-        />
-        <Route
-          path="/partner-access"
-          element={renderLazyPage(<SponsorshipPage />, 'Loading sponsorship page...')}
-        />
-        <Route
-          path="/contact"
-          element={renderLazyPage(<ContactPage />, 'Loading contact page...')}
-        />
+        <Route index element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:eventId" element={<EventDetailPage />} />
+        <Route path="/partner-access" element={<SponsorshipPage />} />
+        <Route path="/contact" element={<ContactPage />} />
 
         <Route element={<ProtectedRoute role="user" />}>
           <Route
@@ -143,7 +134,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route path="*" element={renderLazyPage(<NotFoundPage />, 'Loading page...')} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
