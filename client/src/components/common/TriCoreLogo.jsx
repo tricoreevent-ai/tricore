@@ -8,7 +8,7 @@ export default function TriCoreLogo({
   showText = true,
   titleClassName = 'font-display text-xl font-bold tracking-tight text-slate-950 sm:text-2xl',
   subtitleClassName = 'text-xs text-slate-500 sm:text-sm',
-  subtitle = 'Corporate Sports Operations'
+  subtitle = 'Event Management & Experiences'
 }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>

@@ -21,7 +21,7 @@ export default function Footer() {
           <TriCoreLogo
             className="items-center"
             markClassName="h-12 w-12"
-            subtitle="Sports tournaments and corporate event execution"
+            subtitle="Event Management & Experiences"
           />
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-600">
             TriCore Events delivers corporate experiences, sports tournaments, registrations,
