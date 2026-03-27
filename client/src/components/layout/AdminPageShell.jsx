@@ -93,7 +93,7 @@ export default function AdminPageShell({
             : 'border-slate-200 bg-white/90'
         }`}
       >
-        <div className="container-shell relative z-[90] flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="admin-shell relative z-[90] flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <button
             aria-expanded={mobileNavOpen}
             aria-label={mobileNavOpen ? 'Close admin navigation menu' : 'Open admin navigation menu'}
@@ -233,7 +233,7 @@ export default function AdminPageShell({
           </div>
         </div>
         <AdminNav
-          className="container-shell pb-4 md:hidden"
+          className="admin-shell pb-4 md:hidden"
           mobileOpen={mobileNavOpen}
           onMobileOpenChange={setMobileNavOpen}
           showDesktop={false}
@@ -241,7 +241,7 @@ export default function AdminPageShell({
           showMobileTrigger={false}
         />
       </div>
-      <div className="container-shell py-6 sm:py-10 lg:py-16">
+      <div className="admin-shell py-6 sm:py-10 lg:py-16">
         <div
           className={`mb-6 rounded-[2rem] border p-5 shadow-soft backdrop-blur sm:mb-8 sm:p-8 ${
             isDarkTheme
