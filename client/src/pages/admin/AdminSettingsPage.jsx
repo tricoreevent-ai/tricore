@@ -8,6 +8,7 @@ import {
 import {
   downloadBackupNow as downloadBackupNowRequest,
   getBackupConfiguration,
+  getBackupDatabaseInfo as getBackupDatabaseInfoRequest,
   getEmailConfiguration,
   getHomeBannerConfiguration,
   getHomePageConfiguration,
@@ -125,7 +126,9 @@ export default function AdminSettingsPage() {
   const [backupSavePending, setBackupSavePending] = useState(false);
   const [backupSendPending, setBackupSendPending] = useState(false);
   const [backupDownloadPending, setBackupDownloadPending] = useState(false);
+  const [backupInfoPending, setBackupInfoPending] = useState(false);
   const [backupRestorePending, setBackupRestorePending] = useState(false);
+  const [backupDatabaseInfo, setBackupDatabaseInfo] = useState(null);
   const [backupError, setBackupError] = useState('');
   const [backupMessage, setBackupMessage] = useState('');
   const [transactionOtpConfig, setTransactionOtpConfig] = useState(null);
@@ -956,6 +959,22 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleGetBackupDatabaseInfo = async () => {
+    setBackupInfoPending(true);
+    setBackupError('');
+    setBackupMessage('');
+
+    try {
+      const response = await getBackupDatabaseInfoRequest();
+      setBackupDatabaseInfo(response);
+      setBackupMessage('Live MongoDB database information loaded successfully.');
+    } catch (error) {
+      setBackupError(getApiErrorMessage(error, 'Unable to load MongoDB database information.'));
+    } finally {
+      setBackupInfoPending(false);
+    }
+  };
+
   const handleRestoreBackupNow = async (payload) => {
     setBackupRestorePending(true);
     setBackupError('');
@@ -1571,10 +1590,13 @@ export default function AdminSettingsPage() {
         ) : (
         <BackupSettingsPanel
           config={backupConfig}
+          databaseInfo={backupDatabaseInfo}
           downloadPending={backupDownloadPending}
           error={backupError}
+          infoPending={backupInfoPending}
           message={backupMessage}
           onDownloadNow={handleDownloadBackupNow}
+          onGetDatabaseInfo={handleGetBackupDatabaseInfo}
           onRefresh={loadBackupsTab}
           onRestoreNow={handleRestoreBackupNow}
           onSave={handleSaveBackupConfiguration}

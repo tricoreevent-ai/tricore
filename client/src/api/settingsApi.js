@@ -41,6 +41,13 @@ export const downloadBackupNow = async () =>
     responseType: 'blob'
   });
 
+export const getBackupDatabaseInfo = async () => {
+  const response = await adminApi.get('/settings/backup/database-info', {
+    params: { _ts: Date.now() }
+  });
+  return response.data.data;
+};
+
 export const getTransactionOtpConfiguration = async () => {
   const response = await adminApi.get('/settings/transaction-otp');
   return response.data.data;

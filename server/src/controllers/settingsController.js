@@ -6,6 +6,7 @@ import {
 } from '../services/backupSettingsService.js';
 import {
   buildApplicationBackup,
+  getApplicationDatabaseInfo,
   emailApplicationBackup,
   restoreApplicationBackup
 } from '../services/backupService.js';
@@ -207,6 +208,15 @@ export const downloadBackupNow = asyncHandler(async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${backup.fileName}"`);
   res.setHeader('Cache-Control', 'no-store');
   res.send(backup.content);
+});
+
+export const getBackupDatabaseInfo = asyncHandler(async (_req, res) => {
+  const databaseInfo = await getApplicationDatabaseInfo();
+
+  res.json({
+    success: true,
+    data: databaseInfo
+  });
 });
 
 export const restoreBackupNow = asyncHandler(async (req, res) => {

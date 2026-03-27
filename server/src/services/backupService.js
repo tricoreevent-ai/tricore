@@ -11,6 +11,11 @@ import { sendEmail } from './emailService.js';
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 
+const normalizeMongoNumber = (value, fallback = 0) => {
+  const normalized = Number(value);
+  return Number.isFinite(normalized) ? normalized : fallback;
+};
+
 const formatBackupTimestamp = (date) =>
   [
     date.getUTCFullYear(),
@@ -147,6 +152,50 @@ export const buildApplicationBackup = async () => {
     fileName: `tricore-backup-${formatBackupTimestamp(exportedAt)}.json`,
     content: EJSON.stringify(backupPayload, null, 2),
     collectionCount: collections.length
+  };
+};
+
+export const getApplicationDatabaseInfo = async () => {
+  const dbStatus = ensurePersistentMongoConnection();
+  const database = mongoose.connection.db;
+  const [stats, collectionInfo] = await Promise.all([
+    database.command({ dbStats: 1, scale: 1 }),
+    database.listCollections({}, { nameOnly: false }).toArray()
+  ]);
+  const collections = collectionInfo
+    .filter((collection) => collection?.name && !String(collection.name).startsWith('system.'))
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map((collection) => ({
+      name: collection.name,
+      type: collection.type || 'collection'
+    }));
+  const dataSize = normalizeMongoNumber(stats?.dataSize);
+  const storageSize = normalizeMongoNumber(stats?.storageSize);
+  const indexSize = normalizeMongoNumber(stats?.indexSize);
+
+  return {
+    capturedAt: new Date().toISOString(),
+    database: {
+      name: database.databaseName,
+      host: dbStatus.host,
+      mode: dbStatus.mode,
+      readyState: dbStatus.readyState,
+      usingMemoryFallback: dbStatus.usingMemoryFallback
+    },
+    stats: {
+      collections: collections.length,
+      views: normalizeMongoNumber(stats?.views),
+      documents: normalizeMongoNumber(stats?.objects),
+      indexes: normalizeMongoNumber(stats?.indexes),
+      avgDocumentSize: normalizeMongoNumber(stats?.avgObjSize),
+      dataSize,
+      storageSize,
+      indexSize,
+      totalFootprint: storageSize + indexSize,
+      fsUsedSize: normalizeMongoNumber(stats?.fsUsedSize, null),
+      fsTotalSize: normalizeMongoNumber(stats?.fsTotalSize, null)
+    },
+    collections
   };
 };
 

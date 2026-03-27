@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   downloadBackupNow,
   getBackupConfiguration,
+  getBackupDatabaseInfo,
   getContactForwarding,
   getEmailConfiguration,
   getHomeBannerConfiguration,
@@ -100,6 +101,12 @@ router.get(
   authenticate,
   authorizePermissions(adminPermissions.settings),
   downloadBackupNow
+);
+router.get(
+  '/backup/database-info',
+  authenticate,
+  authorizePermissions(adminPermissions.settings),
+  getBackupDatabaseInfo
 );
 router.post(
   '/backup/send',

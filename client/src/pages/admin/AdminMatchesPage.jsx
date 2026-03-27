@@ -19,6 +19,7 @@ import AppIcon from '../../components/common/AppIcon.jsx';
 import FormAlert from '../../components/common/FormAlert.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import ExperimentalFixtureLab from '../../components/matches/ExperimentalFixtureLab.jsx';
+import FixtureTreePanel from '../../components/matches/FixtureTreePanel.jsx';
 import TypeaheadSelect from '../../components/common/TypeaheadSelect.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
@@ -1156,6 +1157,15 @@ export default function AdminMatchesPage() {
             <p className="rounded-3xl bg-slate-50 px-4 py-5 text-sm text-slate-500">No fixtures are available yet for this event.</p>
           )}
         </section>
+
+        <FixtureTreePanel
+          eventName={selectedEvent?.name || 'Fixture Planner'}
+          matches={sortedMatches}
+          onPrintError={setError}
+          onPrintSuccess={setSuccess}
+          onSelectMatch={setSelectedMatchId}
+          selectedMatchId={selectedMatchId}
+        />
 
         {editableMatch._id ? (
           <section className="panel space-y-5 p-6">

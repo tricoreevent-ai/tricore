@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import TypeaheadSelect from '../common/TypeaheadSelect.jsx';
 import FormAlert from '../common/FormAlert.jsx';
-import { formatDateTime } from '../../utils/formatters.js';
+import { formatDateTime, formatFileSize, formatNumber } from '../../utils/formatters.js';
 
 const frequencyOptions = [
   { value: 'disabled', label: 'Disabled' },
@@ -28,9 +28,12 @@ const statusTone = {
 
 export default function BackupSettingsPanel({
   config,
+  databaseInfo,
   error,
+  infoPending,
   message,
   onDownloadNow,
+  onGetDatabaseInfo,
   onRefresh,
   onRestoreNow,
   onSave,
@@ -244,6 +247,14 @@ export default function BackupSettingsPanel({
             >
               {downloadPending ? 'Preparing...' : 'Download Backup'}
             </button>
+            <button
+              className="btn-secondary"
+              disabled={infoPending}
+              onClick={onGetDatabaseInfo}
+              type="button"
+            >
+              {infoPending ? 'Checking...' : 'Get Database Info'}
+            </button>
           </div>
         </div>
 
@@ -286,6 +297,137 @@ export default function BackupSettingsPanel({
           </button>
         </div>
       </form>
+
+      <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-slate-950">MongoDB Database Info</h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Check the current database footprint and connection details for the live MongoDB
+              database used by backups.
+            </p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            {databaseInfo?.capturedAt
+              ? `Updated ${formatDateTime(databaseInfo.capturedAt)}`
+              : 'Live on demand'}
+          </span>
+        </div>
+
+        {databaseInfo ? (
+          <>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div className="rounded-3xl bg-white p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+                  Total Footprint
+                </p>
+                <p className="mt-3 text-2xl font-bold text-slate-950">
+                  {formatFileSize(databaseInfo.stats?.totalFootprint)}
+                </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Storage: {formatFileSize(databaseInfo.stats?.storageSize)} and indexes:{' '}
+                  {formatFileSize(databaseInfo.stats?.indexSize)}
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+                  Documents
+                </p>
+                <p className="mt-3 text-2xl font-bold text-slate-950">
+                  {formatNumber(databaseInfo.stats?.documents)}
+                </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Average size: {formatFileSize(databaseInfo.stats?.avgDocumentSize)}
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+                  Collections
+                </p>
+                <p className="mt-3 text-2xl font-bold text-slate-950">
+                  {formatNumber(databaseInfo.stats?.collections)}
+                </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Indexes: {formatNumber(databaseInfo.stats?.indexes)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-3xl bg-white p-5 text-sm text-slate-600">
+                <p>
+                  <span className="font-semibold text-slate-950">Database:</span>{' '}
+                  {databaseInfo.database?.name || 'Unknown'}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Host:</span>{' '}
+                  {databaseInfo.database?.host || 'Unknown'}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Mode:</span>{' '}
+                  {databaseInfo.database?.mode || 'Unknown'}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Data size:</span>{' '}
+                  {formatFileSize(databaseInfo.stats?.dataSize)}
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5 text-sm text-slate-600">
+                <p>
+                  <span className="font-semibold text-slate-950">Storage size:</span>{' '}
+                  {formatFileSize(databaseInfo.stats?.storageSize)}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Index size:</span>{' '}
+                  {formatFileSize(databaseInfo.stats?.indexSize)}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Views:</span>{' '}
+                  {formatNumber(databaseInfo.stats?.views)}
+                </p>
+                <p className="mt-2">
+                  <span className="font-semibold text-slate-950">Filesystem used:</span>{' '}
+                  {databaseInfo.stats?.fsUsedSize !== null &&
+                  databaseInfo.stats?.fsUsedSize !== undefined
+                    ? formatFileSize(databaseInfo.stats.fsUsedSize)
+                    : 'Not reported'}
+                </p>
+              </div>
+            </div>
+
+            {databaseInfo.collections?.length ? (
+              <div className="mt-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Available Collections
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {databaseInfo.collections.slice(0, 12).map((collection) => (
+                    <span
+                      className="rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-600"
+                      key={collection.name}
+                    >
+                      {collection.name}
+                    </span>
+                  ))}
+                  {databaseInfo.collections.length > 12 ? (
+                    <span className="rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-500">
+                      +{databaseInfo.collections.length - 12} more
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-5 rounded-2xl bg-white px-4 py-4 text-sm text-slate-500">
+            No live database information loaded yet. Use the button above to fetch the current
+            MongoDB size and details.
+          </p>
+        )}
+      </div>
 
       {config?.lastBackupError ? (
         <p className="rounded-2xl bg-red-50 px-4 py-4 text-sm text-red-600">

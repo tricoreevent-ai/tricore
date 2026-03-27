@@ -217,8 +217,9 @@
             <p>
               This help guide explains the TriCore Events platform in simple language. It is meant
               for staff who want a clear day-to-day reference for registrations, payments,
-              accounting, reports, users, and settings.
+              accounting, reports, users, settings, audience campaigns, and backup diagnostics.
             </p>
+            <p class="eyebrow" style="margin-top: 16px;">Updated 27 March 2026</p>
             <div class="card-grid" style="margin-top: 18px;">
               <div class="mini-card">
                 <h3 style="margin-top: 0;">Admin</h3>
@@ -237,10 +238,10 @@
           <aside class="hero-card">
             <h2 style="font-size: 1.1rem;">Manual Coverage</h2>
             <ul>
-              <li>Public website pages and registration journey</li>
-              <li>Admin portal menu-by-menu explanation</li>
+              <li>Public website pages, Google sign-in event access, and dashboard flow</li>
+              <li>Admin portal menu-by-menu explanation with current tab names</li>
               <li>Payment review and participant follow-up</li>
-              <li>Accounting, invoices, reports, users, and settings</li>
+              <li>Accounting, match operations, audience campaigns, backups, and OTP security</li>
             </ul>
           </aside>
         </div>
@@ -275,15 +276,38 @@
             <div class="card-grid">
               <div class="mini-card">
                 <h3 style="margin-top: 0;">Public users</h3>
-                <p>Find events, register, pay, upload proof, and check their own status.</p>
+                <p>Find events, unlock details with Google sign-in, register, pay, and track their own status.</p>
               </div>
               <div class="mini-card">
                 <h3 style="margin-top: 0;">Internal staff</h3>
-                <p>Create events, approve registrations, track finance, manage access, and run reports.</p>
+                <p>Create events, run match operations, manage audience communication, track finance, and control access.</p>
               </div>
               <div class="mini-card">
                 <h3 style="margin-top: 0;">System purpose</h3>
                 <p>Keep event operations, participant communication, and business records in one place.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <span class="badge">Latest Features</span>
+            <h2>Current portal highlights</h2>
+            <div class="card-grid">
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Google sign-in event access</h3>
+                <p>Public users unlock full event details, match schedule, and registration after Google login.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Expanded match workspace</h3>
+                <p>Matches now includes configuration, fixtures, AI planning, points, teams, players, results, standings, knockout, alerts, and calendar views.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Audience campaigns</h3>
+                <p>Users now includes audience search, campaign builder, templates, approvals, and unsubscribe controls.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Backup diagnostics</h3>
+                <p>Backups can now show MongoDB size, host, collection count, and storage details on demand.</p>
               </div>
             </div>
           </section>
@@ -325,6 +349,10 @@
                 <p>Explains the TriCore story, partners, experience, and gallery content.</p>
               </div>
               <div class="mini-card">
+                <h3 style="margin-top: 0;">Corporate</h3>
+                <p>Shows corporate event services, packages, process flow, and contact actions.</p>
+              </div>
+              <div class="mini-card">
                 <h3 style="margin-top: 0;">Events</h3>
                 <p>Shows all visible events. Upcoming events appear first with open or coming soon status.</p>
               </div>
@@ -332,6 +360,15 @@
                 <h3 style="margin-top: 0;">Contact</h3>
                 <p>Shows contact details, partner names, and the Reach Out enquiry form.</p>
               </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Dashboard</h3>
+                <p>Appears after sign-in and shows registrations, payment status, matches, and payout details.</p>
+              </div>
+            </div>
+            <div class="callout">
+              <strong>Important:</strong> event details now require Google sign-in before users can
+              see the full schedule or start registration. Sponsor / partner pages are usually
+              opened by direct shared link, not the main menu.
             </div>
           </section>
 
@@ -343,14 +380,15 @@
               different items depending on access permissions.
             </p>
             <div class="card-grid">
-              <div class="mini-card"><h3 style="margin-top: 0;">Overview</h3><p>Quick summary cards, charts, alerts, recent payments, and planning calendar.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Overview</h3><p>Quick summary cards, alerts, sponsor share link, recent payments, and a 30-day planning calendar.</p></div>
               <div class="mini-card"><h3 style="margin-top: 0;">Events</h3><p>Create and edit events, manage visibility, calendar view, and interested users.</p></div>
               <div class="mini-card"><h3 style="margin-top: 0;">Registrations</h3><p>Review new sign-ups, payment states, proof uploads, and export records.</p></div>
-              <div class="mini-card"><h3 style="margin-top: 0;">Matches</h3><p>Create fixtures manually or generate brackets after teams are confirmed.</p></div>
-              <div class="mini-card"><h3 style="margin-top: 0;">Accounting</h3><p>Record transactions, open the ledger, and manage history categories.</p></div>
-              <div class="mini-card"><h3 style="margin-top: 0;">Reports</h3><p>Open overview, finance, activity, and security reports with date filters.</p></div>
-              <div class="mini-card"><h3 style="margin-top: 0;">Users</h3><p>Create admin accounts, define roles, and update who can open each page.</p></div>
-              <div class="mini-card"><h3 style="margin-top: 0;">Settings</h3><p>Configure email, invoice, appearance, website, backups, security, and payments.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Matches</h3><p>Run the full match workspace with fixtures, AI planning, standings, results, alerts, and calendar view.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Accounting</h3><p>Record transactions, open the ledger, manage categories, and use OTP-protected edits when enabled.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Reports</h3><p>Open overview, finance, activity, and alerts with date filters, exports, and review actions.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Users</h3><p>Manage audience users, campaigns, admin accounts, roles, access, and passwords.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">Settings</h3><p>Configure email, invoice, appearance, banners, galleries, backups, OTP security, and payments.</p></div>
+              <div class="mini-card"><h3 style="margin-top: 0;">User Manual</h3><p>Open the built-in guide inside the admin portal or launch it full screen for training.</p></div>
             </div>
           </section>
 
@@ -364,11 +402,11 @@
               </div>
               <div class="flow-step">
                 <strong>Step 2</strong>
-                Choose an open event and select <strong>View Event</strong>.
+                Choose an event, then continue with <strong>Google sign-in</strong> to unlock the full page.
               </div>
               <div class="flow-step">
                 <strong>Step 3</strong>
-                Fill the registration form with personal or team details.
+                Review event details, match schedule, and status. Fill the registration form when it is open.
               </div>
               <div class="flow-step">
                 <strong>Step 4</strong>
@@ -378,7 +416,8 @@
             <div class="callout">
               <strong>Coming Soon events:</strong> when an event is not open yet, users see
               <strong> Notify Later</strong> instead of the registration form. Their contact details
-              are saved for future follow-up.
+              are saved for future follow-up. After sign-in, the user dashboard also shows
+              registrations, upcoming matches, and refund / payout details.
             </div>
           </section>
 
@@ -419,7 +458,9 @@
             <h2>Detailed guide to Accounting</h2>
             <p>
               The Accounting page has three main work areas: <strong>Record Transaction</strong>,
-              <strong> Transaction Ledger</strong>, and <strong>Manage Categories</strong>.
+              <strong> Transaction Ledger</strong>, and <strong>Manage Categories</strong>. Reports
+              now live in the main Reports menu, and transaction edits can require OTP approval
+              when security settings enable it.
             </p>
 
             <h3>Record Transaction</h3>
@@ -476,23 +517,35 @@
                 <p>Operational history showing major changes and user actions.</p>
               </div>
               <div class="mini-card">
-                <h3 style="margin-top: 0;">Security</h3>
-                <p>Alerts, suspicious API activity, contact warnings, and critical notifications.</p>
+                <h3 style="margin-top: 0;">Alerts</h3>
+                <p>Alerts, suspicious API activity, contact warnings, critical notifications, and acknowledgement actions.</p>
               </div>
             </div>
           </section>
 
           <section class="section" id="users-settings">
             <span class="badge">Users & Settings</span>
-            <h2>Access control and system configuration</h2>
-            <div class="mini-grid">
+            <h2>Audience, access control, and system configuration</h2>
+            <div class="card-grid">
               <div class="mini-card">
-                <h3 style="margin-top: 0;">Users</h3>
-                <p>Create admin accounts, define roles, modify page access, and change passwords.</p>
+                <h3 style="margin-top: 0;">Audience Users</h3>
+                <p>Search registered and interested contacts, export CSV, and send reminder emails.</p>
               </div>
               <div class="mini-card">
-                <h3 style="margin-top: 0;">Settings</h3>
-                <p>Control contact forwarding, SMTP, invoices, appearance, galleries, backups, website URL, security, and payments.</p>
+                <h3 style="margin-top: 0;">Campaigns</h3>
+                <p>Use the campaign wizard, template library, approval queue, archive, and unsubscribe view.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Admin Access</h3>
+                <p>Create admin accounts, edit users, assign roles, set manual access, and reset passwords.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Settings & Backups</h3>
+                <p>Control forwarding, SMTP, invoice, banners, galleries, payments, OTP security, and backup database info.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">User Manual</h3>
+                <p>Open the embedded operating guide inside the portal during onboarding or refresher training.</p>
               </div>
             </div>
           </section>
@@ -501,7 +554,7 @@
             <span class="badge">Visual Aids</span>
             <h2>Simple workflow diagrams for staff training</h2>
             <div class="flow">
-              <div class="flow-step"><strong>Registration flow</strong>Events → Event Details → Registration Form → Payment if required → Admin Review</div>
+              <div class="flow-step"><strong>Registration flow</strong>Events → Google Sign-In → Event Details → Registration Form → Payment if required → Admin Review</div>
               <div class="flow-step"><strong>Coming Soon flow</strong>Coming Soon Event → Notify Later → Contact saved → Email later when registration opens</div>
               <div class="flow-step"><strong>Accounting flow</strong>Record Transaction → Add Notes → Optional Invoice → Ledger / Export</div>
               <div class="flow-step"><strong>Review flow</strong>Registrations → Apply Filters → Check Proof → Confirm / Follow Up / Reject</div>
@@ -521,12 +574,20 @@
                 <p>Check if proof was uploaded, the amount matches, and the reference number is clear.</p>
               </div>
               <div class="mini-card">
-                <h3 style="margin-top: 0;">Event not visible</h3>
-                <p>Check if it is hidden, filtered out, or outside the active date window.</p>
+                <h3 style="margin-top: 0;">Event access locked</h3>
+                <p>Check that the user signed in with Google and that the event is still open or coming soon.</p>
               </div>
               <div class="mini-card">
                 <h3 style="margin-top: 0;">Report is empty</h3>
                 <p>Check the selected date range and confirm records actually exist for that period.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Backup tools failing</h3>
+                <p>Use Settings → Backups → Get Database Info to confirm the live MongoDB connection and size details.</p>
+              </div>
+              <div class="mini-card">
+                <h3 style="margin-top: 0;">Campaign email not sending</h3>
+                <p>Check SMTP readiness, test email delivery, approval status, and unsubscribe suppression.</p>
               </div>
             </div>
             <div class="callout">
@@ -541,9 +602,13 @@
               <li>Always check the date range before saying data is missing.</li>
               <li>Use clear references when recording transactions.</li>
               <li>Confirm payments before generating schedules.</li>
+              <li>Review AI fixture suggestions before approving the final schedule.</li>
               <li>Keep accounting categories clean and avoid duplicates.</li>
               <li>Use exports for offline records and sharing.</li>
               <li>Review alerts from Overview or Reports every day.</li>
+              <li>Review audience opt-outs before launching campaigns.</li>
+              <li>Use the built-in User Manual during onboarding and refresher training.</li>
+              <li>Check backup database info before assuming a restore file is the problem.</li>
             </ul>
           </section>
         </div>

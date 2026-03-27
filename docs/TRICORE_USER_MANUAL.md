@@ -2,6 +2,10 @@
 
 This manual explains the TriCore Events system in simple language. It is written for people who may not be comfortable with computers or web applications. Use it as a day-to-day guide for operating the website and the admin portal.
 
+Last updated: 27 March 2026
+
+This version includes the current admin overview, Google sign-in event access, the expanded match workspace, audience campaigns, and the new MongoDB backup information tool.
+
 ## 1. Overview of the Application
 
 TriCore Events is a sports event management platform. It helps the team do three main things:
@@ -42,30 +46,53 @@ The public website normally shows these top menu items:
 
 - `Home`
 - `About`
+- `Corporate`
 - `Events`
 - `Contact`
 - `Admin Portal`
 
+After a participant signs in with Google, the header may also show `Dashboard`.
+
+Some pages, such as the sponsor / partner page, are usually opened only through a shared link and may not appear in the main public menu.
+
 ### What each public page does
 
 **Home**
-- Shows the brand, banners, highlights, upcoming events, process steps, and key information
+- Shows the brand, banners, featured events, process steps, gallery sections, and partner highlights
 - This is the main first page of the website
 
 **About**
 - Explains the TriCore story, experience, partners, and gallery content
 
+**Corporate**
+- Shows TriCore corporate-event services, service packages, process flow, and contact actions
+- Used when a company wants to discuss offsites, employee engagement, meetings, launches, or other event services
+
 **Events**
-- Shows all visible events
+- Shows all visible sports events
 - Upcoming events are shown first
-- Events may show statuses like `Registration Open`, `Coming Soon`, or `Registration Closed`
+- Events may show statuses like `Registration Open`, `Coming Soon`, `Registration Closed`, or `Event Completed`
+
+**Event Details**
+- Full event details unlock after Google sign-in
+- Shows event information cards, match schedule, and the participation panel
+- If registration is open, the user sees the registration form
+- If the event is Coming Soon, the user sees the `Notify Later` interest form
 
 **Contact**
 - Shows email, website, partner names, and contact numbers
 - Contains the `Reach Out` form where users can send an enquiry
 
+**Dashboard**
+- Available after user sign-in
+- Shows registered events, payment statuses, upcoming matches, and refund / payout details
+
 **Admin Portal**
 - Opens the login screen for internal staff
+
+**Partner Access / Sponsorship Page**
+- Usually opened through a direct shared link from the admin team
+- Shows sponsorship packages, brand visibility details, and partner contact actions
 
 ## 3. Admin Portal Navigation Guide
 
@@ -81,8 +108,11 @@ Main menu items:
 - `Reports`
 - `Users`
 - `Settings`
+- `User Manual`
 
 If a menu item is missing, it usually means the user role does not have permission for that page.
+
+The `User Manual` menu is available to every signed-in admin so help is always available inside the portal.
 
 ### 3.1 Overview
 
@@ -90,19 +120,22 @@ Purpose:
 - Gives a quick summary of the whole system
 
 What the user sees:
+- A top overview area showing the signed-in role and open alert count
 - Summary cards such as total events, registrations, revenue, and alerts
 - Revenue trend chart
 - Participation mix
 - Quick navigation tiles
 - Payment status summary
-- A planning calendar showing events, holidays, and sports fixtures
+- A 30-day planning calendar showing events, holidays, and sports fixtures
 - Recent payments
 - Recent alerts
+- Sponsorship share link for partner outreach
 - Upcoming event window
 
 Use this page when:
 - You want to quickly understand what needs attention today
 - You want to see upcoming events and open alerts in one place
+- You want a direct partner / sponsorship link without exposing it in the main public menu
 
 ### 3.2 Events
 
@@ -146,17 +179,31 @@ Use this page when:
 ### 3.4 Matches
 
 Purpose:
-- Manage match schedules for confirmed teams
+- Run the full match operations workspace for confirmed teams
 
 What the user sees:
 - Event selector
-- Team selectors
-- Match creation form
-- Knockout bracket generation controls
-- List of existing matches for the selected event
+- Workspace tabs such as:
+  - `Match Configuration`
+  - `Fixture Management`
+  - `AI Fixture Lab`
+  - `Points System`
+  - `Team Registration`
+  - `Player Management`
+  - `Match Results Entry`
+  - `Standings and Rankings`
+  - `Knockout and Finals Setup`
+  - `Notifications and Alerts`
+  - `Calendar View`
+- Manual fixture tools
+- Auto-generation tools
+- Team and player profile areas
+- Results and standings views
 
 Use this page when:
-- Teams are confirmed and you need to build the event schedule
+- Teams are confirmed and you need to configure the tournament structure
+- You want to generate or edit fixtures
+- You need to record results, standings, knockout paths, and schedule notifications
 
 ### 3.5 Accounting
 
@@ -164,28 +211,30 @@ Purpose:
 - Record money movement and maintain transaction data
 
 What the user sees:
-- Three internal tabs:
+- Three internal views:
   - `Record Transaction`
   - `Transaction Ledger`
   - `Manage Categories`
-- Accounting summary cards
+- Accounting summary cards and business snapshot after filters are applied
 - Ledger filters and export options
+- Print actions for invoices or bills
 
 Important note:
-- Financial reports are in the main `Reports` menu
+- Financial reporting is in the main `Reports` menu
 - `Accounting` is mainly for entering and reviewing transaction records
+- Depending on security settings, updates or deletions may require an email OTP
 
 ### 3.6 Reports
 
 Purpose:
-- View financial, operational, and security reports
+- View financial, operational, and alert reporting
 
 What the user sees:
 - Tabs such as:
   - `Overview`
   - `Finance`
   - `Activity`
-  - `Security`
+  - `Alerts`
 - Date filters before report data is loaded
 - Searchable, paginated report tables
 - Export buttons
@@ -194,23 +243,29 @@ Use this page when:
 - You need business summaries
 - You want Profit & Loss information
 - You want operational history
-- You want to review alerts
+- You want to review and acknowledge alerts
 
 ### 3.7 Users
 
 Purpose:
-- Create admin users and manage access rights
+- Manage audience communication and internal access rights
 
 What the user sees:
 - Tabs:
+  - `Audience Users`
+  - `Campaigns`
   - `Admin Accounts`
   - `Create Admin User`
+  - `Edit Admin User`
   - `Create Roles`
   - `Modify Role Access`
   - `Change Password`
 
 Use this page when:
-- A new staff member needs access
+- You want to search registered users or interested contacts
+- You want to export audience data or send reminder emails
+- You want to build campaigns and manage templates or approvals
+- A new staff member needs admin access
 - A role needs to be updated
 - A password needs to be changed
 
@@ -222,10 +277,10 @@ Purpose:
 What the user sees:
 - Tabs such as:
   - `Contact Forwarding`
-  - `Email (SMTP)`
+  - `Email`
   - `Invoice`
   - `Appearance`
-  - `Home Page`
+  - `Banners`
   - `Gallery`
   - `Website`
   - `Backups`
@@ -236,7 +291,21 @@ Use this page when:
 - You want to change email routing
 - You want to update invoice settings
 - You want to control banners, galleries, or public website values
-- You want to manage backups or payment settings
+- You want to manage backups, OTP approval, or payment settings
+
+### 3.9 User Manual
+
+Purpose:
+- Open the built-in help guide inside the admin portal
+
+What the user sees:
+- An embedded help page inside the portal
+- A button to open the full-screen help file in a separate tab
+
+Use this page when:
+- You are onboarding a new staff member
+- You want to check the workflow for a task before doing it
+- You want a printable version of the guide during training
 
 ## 4. Simple Menu Map
 
@@ -244,12 +313,18 @@ Use this page when:
 Public Website
 ├── Home
 ├── About
+├── Corporate
 ├── Events
-│   └── Event Details
+│   └── Event Details (full access after Google sign-in)
+│       ├── Match Schedule
 │       ├── Register Now
 │       └── Notify Later
 ├── Contact
+├── Dashboard (after sign-in)
 └── Admin Portal
+
+Direct Share Page
+└── Partner Access / Sponsorship
 
 Admin Portal
 ├── Overview
@@ -264,9 +339,10 @@ Admin Portal
 │   ├── Overview
 │   ├── Finance
 │   ├── Activity
-│   └── Security
+│   └── Alerts
 ├── Users
-└── Settings
+├── Settings
+└── User Manual
 ```
 
 ## 5. Registration Process – User Perspective
@@ -279,6 +355,7 @@ This section explains what a normal participant does on the public website.
 2. Click `Events`
 3. Browse the event cards
 4. Click `View Event` on an open event
+5. If you are not signed in yet, continue with Google login to unlock the full event page
 
 If the event is not open yet, the button may show `Notify Later`.
 
@@ -294,6 +371,7 @@ On the event details page, the user sees:
 - Registration deadline
 - Team size and player limit
 - Match schedule, if already published
+- Current registration status such as `Open`, `Coming Soon`, `Closed`, or `Completed`
 
 ### Step 3: Fill out the registration form
 
@@ -326,6 +404,13 @@ After submitting:
 - the user may be redirected to the payment process
 - or the registration may be saved directly for a free event
 - after login, the user can also check status from the `Dashboard`
+
+### Step 6: Use the Dashboard after sign-in
+
+The user dashboard now includes:
+- `Registered Events` with registration and payment status
+- `Upcoming Matches` for events where fixtures have been published
+- `Refund / Payout Details` where the user can save UPI or bank information for future refunds or payouts
 
 ## 6. Coming Soon and Notify Later
 
@@ -457,11 +542,16 @@ The `Registrations` page includes export tools. Use them when:
 
 The Accounting page is where money movement is entered and reviewed.
 
+This page is now a focused transaction workspace. Business reporting has moved to the main `Reports` menu.
+
 There are three main areas:
 
 - `Record Transaction`
 - `Transaction Ledger`
 - `Manage Categories`
+
+Important note:
+- if Transaction OTP Approval is enabled in `Settings -> Security`, editing or deleting a transaction may require an email OTP
 
 ## 9.1 Record Transaction
 
@@ -685,54 +775,89 @@ How to use:
 3. Select a date range
 4. Click `Load History`
 
-### 10.4 Security
+### 10.4 Alerts
 
 Use this for:
 - alerts
 - unusual API activity
 - contact and registration warnings
 - payment-related alerts
+- acknowledging alert items after review
 
 The page includes:
 - status filter
 - severity filter
 - category filter
 - alert table
+- acknowledgement action
 
 ## 11. Matches – Detailed Use
 
-The `Matches` page is used after teams are confirmed.
+The `Matches` page is now a full match operations workspace.
 
-Main use cases:
-- create one match manually
-- generate a knockout bracket for an event
+Main work areas:
+- `Match Configuration`
+- `Fixture Management`
+- `AI Fixture Lab`
+- `Points System`
+- `Team Registration`
+- `Player Management`
+- `Match Results Entry`
+- `Standings and Rankings`
+- `Knockout and Finals Setup`
+- `Notifications and Alerts`
+- `Calendar View`
 
 Normal steps:
 1. Choose an event
-2. Load confirmed teams
-3. Create fixtures manually, or
-4. Generate bracket automatically
+2. Save the tournament format, group setup, points rules, and knockout path
+3. Load confirmed teams into the workspace
+4. Create fixtures manually or generate them automatically
+5. Optionally test draft schedules in `AI Fixture Lab`
+6. Maintain team profiles, captain contacts, logos, and player details
+7. Enter results and publish standings
+8. Review the knockout path and final schedule in calendar view
 
-This page should be used only after registration and payment confirmation work is complete.
+Important notes:
+- Use AI fixture suggestions as a draft and review them manually before approval
+- This page works best after registration and payment confirmation are complete
 
 ## 12. Users and Roles
 
-The `Users` page helps control internal access.
+The `Users` page now handles both audience communication and internal access.
 
 Tabs:
 
+**Audience Users**
+- search registered users, interested contacts, and past participants
+- filter by event, payment status, location, tags, or engagement
+- export the current list
+- send reminder emails to the filtered audience
+
+**Campaigns**
+- build campaigns using a step-by-step wizard
+- create reusable templates
+- send test emails
+- manage approval queues, scheduled campaigns, and opt-outs
+- review campaign history and engagement analytics
+
 **Admin Accounts**
 - shows all admin users
-- shows roles and last login
+- shows roles, effective page access, and last login
 
 **Create Admin User**
 - add name, username, email, password, and role
 
+**Edit Admin User**
+- update an existing admin account
+- reset the selected admin password when needed
+
 **Create Roles**
-- define reusable role templates
+- define reusable managed role templates
 
 **Modify Role Access**
-- change which pages a role or user can open
+- assign protected roles, managed roles, or manual page access
+- edit role templates and activate or deactivate them
 
 **Change Password**
 - update the password for the current admin account
@@ -742,6 +867,7 @@ Tabs:
 - `Admin` = full control
 - `Operations` = event operations work
 - `Accounting` = money and finance work
+- `Custom Access Admin` = page-by-page manual access
 
 If a user cannot see a menu item, check role access in this page.
 
@@ -753,10 +879,12 @@ The Settings page controls the full system behavior.
 - choose which email addresses receive contact enquiries
 - choose which email addresses receive completed registration notices
 - choose which email addresses receive pending follow-up cases
+- review incoming contact submissions and their forwarding status
 
-### Email (SMTP)
+### Email
 - enter outgoing mail server details
-- use test email option
+- manage admin notification recipients
+- use the test email option
 
 ### Invoice
 - set logo, numbering, tax labels, payment terms, footer notes, and invoice style
@@ -764,10 +892,11 @@ The Settings page controls the full system behavior.
 ### Appearance
 - switch admin portal between light and dark mode
 
-### Home Page
-- manage home page content and highlights
+### Banners
+- manage public home page banner cards and highlight content
 
 ### Gallery
+- manage public home page content sections
 - manage home and about page galleries
 - upload images
 - enable or disable galleries
@@ -776,15 +905,19 @@ The Settings page controls the full system behavior.
 - set public base URL used in links and emails
 
 ### Backups
+- save backup email and schedule
 - download database backup
-- send backup
+- send a backup by email
 - restore from backup
+- use `Get Database Info` to check MongoDB size, collection count, host, and storage details before troubleshooting backup issues
 
 ### Security
-- manage transaction OTP settings and related security controls
+- manage Transaction OTP Approval settings and related security controls
+- decide whether transaction updates and deletes require email OTP verification
 
 ### Payments
-- set QR code, UPI, bank details, and manual payment behavior
+- enable or disable manual payment confirmation
+- set QR code, UPI, bank details, payment instructions, and proof inbox email
 
 ## 14. Visual Aids
 
@@ -795,7 +928,11 @@ Below are simple diagrams you can use while training staff.
 ```text
 Website Home / Events
         ↓
-Open Event Details
+Open Event Preview
+        ↓
+Google Sign-In
+        ↓
+Full Event Details
         ↓
 Fill Registration Form
         ↓
@@ -867,15 +1004,15 @@ Accounting
 If you want to create a printed training booklet, add screenshots of these pages:
 
 1. Public `Events` page with one open event and one Coming Soon event
-2. Public event details page showing the registration form
-3. Payment page showing QR / UPI / bank section
-4. Admin `Overview`
-5. Admin `Events`
-6. Admin `Registrations`
-7. Admin `Accounting`
-8. Admin `Reports`
-9. Admin `Users`
-10. Admin `Settings`
+2. Public event access prompt showing Google sign-in
+3. Public event details page showing match schedule and the registration form
+4. User `Dashboard`
+5. Payment page showing QR / UPI / bank section
+6. Admin `Overview`
+7. Admin `Matches`
+8. Admin `Users` with `Audience Users` or `Campaigns`
+9. Admin `Reports`
+10. Admin `Settings -> Backups` showing database info
 
 When adding screenshots:
 - circle the main button
@@ -902,6 +1039,14 @@ Check:
 - is the payment reference correct?
 
 If everything is correct, confirm the payment from `Registrations`.
+
+### A user cannot open full event details
+
+Check:
+- is the user signed in with Google?
+- did they open the event from the `Events` page?
+- is the event status `Open` or `Coming Soon`?
+- if the event is closed or completed, the registration form will not appear
 
 ### An event is not visible on the website
 
@@ -945,6 +1090,15 @@ Check:
 - correct backup file selected
 - internet connection
 - database connection status
+- use `Settings -> Backups -> Get Database Info` to confirm the connected MongoDB details
+
+### Campaign email is not sending
+
+Check:
+- is SMTP configured in `Settings -> Email`?
+- did the test email work?
+- is the campaign waiting in the approval queue?
+- has the user unsubscribed from campaign email?
 
 ### Need support
 
@@ -957,22 +1111,26 @@ Use the public contact section or contact the TriCore team through the configure
 - Always check the date range before saying data is missing
 - Use clear reference text when recording transactions
 - Confirm payments before generating schedules
+- Review AI fixture suggestions before approving them as the final schedule
 - Keep categories clean and avoid duplicates
 - Use exports regularly for offline record keeping
-- Review alerts daily from `Overview` or `Reports -> Security`
+- Review alerts daily from `Overview` or `Reports -> Alerts`
 - Use the `Notify Later` list for early marketing and follow-up
+- Review audience opt-outs before launching campaigns
+- Use the built-in `User Manual` page during onboarding and refresher training
+- Check `Get Database Info` before assuming backup issues are caused by the file itself
 
 ## 17. Quick Start for New Staff
 
 If you are training a new staff member, start in this order:
 
 1. Show the public website and event flow
-2. Show `Overview`
-3. Show `Events`
-4. Show `Registrations`
-5. Show `Accounting`
-6. Show `Reports`
-7. Show `Users` and `Settings` only for senior staff
+2. Show Google sign-in and the public event detail flow
+3. Show the user `Dashboard`
+4. Show `Overview`
+5. Show `Events` and `Registrations`
+6. Show `Matches`
+7. Show `Accounting` and `Reports`
+8. Show `Users`, `Settings`, and the built-in `User Manual`
 
 This order is easier for beginners and reduces confusion.
-
