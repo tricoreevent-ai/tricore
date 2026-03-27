@@ -3,6 +3,9 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 set "DEFAULT_BRANCH=main"
 set "EXPECTED_ORIGIN_URL=https://github.com/tricoreevent-ai/tricore.git"
+set "GITHUB_HOST=github.com"
+set "PUSH_MAX_ATTEMPTS=3"
+set "PUSH_RETRY_DELAY_SECONDS=5"
 set "SKIP_PUSH=false"
 set "CHECK_ONLY=false"
 set "COMMIT_MESSAGE="
@@ -173,10 +176,24 @@ echo.
 :after_commit
 if /I "%SKIP_PUSH%"=="true" goto :skip_push
 
-echo === Pushing to %EXPECTED_ORIGIN_URL% (origin/!BRANCH_NAME!) ===
-git push origin !BRANCH_NAME!
-if errorlevel 1 goto :command_error
+echo === GitHub Connectivity Check ===
+call :resolve_dns "%GITHUB_HOST%"
+if errorlevel 1 (
+  echo [ERROR] Unable to resolve %GITHUB_HOST% before push.
+  echo Check your internet connection, VPN, proxy, or DNS settings, then rerun deploy-check-push.bat.
+  set "SCRIPT_EXIT=1"
+  goto :exit_with_optional_pause
+)
+echo %GITHUB_HOST% resolved successfully.
 echo.
+
+echo === Pushing to %EXPECTED_ORIGIN_URL% (origin/!BRANCH_NAME!) ===
+set "PUSH_FAILURE_HANDLED="
+call :push_with_retry "!BRANCH_NAME!"
+if errorlevel 1 (
+  if defined PUSH_FAILURE_HANDLED goto :exit_with_optional_pause
+  goto :command_error
+)
 goto :done
 
 :skip_push
@@ -218,6 +235,83 @@ goto :exit_with_optional_pause
 echo [ERROR] Refusing to commit local environment file: %~1
 set "BLOCKED_FILES_FOUND=1"
 exit /b 0
+
+:push_with_retry
+setlocal EnableDelayedExpansion
+set "TARGET_BRANCH=%~1"
+set "PUSH_ATTEMPT=1"
+:push_retry_loop
+set "PUSH_LOG=%TEMP%\tricore-git-push-!RANDOM!-!RANDOM!.log"
+echo Attempt !PUSH_ATTEMPT! of %PUSH_MAX_ATTEMPTS%...
+git push origin "!TARGET_BRANCH!" > "!PUSH_LOG!" 2>&1
+set "PUSH_EXIT=!ERRORLEVEL!"
+type "!PUSH_LOG!"
+
+if "!PUSH_EXIT!"=="0" (
+  if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+  echo.
+  endlocal & exit /b 0
+)
+
+call :classify_push_failure "!PUSH_LOG!" PUSH_FAILURE_KIND
+if /I "!PUSH_FAILURE_KIND!"=="dns" (
+  if !PUSH_ATTEMPT! LSS %PUSH_MAX_ATTEMPTS% (
+    echo.
+    echo [WARN] GitHub DNS lookup failed during push. Retrying in %PUSH_RETRY_DELAY_SECONDS% seconds...
+    if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+    call :sleep_seconds %PUSH_RETRY_DELAY_SECONDS%
+    set /a PUSH_ATTEMPT+=1
+    goto :push_retry_loop
+  )
+  echo.
+  echo [ERROR] GitHub could not be reached because DNS resolution failed.
+  echo Check your internet connection, VPN, proxy, or DNS settings, then rerun deploy-check-push.bat.
+  if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+  endlocal & set "SCRIPT_EXIT=%PUSH_EXIT%" & set "PUSH_FAILURE_HANDLED=1" & exit /b %PUSH_EXIT%
+)
+
+if /I "!PUSH_FAILURE_KIND!"=="network" (
+  if !PUSH_ATTEMPT! LSS %PUSH_MAX_ATTEMPTS% (
+    echo.
+    echo [WARN] GitHub could not be reached over the network. Retrying in %PUSH_RETRY_DELAY_SECONDS% seconds...
+    if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+    call :sleep_seconds %PUSH_RETRY_DELAY_SECONDS%
+    set /a PUSH_ATTEMPT+=1
+    goto :push_retry_loop
+  )
+  echo.
+  echo [ERROR] GitHub could not be reached over the network while pushing.
+  echo Check connectivity to %GITHUB_HOST%, then rerun deploy-check-push.bat.
+  if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+  endlocal & set "SCRIPT_EXIT=%PUSH_EXIT%" & set "PUSH_FAILURE_HANDLED=1" & exit /b %PUSH_EXIT%
+)
+
+if exist "!PUSH_LOG!" del /q "!PUSH_LOG!" >nul 2>&1
+endlocal & exit /b %PUSH_EXIT%
+
+:classify_push_failure
+setlocal
+set "PUSH_LOG_FILE=%~1"
+set "FAILURE_KIND=generic"
+
+findstr /I /C:"Could not resolve host" "%PUSH_LOG_FILE%" >nul
+if not errorlevel 1 set "FAILURE_KIND=dns"
+
+if /I not "%FAILURE_KIND%"=="dns" (
+  findstr /I /C:"Failed to connect" /C:"Connection timed out" /C:"Operation timed out" /C:"Connection was reset" /C:"Could not read from remote repository" "%PUSH_LOG_FILE%" >nul
+  if not errorlevel 1 set "FAILURE_KIND=network"
+)
+
+endlocal & set "%~2=%FAILURE_KIND%"
+exit /b 0
+
+:resolve_dns
+powershell -NoProfile -Command "try { Resolve-DnsName '%~1' -ErrorAction Stop | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1
+exit /b %ERRORLEVEL%
+
+:sleep_seconds
+powershell -NoProfile -Command "Start-Sleep -Seconds %~1"
+exit /b %ERRORLEVEL%
 
 :normalize_git_url
 setlocal
