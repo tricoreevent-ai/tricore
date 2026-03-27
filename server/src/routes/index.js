@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { getDbStatus } from '../config/db.js';
 import accountingRoutes from './accountingRoutes.js';
 import activityLogRoutes from './activityLogRoutes.js';
+import audienceRoutes from './audienceRoutes.js';
 import authRoutes from './authRoutes.js';
 import contactRoutes from './contactRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
@@ -27,6 +28,7 @@ router.get('/health', (_req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.use('/audience', audienceRoutes);
 router.use('/contact', contactRoutes);
 router.use('/', publicSettingsRoutes);
 router.use('/events', eventRoutes);

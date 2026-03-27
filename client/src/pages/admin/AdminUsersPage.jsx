@@ -21,6 +21,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatCard from '../../components/common/StatCard.jsx';
 import TypeaheadSelect from '../../components/common/TypeaheadSelect.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
+import AudienceUsersWorkspace from '../../components/users/AudienceUsersWorkspace.jsx';
+import CampaignManagementPanel from '../../components/users/CampaignManagementPanel.jsx';
 import {
   adminPermissionDescriptions,
   adminPermissionLabels,
@@ -78,6 +80,8 @@ const permissionOptions = Object.values(adminPermissions);
 const managedCoreUsernames = ['tricore', 'kenny', 'vinod'];
 
 const userTabs = [
+  { key: 'audience', label: 'Audience Users', icon: 'users' },
+  { key: 'campaigns', label: 'Campaigns', icon: 'mail' },
   { key: 'accounts', label: 'Admin Accounts', icon: 'users' },
   { key: 'create', label: 'Create Admin User', icon: 'userPlus' },
   { key: 'edit', label: 'Edit Admin User', icon: 'edit' },
@@ -245,7 +249,7 @@ function CompactActionButton({
 
 export default function AdminUsersPage() {
   const { user: currentAdmin } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState('accounts');
+  const [activeTab, setActiveTab] = useState('audience');
   const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [roleTemplates, setRoleTemplates] = useState([]);
@@ -282,6 +286,9 @@ export default function AdminUsersPage() {
   const [deletingRoleKey, setDeletingRoleKey] = useState('');
   const [adminPasswordResetSaving, setAdminPasswordResetSaving] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState('');
+  const [adminWorkspaceInitialized, setAdminWorkspaceInitialized] = useState(false);
+
+  const adminWorkspaceActive = !['audience', 'campaigns'].includes(activeTab);
 
   const loadUsers = async () => {
     setListLoading(true);
@@ -310,9 +317,13 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    loadUsers();
-    loadRoleTemplates();
-  }, []);
+    if (!adminWorkspaceActive || adminWorkspaceInitialized) {
+      return;
+    }
+
+    setAdminWorkspaceInitialized(true);
+    void Promise.all([loadUsers(), loadRoleTemplates()]);
+  }, [adminWorkspaceActive, adminWorkspaceInitialized]);
 
   useEffect(() => {
     if (!users.length) {
@@ -370,6 +381,29 @@ export default function AdminUsersPage() {
     () => userTabs.find((tab) => tab.key === activeTab) || userTabs[0],
     [activeTab]
   );
+  const pageMeta = useMemo(() => {
+    if (activeTab === 'audience') {
+      return {
+        title: 'Users',
+        description:
+          'Review registered users, past participants, and interested contacts with paginated loading, export controls, and reminder tools.'
+      };
+    }
+
+    if (activeTab === 'campaigns') {
+      return {
+        title: 'Campaigns',
+        description:
+          'Build targeted audience campaigns, manage delivery preferences, and review bulk email history without mixing promotion work into admin-account setup.'
+      };
+    }
+
+    return {
+      title: 'Admin Users',
+      description:
+        'Create admin accounts, define reusable role templates, and manage page-level accessibility without mixing user setup and access editing into one long form.'
+    };
+  }, [activeTab]);
   const accessRoleSelectGroups = useMemo(
     () => buildRoleOptionSelectGroups(accessRoleOptionGroups),
     [accessRoleOptionGroups]
@@ -1096,14 +1130,20 @@ export default function AdminUsersPage() {
     setRoleTemplatesMessage('');
   };
 
-  if (listLoading && roleTemplatesLoading && !users.length && !roleTemplates.length) {
+  if (
+    adminWorkspaceActive &&
+    listLoading &&
+    roleTemplatesLoading &&
+    !users.length &&
+    !roleTemplates.length
+  ) {
     return <LoadingSpinner label="Loading admin account controls..." />;
   }
 
   return (
     <AdminPageShell
-      description="Create admin accounts, define reusable role templates, and manage page-level accessibility without mixing user setup and access editing into one long form."
-      title="Admin Users"
+      description={pageMeta.description}
+      title={pageMeta.title}
     >
       <div className="mb-6 md:hidden">
         <button
@@ -1183,6 +1223,10 @@ export default function AdminUsersPage() {
           />
         ))}
       </div>
+
+      {activeTab === 'audience' ? <AudienceUsersWorkspace /> : null}
+
+      {activeTab === 'campaigns' ? <CampaignManagementPanel /> : null}
 
       {activeTab === 'accounts' ? (
         <div className="space-y-8">

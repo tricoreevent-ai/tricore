@@ -70,7 +70,7 @@ export const getMailer = async () => {
   return { transporter: cachedTransporter, config };
 };
 
-export const sendEmail = async ({ attachments, html, replyTo, subject, text, to }) => {
+export const sendEmail = async ({ attachments, headers, html, replyTo, subject, text, to }) => {
   const { transporter, config } = await getMailer();
 
   await transporter.sendMail({
@@ -80,6 +80,7 @@ export const sendEmail = async ({ attachments, html, replyTo, subject, text, to 
     subject,
     text,
     html,
-    attachments
+    attachments,
+    headers
   });
 };
