@@ -70,18 +70,23 @@ export default function Footer() {
             </div>
             <div>
               <p className="font-semibold text-slate-900">Phones</p>
-              <div className="mt-1 space-y-1">
-                {contactContent.partners.flatMap((partner) =>
-                  partner.phones.map((phone) => (
-                    <a
-                      className="block hover:text-brand-blue"
-                      href={getTelephoneHref(phone)}
-                      key={`${partner.name}-${phone}`}
-                    >
-                      {partner.name}: {phone}
-                    </a>
-                  ))
-                )}
+              <div className="mt-2 space-y-3">
+                {contactContent.partners.map((partner) => (
+                  <div key={partner.name}>
+                    <p className="font-semibold text-slate-900">{partner.name}</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {partner.phones.map((phone) => (
+                        <a
+                          className="rounded-full bg-slate-50 px-3 py-1.5 text-sm transition hover:bg-brand-mist hover:text-brand-blue"
+                          href={getTelephoneHref(phone)}
+                          key={`${partner.name}-${phone}`}
+                        >
+                          {phone}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
