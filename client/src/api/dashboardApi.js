@@ -53,6 +53,11 @@ export const getConfirmedTeamsByEvent = async (eventId) => {
   return response.data.data;
 };
 
+export const getAdminMatchesByEvent = async (eventId) => {
+  const response = await adminApi.get(`/matches/${eventId}`);
+  return response.data.data;
+};
+
 export const getMatchesByEvent = async (eventId) => {
   const response = await publicApi.get(`/matches/${eventId}`);
   return response.data.data;

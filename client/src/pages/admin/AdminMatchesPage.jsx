@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import {
   createMatch,
   generateKnockoutBracket,
+  getAdminMatchesByEvent,
   getConfirmedTeamsByEvent,
-  getMatchesByEvent
 } from '../../api/dashboardApi.js';
 import { getAdminEvents } from '../../api/eventsApi.js';
 import FormAlert from '../../components/common/FormAlert.jsx';
@@ -62,7 +62,7 @@ export default function AdminMatchesPage() {
 
     try {
       const [matchesResponse, teamsResponse] = await Promise.all([
-        getMatchesByEvent(eventId),
+        getAdminMatchesByEvent(eventId),
         getConfirmedTeamsByEvent(eventId)
       ]);
 
