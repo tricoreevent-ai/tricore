@@ -30,6 +30,7 @@ export default function AdminPageShell({ children, description, title }) {
   const { hasAnyPermission, logout, user } = useAdminAuth();
   const { isDarkTheme, theme } = useAdminTheme();
   const [alertsOpen, setAlertsOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [alertSummary, setAlertSummary] = useState({ items: [], openCount: 0 });
   const canSeeSecurityAlerts = hasAnyPermission([
     adminPermissions.overview,
@@ -88,7 +89,39 @@ export default function AdminPageShell({ children, description, title }) {
         }`}
       >
         <div className="container-shell relative z-[90] flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
+          <button
+            aria-expanded={mobileNavOpen}
+            aria-label={mobileNavOpen ? 'Close admin navigation menu' : 'Open admin navigation menu'}
+            className={`absolute right-0 top-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition md:hidden ${
+              isDarkTheme
+                ? 'border-slate-700 bg-slate-900 text-white hover:bg-slate-800'
+                : 'border-brand-blue/20 bg-white text-brand-blue hover:bg-brand-mist'
+            }`}
+            onClick={() => {
+              setMobileNavOpen((current) => !current);
+              setAlertsOpen(false);
+            }}
+            type="button"
+          >
+            <span className="relative h-4 w-5">
+              <span
+                className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition ${
+                  mobileNavOpen ? 'translate-y-[7px] rotate-45' : ''
+                }`.trim()}
+              />
+              <span
+                className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-current transition ${
+                  mobileNavOpen ? 'opacity-0' : ''
+                }`.trim()}
+              />
+              <span
+                className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition ${
+                  mobileNavOpen ? '-translate-y-[7px] -rotate-45' : ''
+                }`.trim()}
+              />
+            </span>
+          </button>
+          <div className="flex items-start gap-4 pr-16 md:pr-0">
             <TriCoreLogo
               markClassName="h-12 w-12"
               subtitle="Operations Console"
@@ -106,7 +139,10 @@ export default function AdminPageShell({ children, description, title }) {
               <div className="relative z-[100]">
                 <button
                   className="btn-secondary w-full gap-2 sm:w-auto"
-                  onClick={() => setAlertsOpen((current) => !current)}
+                  onClick={() => {
+                    setAlertsOpen((current) => !current);
+                    setMobileNavOpen(false);
+                  }}
                   type="button"
                 >
                   <AppIcon className="h-4 w-4" name="bell" />
@@ -178,6 +214,14 @@ export default function AdminPageShell({ children, description, title }) {
             </button>
           </div>
         </div>
+        <AdminNav
+          className="container-shell pb-4 md:hidden"
+          mobileOpen={mobileNavOpen}
+          onMobileOpenChange={setMobileNavOpen}
+          showDesktop={false}
+          showMobile
+          showMobileTrigger={false}
+        />
       </div>
       <div className="container-shell py-6 sm:py-10 lg:py-16">
         <div
@@ -213,7 +257,7 @@ export default function AdminPageShell({ children, description, title }) {
             </div>
           </div>
         </div>
-        <AdminNav />
+        <AdminNav showMobile={false} />
         {children}
       </div>
     </div>

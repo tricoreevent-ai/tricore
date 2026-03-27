@@ -24,22 +24,71 @@ const hexToRgba = (hex, alpha) => {
 };
 
 const isExternalHref = (href) => /^https?:\/\//i.test(String(href || '').trim());
+const isActionProtocolHref = (href) =>
+  /^(?:https?:\/\/|mailto:|tel:|\/\/)/i.test(String(href || '').trim());
+const looksLikeDomainWithoutProtocol = (href) =>
+  /^(?:www\.)[^\s/]+\.[^\s]+/i.test(String(href || '').trim());
+
+const normalizeActionHref = (href) => {
+  const value = String(href || '').trim();
+
+  if (!value) {
+    return '';
+  }
+
+  if (looksLikeDomainWithoutProtocol(value)) {
+    return `https://${value}`;
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const resolvedUrl = new URL(value, window.location.origin);
+
+      if (resolvedUrl.origin === window.location.origin) {
+        return `${resolvedUrl.pathname}${resolvedUrl.search}${resolvedUrl.hash}`;
+      }
+
+      if (isActionProtocolHref(value)) {
+        return resolvedUrl.toString();
+      }
+    } catch {
+      // Fall back to local path normalization below.
+    }
+  }
+
+  if (isActionProtocolHref(value) || value.startsWith('#')) {
+    return value;
+  }
+
+  if (value.startsWith('/')) {
+    return value;
+  }
+
+  return `/${value.replace(/^\.?\/*/, '')}`;
+};
 
 const ActionLink = ({ className, href, label }) => {
-  if (!href || !label) {
+  const normalizedHref = normalizeActionHref(href);
+
+  if (!normalizedHref || !label) {
     return null;
   }
 
-  if (isExternalHref(href)) {
+  if (isExternalHref(normalizedHref) || /^(?:mailto:|tel:|\/\/)/i.test(normalizedHref)) {
     return (
-      <a className={className} href={href} rel="noreferrer" target="_blank">
+      <a
+        className={className}
+        href={normalizedHref}
+        rel={/^https?:\/\//i.test(normalizedHref) ? 'noreferrer' : undefined}
+        target={/^https?:\/\//i.test(normalizedHref) ? '_blank' : undefined}
+      >
         {label}
       </a>
     );
   }
 
   return (
-    <Link className={className} to={href}>
+    <Link className={className} to={normalizedHref}>
       {label}
     </Link>
   );
@@ -91,11 +140,11 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
 
   return (
     <section className="relative overflow-hidden text-white">
-      <div className="absolute inset-0" style={heroGradient} />
+      <div className="pointer-events-none absolute inset-0" style={heroGradient} />
       {currentBanner?.imageUrl ? (
         <img
           alt={currentBanner.imageAlt || currentBanner.title || 'TriCore banner'}
-          className="absolute inset-0 h-full w-full object-cover opacity-20"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
           decoding="async"
           fetchPriority="high"
           loading="eager"
@@ -103,17 +152,17 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
           src={currentBanner.imageUrl}
         />
       ) : null}
-      <div className="absolute inset-0 bg-slate-950/20" />
+      <div className="pointer-events-none absolute inset-0 bg-slate-950/20" />
       <div
-        className="absolute -left-24 top-10 h-72 w-72 rounded-full blur-3xl"
+        className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full blur-3xl"
         style={{ backgroundColor: hexToRgba(activeTheme.highlightColor, 0.26) }}
       />
       <div
-        className="absolute -right-24 bottom-0 h-80 w-80 rounded-full blur-3xl"
+        className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full blur-3xl"
         style={{ backgroundColor: hexToRgba(activeTheme.primaryColor, 0.24) }}
       />
 
-      <div className="container-shell relative grid gap-10 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <div className="container-shell relative z-10 grid gap-10 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <div>
           <div className="flex flex-wrap items-center gap-3">
             {currentBanner.badge ? (
@@ -133,7 +182,7 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
             <p className="mt-6 max-w-2xl text-lg leading-8 text-blue-50">{currentBanner.description}</p>
           ) : null}
 
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="relative z-10 mt-8 flex flex-wrap gap-4">
             <ActionLink
               className="btn-primary"
               href={currentBanner.primaryActionHref}
