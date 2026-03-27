@@ -11,6 +11,7 @@ import { env } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import routes from './routes/index.js';
+import { buildRobotsTxt, buildSitemapXml } from './services/searchDiscoveryService.js';
 import { observeApiRequest } from './services/securityAlertService.js';
 
 const app = express();
@@ -62,6 +63,16 @@ app.use(
     maxAge: '365d'
   })
 );
+
+app.get('/robots.txt', async (_req, res) => {
+  res.type('text/plain');
+  res.send(await buildRobotsTxt());
+});
+
+app.get('/sitemap.xml', async (_req, res) => {
+  res.type('application/xml');
+  res.send(await buildSitemapXml());
+});
 
 app.use('/api', routes);
 

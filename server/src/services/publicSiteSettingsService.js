@@ -3,9 +3,14 @@ import { AppSetting } from '../models/AppSetting.js';
 
 export const PUBLIC_SITE_SETTINGS_KEY = 'public-site-config';
 
-const normalizeBaseUrl = (value) =>
+const firstCsvValue = (value) =>
   String(value || '')
-    .trim()
+    .split(',')
+    .map((entry) => entry.trim())
+    .find(Boolean) || '';
+
+const normalizeBaseUrl = (value) =>
+  firstCsvValue(value)
     .replace(/\/+$/, '');
 
 const DEFAULT_PUBLIC_SITE_SETTINGS = {

@@ -14,3 +14,8 @@ export const getPublicPaymentSettings = async () => {
   const response = await publicApi.get('/payment-settings');
   return response.data.data;
 };
+
+export const getPublicSiteConfiguration = async () => {
+  const response = await publicApi.get('/site-settings');
+  return response.data.data;
+};
