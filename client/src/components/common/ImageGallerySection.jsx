@@ -35,15 +35,15 @@ export default function ImageGallerySection({ description, images, pageSize = DE
         </div>
       </div>
 
-      <div className="grid auto-rows-[240px] gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:auto-rows-[260px] sm:grid-cols-2 xl:auto-rows-[240px] xl:grid-cols-4">
         {pagedImages.map((image, index) => (
           <div
             className={`panel group overflow-hidden ${
-              index % 5 === 0 ? 'md:col-span-2 md:row-span-2' : ''
+              index % 5 === 0 ? 'sm:col-span-2 sm:row-span-2' : ''
             }`}
             key={image.id || `${image.imageUrl}-${index}`}
           >
-            <div className="relative h-full">
+            <div className="relative aspect-[4/3] h-full sm:aspect-auto">
               <img
                 alt={image.imageAlt || `TriCore gallery image ${index + 1}`}
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
@@ -56,7 +56,7 @@ export default function ImageGallerySection({ description, images, pageSize = DE
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">
                     TriCore Moments
                   </p>
-                  <p className="mt-2 text-lg font-bold">{image.caption}</p>
+                  <p className="mt-2 text-base font-bold sm:text-lg">{image.caption}</p>
                 </div>
               ) : null}
             </div>

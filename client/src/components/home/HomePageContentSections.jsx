@@ -1,22 +1,23 @@
 import { Link } from 'react-router-dom';
 
+import {
+  aboutHighlights,
+  contactContent,
+  corporateEventsHomeFeature,
+  corporateTournamentSpotlight,
+  eventsContent,
+  homeCredibilitySignals,
+  homeFinalCta,
+  partnerHighlights,
+  whyChooseItems
+} from '../../data/siteContent.js';
+import { getWhatsAppHref } from '../../utils/contactLinks.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
+import { getPublicEventRegistrationStatus } from '../../utils/eventTimeline.js';
 import AppIcon from '../common/AppIcon.jsx';
 import ImageGallerySection from '../common/ImageGallerySection.jsx';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import PartnerHighlights from '../common/PartnerHighlights.jsx';
-import {
-  aboutHighlights,
-  corporateEventsHomeFeature,
-  corporateTournamentSpotlight,
-  eventsContent,
-  partnerHighlights,
-  whyChooseItems
-} from '../../data/siteContent.js';
-import {
-  getPublicEventRegistrationStatus,
-  isUpcomingOrOngoingEvent
-} from '../../utils/eventTimeline.js';
-import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters.js';
 
 const defaultTheme = {
   primaryColor: '#0F5FDB',
@@ -55,6 +56,15 @@ export default function HomePageContentSections({ content, events, eventsError, 
     backgroundColor: hexToRgba(theme.primaryColor, 0.1),
     color: theme.primaryColor
   };
+  const primaryWhatsAppPhone =
+    contactContent.whatsAppPhone ||
+    contactContent.partners.flatMap((partner) => partner.phones || [])[0] ||
+    '';
+  const quickWhatsAppHref = getWhatsAppHref(primaryWhatsAppPhone, contactContent.whatsAppMessage);
+  const eventsTitle = content?.eventsTitle || 'Upcoming Tournaments';
+  const eventsDescription =
+    content?.eventsDescription ||
+    'Discover the next round of sports tournaments, corporate leagues, and community competitions now open or preparing to open for participation.';
 
   return (
     <>
@@ -65,20 +75,20 @@ export default function HomePageContentSections({ content, events, eventsError, 
               Built Around People
             </p>
             <h2 className="mt-4 text-4xl font-bold text-slate-950 sm:text-5xl">
-              Sport has a way of bringing teams, families, and communities closer.
+              Events feel stronger when partner experience and people-first planning work together.
             </h2>
             <p className="mt-5 text-base leading-8 text-slate-700">{aboutHighlights.sportsBelief}</p>
             <p className="mt-5 text-base leading-8 text-slate-600">
               From workplace leagues and apartment tournaments to community competitions, TriCore
-              creates disciplined, high-energy events that turn participation into belonging and
-              healthy competition into lasting connection.
+              creates disciplined, high-energy events backed by partners who understand venue flow,
+              logistics, communication, and the details that build confidence.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link className="btn-primary" to="/events">
-                Explore upcoming events
+                Register for a Tournament
               </Link>
               <Link className="btn-secondary" to="/contact">
-                Plan with TriCore
+                Request a Quote
               </Link>
             </div>
           </div>
@@ -88,23 +98,54 @@ export default function HomePageContentSections({ content, events, eventsError, 
               Why TriCore
             </p>
             <h2 className="mt-4 text-3xl font-bold text-slate-950">
-              Event discipline with a people-first mindset
+              Partner-backed execution with clear reasons to trust the process
             </h2>
             <div className="mt-6 grid gap-4">
               {whyChooseItems.map((item) => (
-                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5" key={item}>
+                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5" key={item.title}>
                   <div className="flex items-start gap-4">
                     <span
-                      className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold"
+                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
                       style={bulletStyle}
                     >
-                      +
+                      <AppIcon className="h-5 w-5" name={item.icon} />
                     </span>
-                    <p className="text-sm leading-7 text-slate-700">{item}</p>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-950">{item.title}</h3>
+                      <p className="mt-2 text-base leading-7 text-slate-700">{item.description}</p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-24 bg-slate-100/70 py-16">
+        <div className="container-shell">
+          <div className="mb-8 max-w-4xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+              Trust Signals
+            </p>
+            <h2 className="mt-3 text-4xl font-bold text-slate-950">
+              TriCore is a growing brand supported by experienced event operators
+            </h2>
+            <p className="mt-4 text-base leading-8 text-slate-600">
+              We keep the public story honest and clear: TriCore is new, and the experience comes
+              from the partners, organizers, venues, and delivery network behind it.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {homeCredibilitySignals.map((signal) => (
+              <article className="panel h-full p-7" key={signal.title}>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                  Credibility
+                </p>
+                <h3 className="mt-4 text-2xl font-bold text-slate-950">{signal.title}</h3>
+                <p className="mt-4 text-base leading-8 text-slate-600">{signal.description}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -149,7 +190,7 @@ export default function HomePageContentSections({ content, events, eventsError, 
                       <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-sm font-bold text-white">
                         0{index + 1}
                       </span>
-                      <p className="text-sm leading-7 text-blue-50">{item}</p>
+                      <p className="text-base leading-7 text-blue-50">{item}</p>
                     </div>
                   </div>
                 ))}
@@ -159,8 +200,8 @@ export default function HomePageContentSections({ content, events, eventsError, 
         </div>
       </section>
 
-      <section className="container-shell mt-24">
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="mt-24 bg-slate-100/70 py-16">
+        <div className="container-shell grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="panel p-8 sm:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
               {corporateTournamentSpotlight.badge}
@@ -189,16 +230,16 @@ export default function HomePageContentSections({ content, events, eventsError, 
               Why It Matters
             </p>
             <h2 className="mt-4 text-3xl font-bold text-slate-950">
-              Sport creates a shared space for teams, communities, and brands
+              Sport creates a shared space for teams, communities, brands, and trusted partners
             </h2>
             <div className="mt-6 space-y-4">
               {[
                 'Corporate teams get a structured, professionally run tournament setting that builds connection beyond the workplace.',
-                'Cricket lovers and community participants get a high-energy environment that celebrates fair play, healthy competition, and belonging.',
-                'Brand partners get a strong touchpoint with an active, enthusiastic audience in a live sporting atmosphere.'
+                'Participants get a high-energy environment shaped by communication, clarity, and fair play.',
+                'Brand and venue partners get a credible platform supported by organizers who understand live-event execution.'
               ].map((item) => (
                 <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5" key={item}>
-                  <p className="text-sm leading-7 text-slate-700">{item}</p>
+                  <p className="text-base leading-7 text-slate-700">{item}</p>
                 </div>
               ))}
             </div>
@@ -212,12 +253,9 @@ export default function HomePageContentSections({ content, events, eventsError, 
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
               Upcoming Tournaments
             </p>
-            <h2 className="mt-3 text-4xl font-bold text-slate-950">
-              Register for the next TriCore event
-            </h2>
+            <h2 className="mt-3 text-4xl font-bold text-slate-950">{eventsTitle}</h2>
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
-              Discover the next round of sports tournaments, corporate leagues, and community
-              competitions now open or preparing to open for participation.
+              {eventsDescription}
             </p>
           </div>
           <Link className="btn-secondary" to="/events">
@@ -285,11 +323,11 @@ export default function HomePageContentSections({ content, events, eventsError, 
                           {isRegistrationOpen ? 'Open' : isComingSoon ? 'Coming Soon' : 'Closed'}
                         </span>
                       </div>
-                      <p className="mt-4 text-sm leading-7 text-slate-600">
+                      <p className="mt-4 text-base leading-7 text-slate-600">
                         {event.description ||
                           'Tournament-ready planning, smooth registrations, and a participant experience built around clarity and energy.'}
                       </p>
-                      <div className="mt-5 grid gap-3 text-sm text-slate-600">
+                      <div className="mt-5 grid gap-3 text-base text-slate-600">
                         <p>
                           <span className="font-semibold text-slate-900">Venue:</span> {event.venue}
                         </p>
@@ -341,7 +379,7 @@ export default function HomePageContentSections({ content, events, eventsError, 
             <div className="mt-6 space-y-4">
               {[...eventsContent.sports.slice(0, 2), ...eventsContent.corporate.slice(0, 2)].map((item) => (
                 <div className="rounded-3xl bg-slate-50 p-5" key={item}>
-                  <p className="text-sm leading-7 text-slate-700">{item}</p>
+                  <p className="text-base leading-7 text-slate-700">{item}</p>
                 </div>
               ))}
             </div>
@@ -360,7 +398,7 @@ export default function HomePageContentSections({ content, events, eventsError, 
                     </span>
                   </div>
                   <h3 className="mt-3 text-lg font-bold text-white">{step.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-blue-50">{step.description}</p>
+                  <p className="mt-3 text-base leading-7 text-blue-50">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -384,10 +422,46 @@ export default function HomePageContentSections({ content, events, eventsError, 
       ) : null}
 
       <PartnerHighlights
-        description="Spark 7 Sports Arena and Sarva Horizon are part of the collaboration story behind TriCore's current tournament direction."
+        description="Our trusted partners help strengthen venue quality, event presentation, and delivery confidence across current TriCore experiences."
         partners={partnerHighlights}
-        title="Featured Partners"
+        title="Trusted Partners"
       />
+
+      <section className="container-shell mt-24">
+        <div className="overflow-hidden rounded-[2rem] text-white shadow-soft" style={highlightPanelStyle}>
+          <div className="grid gap-6 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">
+                {homeFinalCta.badge}
+              </p>
+              <h2 className="mt-4 max-w-3xl text-4xl font-bold text-white">
+                {homeFinalCta.title}
+              </h2>
+              <p className="mt-5 max-w-3xl text-base leading-8 text-blue-50">
+                {homeFinalCta.description}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4 lg:justify-end">
+              <Link
+                className="btn-primary bg-white text-slate-950 hover:bg-slate-100"
+                to={homeFinalCta.primaryActionHref}
+              >
+                {homeFinalCta.primaryActionLabel}
+              </Link>
+              {quickWhatsAppHref ? (
+                <a
+                  className="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  href={quickWhatsAppHref}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {homeFinalCta.secondaryActionLabel}
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

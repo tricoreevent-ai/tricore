@@ -31,7 +31,7 @@ export default function AboutPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
             About TriCore
           </p>
-          <h1 className="mt-3 text-4xl font-bold">Built on Experience, Driven by Passion</h1>
+          <h1 className="mt-3 text-4xl font-bold">A new brand backed by experienced event partners</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">{aboutHighlights.intro}</p>
         </div>
 
@@ -80,13 +80,17 @@ export default function AboutPage() {
             Experience Network
           </p>
           <h2 className="mt-4 text-3xl font-bold text-slate-950">
-            Twenty years of event learning, backed by experienced vendors and crews
+            Partner experience, supported by reliable vendors, venues, and crews
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-8 text-slate-600">
             TriCore works with trusted venues, match officials, logistics teams, production vendors,
             hospitality partners, and support crews who understand what it takes to deliver clean,
             safe, high-energy events. That network lets us scale without losing operational clarity
             or the warm, people-first experience participants remember.
+          </p>
+          <p className="mt-5 max-w-4xl text-base leading-8 text-slate-600">
+            Our public message stays simple and accurate: TriCore is growing quickly, and the depth
+            of experience comes from the people and partnerships behind the brand.
           </p>
         </section>
 
@@ -120,9 +124,9 @@ export default function AboutPage() {
       ) : null}
 
       <PartnerHighlights
-        description="TriCore collaborations help us deliver stronger venues, better visibility, and a more complete event experience."
+        description="Our trusted partners help us deliver stronger venues, better visibility, and a more complete event experience."
         partners={partnerHighlights}
-        title="Featured Partners"
+        title="Trusted Partners"
       />
     </div>
   );

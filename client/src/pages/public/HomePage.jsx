@@ -13,6 +13,7 @@ import {
   contactContent,
   homeExpertise,
   homeHeroFallbackBanners,
+  homeHeroTrustIndicators,
   homePageContentFallback
 } from '../../data/siteContent.js';
 import { getApiErrorMessage } from '../../utils/apiErrors.js';
@@ -27,7 +28,7 @@ import {
 const DEFAULT_SEO_TITLE =
   'TriCore Events - Corporate Events, Sports Tournaments, and Cricket Experiences';
 const DEFAULT_SEO_DESCRIPTION =
-  'TriCore Events delivers corporate events, sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.';
+  'TriCore Events is backed by partners with 20+ years of collective experience across sports tournaments, corporate events, registrations, scheduling, and on-ground execution.';
 const DEFAULT_SEO_KEYWORDS = [
   'corporate events',
   'corporate experiences',
@@ -38,6 +39,7 @@ const DEFAULT_SEO_KEYWORDS = [
   'event registrations',
   'tournament schedules',
   'sports payments',
+  'corporate event quote',
   'TriCore Events'
 ];
 
@@ -289,7 +291,12 @@ export default function HomePage() {
         title={DEFAULT_SEO_TITLE}
         url={`${siteBaseUrl}/`}
       />
-      <HomeBannerCarousel banners={displayBanners} expertiseItems={homeExpertise} theme={homeTheme} />
+      <HomeBannerCarousel
+        banners={displayBanners}
+        expertiseItems={homeExpertise}
+        theme={homeTheme}
+        trustIndicators={homeHeroTrustIndicators}
+      />
       <HomePageContentSections
         content={homePageContent}
         events={events}

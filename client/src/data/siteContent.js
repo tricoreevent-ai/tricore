@@ -17,23 +17,38 @@ export const homeExpertise = [
   {
     title: 'End-to-End Execution',
     description:
-      'Concept, planning, logistics, operations, and post-event analysis are managed under one experienced team.'
+      'Concept, planning, logistics, operations, and post-event analysis are managed by a partner-led execution team.'
+  }
+];
+
+export const homeHeroTrustIndicators = [
+  {
+    title: '20+ years collective experience',
+    description: 'Partner-led expertise across sports operations and corporate event delivery.'
+  },
+  {
+    title: 'Trusted execution partners',
+    description: 'Spark 7 Sports Arena and Sarva Horizon support current TriCore activations.'
+  },
+  {
+    title: 'Clear next steps',
+    description: 'Tournament registration, corporate inquiries, and WhatsApp-first contact paths stay easy to access.'
   }
 ];
 
 export const homeHeroFallbackBanners = [
   {
     id: 'tricore-home-default',
-    badge: 'Corporate events, sports tournaments, and team experiences',
-    title: 'Where passion meets precision.',
+    badge: 'Backed by partner experience in sports tournaments and corporate events',
+    title: 'Partner-led event execution for tournaments, offsites, and community competitions.',
     description:
-      'TriCore Events crafts high-energy sports tournaments and seamless corporate experiences that build teams, strengthen culture, and create community.',
+      'TriCore Events is backed by partners with 20+ years of collective experience across sports operations, venue coordination, and corporate event delivery.',
     imageUrl: '',
     imageAlt: 'TriCore Events homepage banner',
-    primaryActionLabel: 'Explore Our Events',
+    primaryActionLabel: 'Register for a Tournament',
     primaryActionHref: '/events',
-    secondaryActionLabel: 'Corporate Experiences',
-    secondaryActionHref: '/corporate-events',
+    secondaryActionLabel: 'Request a Corporate Event Quote',
+    secondaryActionHref: '/contact',
     isActive: true
   }
 ];
@@ -209,15 +224,63 @@ export const homePageContentFallback = {
 };
 
 export const whyChooseItems = [
-  '20+ years of legacy across sports and corporate event execution.',
-  'A unique mix of sports management rigor and corporate event finesse.',
-  'Meticulous planning across venue flow, communication, safety, and scheduling.',
-  'A trusted network of venues, vendors, officials, and support partners.'
+  {
+    icon: 'trophy',
+    title: 'Partner-led credibility',
+    description:
+      'Our partners bring 20+ years of combined experience across sports management and corporate event production.'
+  },
+  {
+    icon: 'calendar',
+    title: 'Disciplined planning',
+    description:
+      'Registrations, venue flow, schedules, communication, and on-ground operations are mapped with clarity before event day.'
+  },
+  {
+    icon: 'mapPin',
+    title: 'Venue-ready delivery',
+    description:
+      'We work closely with trusted venues, officials, vendors, and support crews so events feel polished from arrival to wrap-up.'
+  },
+  {
+    icon: 'handshake',
+    title: 'Conversion-focused support',
+    description:
+      'Clear calls to action, responsive contact routes, and WhatsApp-friendly outreach help organizers move from inquiry to execution faster.'
+  }
 ];
+
+export const homeCredibilitySignals = [
+  {
+    title: 'Experienced leadership network',
+    description:
+      'TriCore is a growing brand, but the people behind it have already handled sports leagues, venue coordination, and high-pressure corporate gatherings.'
+  },
+  {
+    title: 'Current trusted partners',
+    description:
+      'Spark 7 Sports Arena and Sarva Horizon strengthen venue readiness, event presentation, and partner collaboration across current activations.'
+  },
+  {
+    title: 'Operations that build confidence',
+    description:
+      'From registration windows and participant communication to matchday flow and post-event follow-up, our process is built to feel reliable and easy to navigate.'
+  }
+];
+
+export const homeFinalCta = {
+  badge: 'Ready to plan',
+  title: 'Bring partner-led event experience to your next tournament or corporate gathering',
+  description:
+    'Tell us about your event format, dates, city, and audience goals. We will help shape the right plan quickly and clearly.',
+  primaryActionLabel: 'Request a Quote',
+  primaryActionHref: '/contact',
+  secondaryActionLabel: 'Chat on WhatsApp'
+};
 
 export const aboutHighlights = {
   intro:
-    'TriCore Events is led by professionals with more than twenty years of experience across sports operations, corporate engagement, and on-ground event delivery. We work with experienced venues, officials, vendors, production crews, and logistics partners so every event feels polished, reliable, and people-first.',
+    'TriCore Events is a young brand backed by partners with 20+ years of combined experience across sports operations, corporate engagement, and on-ground event delivery. We work with experienced venues, officials, vendors, production crews, and logistics partners so every event feels polished, reliable, and people-first.',
   vision:
     'To be the most trusted and innovative event management brand in India, inspiring individuals and organizations to build stronger connections through sports and shared experiences.',
   mission: [
@@ -234,7 +297,7 @@ export const aboutHighlights = {
   ],
   organizersTitle: 'Key Event Organizers',
   organizersDescription:
-    'TriCore Events partners with experienced organizers who contribute to our events. We value the expertise, reliability, and practical on-ground skill they bring to every project they support.',
+    'TriCore Events works with experienced organizers who contribute practical planning skill, calm execution, and on-ground decision-making to every project they support.',
   organizers: [
     {
       name: 'Sagar Mohamad',
@@ -246,7 +309,7 @@ export const aboutHighlights = {
     }
   ],
   organizersClosing:
-    'Both bring reliability and skill to every project they support.',
+    'Together with our wider partner network, they help TriCore deliver events with confidence, structure, and people-first service.',
   sportsBelief:
     'In a fast-paced and increasingly digital world, sports remain one of the most powerful ways to build discipline, leadership, resilience, and belonging. TriCore uses sport as a force for stronger teams, healthier lifestyles, and more connected communities.'
 };
@@ -255,9 +318,9 @@ export const corporateTournamentSpotlight = {
   badge: 'Featured Tournament',
   title: 'Corporate Cricket Tournament 2026',
   description:
-    'TriCore Sports is preparing a professionally managed cricket tournament experience in association with Spark 7 Sports Arena and with Sarva Horizon as Event Partner. The format is built to bring corporate teams, cricket lovers, and brand partners into one energetic sporting environment shaped by teamwork, fair competition, and community connection.',
+    'TriCore is preparing a professionally managed cricket tournament experience in association with Spark 7 Sports Arena and with Sarva Horizon as event partner. The same partner-led team behind TriCore brings real tournament planning experience to a format built for corporate teams, cricket lovers, and brand partners.',
   supportingCopy:
-    'Beyond the matches themselves, the tournament gives brands a high-visibility platform to meet an active audience through a vibrant, participation-led event atmosphere.',
+    'Beyond the matches themselves, the tournament gives brands and participating companies a structured, high-energy environment shaped by reliable scheduling, participant communication, and strong on-ground coordination.',
   primaryActionLabel: 'View Upcoming Events',
   primaryActionHref: '/events',
   secondaryActionLabel: 'Talk to TriCore',
@@ -267,9 +330,9 @@ export const corporateTournamentSpotlight = {
 export const corporateEventsHomeFeature = {
   badge: 'Corporate Events & Experiences',
   title:
-    'From leadership meetings to large-scale launches, TriCore manages corporate experiences end to end.',
+    'From leadership meetings to large-scale launches, TriCore delivers corporate experiences with partner-led execution.',
   description:
-    'We combine operational discipline, creative planning, and calm on-site coordination to deliver polished corporate events that reflect your brand and keep your teams focused on outcomes.',
+    'Backed by partners with years of event delivery experience, we combine operational discipline, creative planning, and calm on-site coordination to deliver polished corporate events that reflect your brand and keep your teams focused on outcomes.',
   points: [
     'Meetings, conferences, and executive gatherings with venue, vendor, AV, and registration support.',
     'Purpose-driven team building programs, retreats, and strategic offsites designed around your culture goals.',
@@ -283,11 +346,11 @@ export const corporateEventsHomeFeature = {
 
 export const corporateEventsContent = {
   heroBadge: 'Corporate Events & Experiences',
-  heroTitle: 'Seamless Planning, Flawless Execution, Unforgettable Moments',
+  heroTitle: 'Partner-led corporate event planning with calm execution and clear accountability',
   heroDescription:
-    "TriCore Events is more than an event management company. We are your strategic partner in creating impactful corporate experiences that reflect your brand's culture, values, and vision.",
+    'TriCore Events is backed by partners with deep experience in corporate gatherings, sports-led engagement, and on-ground event execution. We help organizations create impactful experiences that reflect their culture, values, and business goals.',
   heroSupportingCopy:
-    'From intimate boardroom meetings to high-stakes company-wide conferences, we blend meticulous planning with creative flair to deliver events that run smoothly from start to finish. Our team handles every detail so you can stay focused on your people, your message, and your goals.',
+    'From intimate boardroom meetings to high-stakes company-wide conferences, we blend meticulous planning with practical delivery systems so events run smoothly from start to finish. Our team handles the moving parts so you can stay focused on your people, your message, and your goals.',
   focusAreas: [
     'Corporate meetings and conferences',
     'Team building programs',
@@ -298,7 +361,7 @@ export const corporateEventsContent = {
   ],
   introTitle: 'What We Do',
   introDescription:
-    "We do not just manage events; we engineer experiences. Our mission is to transform your organizational needs into memorable and productive events that continue to resonate long after the event concludes.",
+    'We do not just manage events; we build experiences around clear objectives, disciplined logistics, and polished delivery. Our mission is to turn your organizational needs into memorable events that keep creating value after the day itself.',
   introSupportingCopy:
     'We work closely with you to understand your objectives, then use our expertise in logistics, design, and coordination to build a seamless attendee journey from invitation to wrap-up.',
   servicesTitle: 'Types of Corporate Events We Handle',
@@ -375,7 +438,7 @@ export const corporateEventsContent = {
   whyChooseTitle: 'Why Choose TriCore Events',
   whyChooseItems: [
     'A partnership mindset that aligns event execution with your business goals and brand standards.',
-    'Proven experience managing both high-pressure sports events and large-scale corporate functions.',
+    'Partner-led experience managing both high-pressure sports events and large-scale corporate functions.',
     'End-to-end accountability from first concept through final breakdown, with one reliable point of contact.',
     'Flexible planning shaped around your audience, objectives, operating style, and budget realities.',
     'Professional delivery grounded in punctuality, transparency, preparation, and calm problem-solving.'
@@ -417,11 +480,11 @@ export const corporateEventsContent = {
   ],
   credibilityTitle: 'Our Experience & Credibility',
   credibilityDescription:
-    'TriCore Events is built on real-world execution. Our leadership team has managed high-stakes sports events, large-scale corporate gatherings, and intimate executive retreats, giving us the systems, resourcefulness, and situational calm needed to deliver consistently strong outcomes.',
+    'TriCore Events is built on real-world execution. Our leadership team and partner network have managed sports events, large-scale corporate gatherings, and executive-format experiences, giving us the systems, resourcefulness, and situational calm needed to deliver consistently strong outcomes.',
   credibilitySupportingCopy:
-    'We understand the pressure that comes with representing a brand in front of employees, leaders, clients, or shareholders. That is why we focus on preparation, accountability, and practical problem-solving at every stage.',
+    'We understand the pressure that comes with representing a brand in front of employees, leaders, clients, or shareholders. That is why we focus on preparation, accountability, and practical problem-solving at every stage instead of relying on vague promises.',
   ctaTitle: 'Ready to create a corporate event that is as productive as it is memorable?',
-  ctaDescription: "Let's plan your next experience.",
+  ctaDescription: "Let's plan your next experience with a team that knows how to deliver under pressure.",
   primaryActionLabel: 'Get a Quick Quote',
   primaryActionHref: '/contact',
   secondaryActionLabel: 'Contact Us Today',
@@ -489,12 +552,14 @@ export const eventsContent = {
     }
   ],
   difference:
-    'With two decades of experience, TriCore anticipates challenges early, manages risk professionally, and brings calm control to fast-moving event environments. Clients get more than an organizer. They get a partner committed to event success and participant satisfaction.'
+    'Backed by partners with 20+ years of collective event experience, TriCore anticipates challenges early, manages risk professionally, and brings calm control to fast-moving event environments. Clients get more than an organizer. They get a team committed to event success and participant satisfaction.'
 };
 
 export const contactContent = {
   email: 'contact@tricoreevents.online',
   website: 'https://www.tricoreevents.online/',
+  whatsAppPhone: '+91 89718 54650',
+  whatsAppMessage: 'Hello TriCore Events, I would like to plan an event.',
   partners: [
     {
       name: 'Vinod Kartha',

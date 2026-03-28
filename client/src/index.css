@@ -31,7 +31,7 @@
   }
 
   .input {
-    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20;
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 sm:text-sm;
   }
 
   .label {
@@ -63,11 +63,20 @@
   }
 
   .btn-primary {
-    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
+    @apply inline-flex min-h-12 items-center justify-center rounded-full bg-brand-orange px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-70;
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-brand-blue/20 bg-white px-5 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue hover:bg-brand-mist;
+    @apply inline-flex min-h-12 items-center justify-center rounded-full border border-brand-blue/20 bg-white px-5 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue hover:bg-brand-mist;
+  }
+
+  .btn-whatsapp {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition;
+    background-color: #25d366;
+  }
+
+  .btn-whatsapp:hover {
+    background-color: #1fb65a;
   }
 
   .badge {

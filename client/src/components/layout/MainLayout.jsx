@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import SeoMetadata from '../common/SeoMetadata.jsx';
+import WhatsAppFloatingButton from '../common/WhatsAppFloatingButton.jsx';
 import Footer from './Footer.jsx';
 import Navbar from './Navbar.jsx';
 import { contactContent } from '../../data/siteContent.js';
@@ -13,7 +14,7 @@ const normalizeBaseUrl = (value) =>
 const HOME_SEO = {
   title: 'TriCore Events - Corporate Events, Sports Tournaments, and Cricket Experiences',
   description:
-    'TriCore Events delivers corporate events, sports tournament management, cricket registrations, schedules, payments, and event discovery for teams and communities.'
+    'TriCore Events is backed by partners with 20+ years of collective experience across corporate events, sports tournaments, registrations, scheduling, and on-ground execution.'
 };
 
 export default function MainLayout() {
@@ -33,7 +34,7 @@ export default function MainLayout() {
       return {
         title: 'About TriCore Events | Corporate Sports and Cricket Event Experience',
         description:
-          'Learn how TriCore Events delivers disciplined sports tournaments, corporate cricket experiences, and community events with a people-first operations team.'
+          'Learn how TriCore Events pairs a new brand with partner-led experience across sports tournaments, corporate gatherings, and people-first event operations.'
       };
     }
 
@@ -41,7 +42,7 @@ export default function MainLayout() {
       return {
         title: 'Corporate Events & Experiences | TriCore Events',
         description:
-          'Explore TriCore corporate event services including conferences, team building programs, strategic offsites, AGMs, employee engagement events, and product launches.'
+          'Explore TriCore corporate event services backed by partner experience in conferences, team building programs, strategic offsites, AGMs, employee engagement events, and launches.'
       };
     }
 
@@ -73,7 +74,7 @@ export default function MainLayout() {
       return {
         title: 'Contact TriCore Events | Corporate Sports Tournament Planning',
         description:
-          'Contact TriCore Events for corporate sports tournaments, cricket event planning, registrations, sponsorship enquiries, and community competition support.'
+          'Contact TriCore Events for partner-led corporate event planning, sports tournaments, sponsorship enquiries, and quick WhatsApp support.'
       };
     }
 
@@ -113,6 +114,7 @@ export default function MainLayout() {
         <Outlet />
       </main>
       <Footer />
+      <WhatsAppFloatingButton />
     </div>
   );
 }

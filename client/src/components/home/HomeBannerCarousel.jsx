@@ -98,7 +98,7 @@ const ActionLink = ({ className, href, label }) => {
   );
 };
 
-export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
+export default function HomeBannerCarousel({ banners, expertiseItems, theme, trustIndicators = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentBanner = banners[currentIndex] || banners[0] || null;
   const hasMultipleBanners = banners.length > 1;
@@ -183,7 +183,9 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
             {currentBanner.title}
           </h1>
           {currentBanner.description ? (
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-blue-50">{currentBanner.description}</p>
+            <p className="mt-6 max-w-3xl text-base leading-8 text-blue-50 sm:text-lg">
+              {currentBanner.description}
+            </p>
           ) : null}
 
           <div className="relative z-10 mt-8 flex flex-wrap gap-4">
@@ -198,6 +200,20 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
               label={currentBanner.secondaryActionLabel}
             />
           </div>
+
+          {trustIndicators.length ? (
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:max-w-3xl">
+              {trustIndicators.map((item) => (
+                <div
+                  className="rounded-[1.75rem] border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm"
+                  key={item.title}
+                >
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-blue-100">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           {hasMultipleBanners ? (
             <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -239,14 +255,15 @@ export default function HomeBannerCarousel({ banners, expertiseItems, theme }) {
             {expertiseItems.map((benefit) => (
               <div className="bg-white p-6" key={benefit.title}>
                 <h2 className="text-xl font-bold">{benefit.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{benefit.description}</p>
+                <p className="mt-3 text-base leading-7 text-slate-600">{benefit.description}</p>
               </div>
             ))}
             <div className="bg-brand-orange p-6 text-white sm:col-span-2">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-100">Our core belief</p>
               <p className="mt-3 text-2xl font-bold text-white">
-                We believe sport builds character, camaraderie, and healthy communities. Every
-                TriCore event is designed to inspire participation and connection.
+                We believe sport and well-run shared experiences build character, camaraderie, and
+                healthy communities. Every TriCore event is shaped to inspire participation,
+                connection, and trust.
               </p>
             </div>
           </div>

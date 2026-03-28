@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import SeoMetadata from '../../components/common/SeoMetadata.jsx';
 import { contactContent, corporateEventsContent } from '../../data/siteContent.js';
+import { getTelephoneHref, getWhatsAppHref } from '../../utils/contactLinks.js';
 
 const DEFAULT_SEO_TITLE = 'Corporate Events & Experiences | TriCore Events';
 const DEFAULT_SEO_DESCRIPTION =
-  'TriCore Events plans meetings, conferences, team-building programs, strategic offsites, AGMs, employee engagement events, and product launches with end-to-end execution.';
+  'TriCore Events plans meetings, conferences, team-building programs, strategic offsites, AGMs, employee engagement events, and product launches with partner-led execution.';
 const DEFAULT_SEO_KEYWORDS = [
   'corporate event management',
   'corporate conferences',
@@ -22,8 +23,6 @@ const normalizeBaseUrl = (value) =>
   String(value || '')
     .trim()
     .replace(/\/+$/, '');
-
-const getTelephoneHref = (phone) => `tel:${String(phone || '').replace(/[^\d+]/g, '')}`;
 
 const buildStructuredData = ({ baseUrl, phone }) => [
   {
@@ -69,6 +68,10 @@ export default function CorporateEventsPage() {
   const canonicalUrl = `${baseUrl}/corporate-events`;
   const primaryPhone = contactContent.partners.flatMap((partner) => partner.phones || [])[0] || '';
   const quickContactHref = primaryPhone ? getTelephoneHref(primaryPhone) : '/contact';
+  const whatsAppHref = getWhatsAppHref(
+    contactContent.whatsAppPhone || primaryPhone,
+    contactContent.whatsAppMessage
+  );
   const heroGradient = {
     backgroundImage: 'linear-gradient(135deg, #0A2C66, #0F5FDB, #0EA5E9)'
   };
@@ -106,7 +109,12 @@ export default function CorporateEventsPage() {
               <Link className="btn-primary" to={corporateEventsContent.primaryActionHref}>
                 {corporateEventsContent.primaryActionLabel}
               </Link>
-              {quickContactHref.startsWith('tel:') ? (
+              {whatsAppHref ? (
+                <a className="btn-whatsapp" href={whatsAppHref} rel="noreferrer" target="_blank">
+                  <AppIcon className="h-4 w-4" name="whatsapp" />
+                  Talk on WhatsApp
+                </a>
+              ) : quickContactHref.startsWith('tel:') ? (
                 <a className="btn-secondary" href={quickContactHref}>
                   Call TriCore
                 </a>
@@ -136,7 +144,7 @@ export default function CorporateEventsPage() {
                       <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
                         <AppIcon className="h-4 w-4" name="check" />
                       </span>
-                      <p className="text-sm leading-7 text-blue-50">{item}</p>
+                      <p className="text-base leading-7 text-blue-50">{item}</p>
                     </div>
                   </div>
                 ))}
@@ -174,7 +182,7 @@ export default function CorporateEventsPage() {
                 'Your attendees experience a professional flow built around comfort, clarity, and confidence.'
               ].map((item) => (
                 <div className="rounded-3xl bg-slate-50 p-5" key={item}>
-                  <p className="text-sm leading-7 text-slate-700">{item}</p>
+                  <p className="text-base leading-7 text-slate-700">{item}</p>
                 </div>
               ))}
             </div>
@@ -202,11 +210,11 @@ export default function CorporateEventsPage() {
                 <AppIcon className="h-5 w-5" name={service.icon} />
               </span>
               <h3 className="mt-5 text-2xl font-bold text-slate-950">{service.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-slate-600">{service.description}</p>
+              <p className="mt-4 text-base leading-7 text-slate-600">{service.description}</p>
               <div className="mt-6 space-y-3">
                 {service.points.map((point) => (
                   <div className="rounded-3xl bg-slate-50 p-4" key={point}>
-                    <p className="text-sm leading-7 text-slate-700">{point}</p>
+                    <p className="text-base leading-7 text-slate-700">{point}</p>
                   </div>
                 ))}
               </div>
@@ -240,10 +248,10 @@ export default function CorporateEventsPage() {
               {corporateEventsContent.whyChooseItems.map((item) => (
                 <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5" key={item}>
                   <div className="flex items-start gap-4">
-                    <span className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-mist text-sm font-bold text-brand-blue">
-                      +
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-mist text-brand-blue">
+                      <AppIcon className="h-4 w-4" name="check" />
                     </span>
-                    <p className="text-sm leading-7 text-slate-700">{item}</p>
+                    <p className="text-base leading-7 text-slate-700">{item}</p>
                   </div>
                 </div>
               ))}
@@ -282,7 +290,7 @@ export default function CorporateEventsPage() {
                     </span>
                   </div>
                   <h3 className="mt-4 text-xl font-bold text-white">{step.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-blue-50">{step.description}</p>
+                  <p className="mt-3 text-base leading-7 text-blue-50">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -305,7 +313,12 @@ export default function CorporateEventsPage() {
             <Link className="btn-primary" to={corporateEventsContent.primaryActionHref}>
               {corporateEventsContent.primaryActionLabel}
             </Link>
-            {quickContactHref.startsWith('tel:') ? (
+            {whatsAppHref ? (
+              <a className="btn-whatsapp" href={whatsAppHref} rel="noreferrer" target="_blank">
+                <AppIcon className="h-4 w-4" name="whatsapp" />
+                Talk on WhatsApp
+              </a>
+            ) : quickContactHref.startsWith('tel:') ? (
               <a className="btn-secondary" href={quickContactHref}>
                 Contact Us Today
               </a>
