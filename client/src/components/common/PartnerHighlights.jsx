@@ -27,17 +27,26 @@ export default function PartnerHighlights({ description, partners, title = 'Part
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
           {partners.map((partner) => (
             <article className="rounded-3xl border border-slate-200 bg-slate-50 p-6" key={partner.name}>
-              <div className="flex items-start gap-4">
-                <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-mist text-lg font-bold text-brand-blue">
+              {partner.logoUrl ? (
+                <div className="flex min-h-24 items-center rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                  <img
+                    alt={partner.logoAlt || `${partner.name} logo`}
+                    className="max-h-16 w-auto max-w-full object-contain"
+                    loading="lazy"
+                    src={partner.logoUrl}
+                  />
+                </div>
+              ) : (
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-mist text-lg font-bold text-brand-blue">
                   {getInitials(partner.name)}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
-                    {partner.role}
-                  </p>
-                  <h3 className="mt-2 text-2xl font-bold text-slate-950">{partner.name}</h3>
-                  <p className="mt-4 text-base leading-7 text-slate-600">{partner.description}</p>
-                </div>
+              )}
+              <div className="mt-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
+                  {partner.role}
+                </p>
+                <h3 className="mt-2 text-2xl font-bold text-slate-950">{partner.name}</h3>
+                <p className="mt-4 text-base leading-7 text-slate-600">{partner.description}</p>
               </div>
             </article>
           ))}

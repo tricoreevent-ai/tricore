@@ -485,12 +485,16 @@ export const partnerHighlights = [
   {
     name: 'Spark 7 Sports Arena',
     role: 'Venue & Sports Arena Partner',
+    logoUrl: '/partners/spark7-sports-arena-logo.png',
+    logoAlt: 'Spark 7 Sports Arena logo',
     description:
       'A tournament-ready venue partner supporting professionally managed matchday experiences, player flow, and crowd energy.'
   },
   {
     name: 'Sarva Horizon',
     role: 'Event Partner',
+    logoUrl: '/partners/sarva-horizon-logo.png',
+    logoAlt: 'Sarva Horizon logo',
     description:
       'A collaboration partner helping strengthen event presentation, business visibility, and partner engagement around TriCore experiences.'
   }
