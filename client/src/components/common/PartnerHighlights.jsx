@@ -28,10 +28,10 @@ export default function PartnerHighlights({ description, partners, title = 'Part
           {partners.map((partner) => (
             <article className="rounded-3xl border border-slate-200 bg-slate-50 p-6" key={partner.name}>
               {partner.logoUrl ? (
-                <div className="flex min-h-24 items-center rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div className="flex min-h-24 items-center justify-center rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
                   <img
                     alt={partner.logoAlt || `${partner.name} logo`}
-                    className="max-h-16 w-auto max-w-full object-contain"
+                    className="h-14 w-auto max-w-full object-contain sm:h-16"
                     loading="lazy"
                     src={partner.logoUrl}
                   />
