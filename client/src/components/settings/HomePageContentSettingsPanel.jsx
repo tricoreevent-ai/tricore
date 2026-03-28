@@ -78,7 +78,7 @@ export default function HomePageContentSettingsPanel({
         <div>
           <h3 className="text-2xl font-bold">Theme Colors</h3>
           <p className="mt-2 text-sm text-slate-500">
-            These values control the default homepage blues. Gallery settings are now managed in the dedicated Gallery tab.
+            These values control the default homepage blues. Gallery and testimonial content are managed in the dedicated sections below.
           </p>
         </div>
 

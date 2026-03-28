@@ -68,6 +68,7 @@ export const updateHomePageContentConfigurationSchema = z.object({
       themeSecondaryColor: hexColorSchema,
       themeHighlightColor: hexColorSchema,
       sponsorshipEventName: z.string().trim().max(160).optional().or(z.literal('')),
+      testimonialsEnabledHome: z.coerce.boolean(),
       galleryEnabledHome: z.coerce.boolean(),
       galleryEnabledAbout: z.coerce.boolean(),
       homeGalleryTitle: z.string().trim().max(120).optional().or(z.literal('')),

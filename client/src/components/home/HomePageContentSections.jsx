@@ -39,6 +39,14 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 };
 
+const getInitials = (value) =>
+  String(value || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
+
 export default function HomePageContentSections({ content, events, eventsError, eventsLoading }) {
   const featuredEvents = Array.isArray(events) ? events : [];
   const theme = {
@@ -65,6 +73,9 @@ export default function HomePageContentSections({ content, events, eventsError, 
   const eventsDescription =
     content?.eventsDescription ||
     'Discover the next round of sports tournaments, corporate leagues, and community competitions now open or preparing to open for participation.';
+  const visibleTestimonials = Array.isArray(content?.testimonials)
+    ? content.testimonials.filter((testimonial) => testimonial?.quote && testimonial?.name)
+    : [];
 
   return (
     <>
@@ -419,6 +430,54 @@ export default function HomePageContentSections({ content, events, eventsError, 
           images={content.homeGalleryImages}
           title={content.homeGalleryTitle}
         />
+      ) : null}
+
+      {content?.testimonialsEnabledHome && visibleTestimonials.length ? (
+        <section className="mt-24 bg-slate-100/70 py-16">
+          <div className="container-shell">
+            <div className="mb-8 max-w-4xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-orange">
+                Testimonials
+              </p>
+              <h2 className="mt-3 text-4xl font-bold text-slate-950">
+                {content.testimonialsTitle || 'What Our Clients Say'}
+              </h2>
+              {content.testimonialsDescription ? (
+                <p className="mt-4 text-base leading-8 text-slate-600">
+                  {content.testimonialsDescription}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              {visibleTestimonials.map((testimonial) => (
+                <article className="panel h-full p-7" key={testimonial.id || testimonial.name}>
+                  <p className="text-4xl leading-none text-brand-orange">"</p>
+                  <p className="mt-4 text-base leading-8 text-slate-700">{testimonial.quote}</p>
+                  <div className="mt-6 flex items-center gap-4">
+                    {testimonial.avatarUrl ? (
+                      <img
+                        alt={testimonial.avatarAlt || testimonial.name}
+                        className="h-14 w-14 rounded-2xl object-cover"
+                        src={testimonial.avatarUrl}
+                      />
+                    ) : (
+                      <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-mist text-lg font-bold text-brand-blue">
+                        {getInitials(testimonial.name)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-lg font-bold text-slate-950">{testimonial.name}</p>
+                      {testimonial.role ? (
+                        <p className="text-sm text-slate-500">{testimonial.role}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
       ) : null}
 
       <PartnerHighlights

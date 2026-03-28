@@ -58,6 +58,7 @@ export const homePageContentFallback = {
   themeSecondaryColor: '#0A2C66',
   themeHighlightColor: '#0EA5E9',
   sponsorshipEventName: 'Corporate Cricket Tournament 2026',
+  testimonialsEnabledHome: false,
   galleryEnabledHome: false,
   galleryEnabledAbout: false,
   homeGalleryTitle: 'TriCore in Action',
@@ -175,42 +176,31 @@ export const homePageContentFallback = {
   eventsTitle: 'Upcoming Tournaments',
   eventsDescription:
     'Feature the next published TriCore sports and corporate events that are ready for discovery and registration.',
-  testimonialsTitle: 'TriCore Community Stories',
+  testimonialsTitle: 'What Our Clients Say',
   testimonialsDescription:
-    'Share real moments from participants, organizers, and communities who came together through sport.',
+    'Feature real feedback from communities and organizations once you start collecting testimonials.',
   testimonials: [
     {
       id: 'testimonial-1',
-      name: 'Jordhan Daniyel',
-      role: 'Corporate Participant',
+      name: 'Community Organizer',
+      role: 'Residential Tournament',
       quote:
-        'TriCore turned a routine company sports day into something our team still talks about months later.',
+        'Tricore Events organized one of the best tournaments in our community. Everything was professionally managed.',
       imageUrl: '',
-      imageAlt: 'Jordhan Daniyel',
+      imageAlt: 'Community Organizer',
       avatarUrl: '',
-      avatarAlt: 'Jordhan Daniyel'
+      avatarAlt: 'Community Organizer'
     },
     {
       id: 'testimonial-2',
-      name: 'Mariya Thomas',
-      role: 'Community Organizer',
+      name: 'Corporate Team Lead',
+      role: 'Employee Engagement Event',
       quote:
-        'The energy, the coordination, and the communication made the whole event feel effortless for our residents.',
+        'Great coordination and execution. The event was smooth and engaging for all participants.',
       imageUrl: '',
-      imageAlt: 'Mariya Thomas',
+      imageAlt: 'Corporate Team Lead',
       avatarUrl: '',
-      avatarAlt: 'Mariya Thomas'
-    },
-    {
-      id: 'testimonial-3',
-      name: 'Lorance Peter',
-      role: 'Brand Partner',
-      quote:
-        'They brought structure and polish without losing the excitement that makes people want to come back.',
-      imageUrl: '',
-      imageAlt: 'Lorance Peter',
-      avatarUrl: '',
-      avatarAlt: 'Lorance Peter'
+      avatarAlt: 'Corporate Team Lead'
     }
   ],
   ctaBadge: 'Bring people together',

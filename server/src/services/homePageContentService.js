@@ -44,6 +44,7 @@ const DEFAULT_HOME_PAGE_CONTENT = {
   themeSecondaryColor: '#0A2C66',
   themeHighlightColor: '#0EA5E9',
   sponsorshipEventName: 'Corporate Cricket Tournament 2026',
+  testimonialsEnabledHome: false,
   galleryEnabledHome: false,
   galleryEnabledAbout: false,
   homeGalleryTitle: 'TriCore in Action',
@@ -125,24 +126,19 @@ const DEFAULT_HOME_PAGE_CONTENT = {
   eventsTitle: 'Upcoming Tournaments',
   eventsDescription:
     'Feature the next published TriCore sports and corporate events that are ready for discovery and registration.',
-  testimonialsTitle: 'TriCore Community Stories',
+  testimonialsTitle: 'What Our Clients Say',
   testimonialsDescription:
-    'Share real moments from participants, organizers, and communities who came together through sport.',
+    'Feature real feedback from communities and organizations once you start collecting testimonials.',
   testimonials: [
     defaultTestimonial(
-      'Jordhan Daniyel',
-      'Corporate Participant',
-      'TriCore turned a routine company sports day into something our team still talks about months later.'
-    ),
-    defaultTestimonial(
-      'Mariya Thomas',
       'Community Organizer',
-      'The energy, the coordination, and the communication made the whole event feel effortless for our residents.'
+      'Residential Tournament',
+      'Tricore Events organized one of the best tournaments in our community. Everything was professionally managed.'
     ),
     defaultTestimonial(
-      'Lorance Peter',
-      'Brand Partner',
-      'They brought structure and polish without losing the excitement that makes people want to come back.'
+      'Corporate Team Lead',
+      'Employee Engagement Event',
+      'Great coordination and execution. The event was smooth and engaging for all participants.'
     )
   ],
   ctaBadge: 'Bring people together',
@@ -351,6 +347,10 @@ const serializeHomePageContent = (settingDocument) => {
     sponsorshipEventName: normalizeText(
       stored.sponsorshipEventName || DEFAULT_HOME_PAGE_CONTENT.sponsorshipEventName
     ),
+    testimonialsEnabledHome:
+      stored.testimonialsEnabledHome !== undefined
+        ? Boolean(stored.testimonialsEnabledHome)
+        : Boolean(DEFAULT_HOME_PAGE_CONTENT.testimonialsEnabledHome),
     galleryEnabledHome:
       stored.galleryEnabledHome !== undefined
         ? Boolean(stored.galleryEnabledHome)
@@ -446,6 +446,7 @@ export const updateHomePageContent = async ({ payload, userId }) => {
     themeSecondaryColor: normalizeText(payload.themeSecondaryColor),
     themeHighlightColor: normalizeText(payload.themeHighlightColor),
     sponsorshipEventName: normalizeText(payload.sponsorshipEventName),
+    testimonialsEnabledHome: Boolean(payload.testimonialsEnabledHome),
     galleryEnabledHome: Boolean(payload.galleryEnabledHome),
     galleryEnabledAbout: Boolean(payload.galleryEnabledAbout),
     homeGalleryTitle: normalizeText(payload.homeGalleryTitle),

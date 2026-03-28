@@ -39,6 +39,7 @@ import HomePageContentSettingsPanel from '../../components/settings/HomePageCont
 import InvoiceSettingsPanel from '../../components/settings/InvoiceSettingsPanel.jsx';
 import AdminThemeSettingsPanel from '../../components/settings/AdminThemeSettingsPanel.jsx';
 import AdminPageShell from '../../components/layout/AdminPageShell.jsx';
+import TestimonialsSettingsPanel from '../../components/settings/TestimonialsSettingsPanel.jsx';
 import TransactionOtpSettingsPanel from '../../components/settings/TransactionOtpSettingsPanel.jsx';
 import WebsiteSettingsPanel from '../../components/settings/WebsiteSettingsPanel.jsx';
 import useAdminTheme from '../../hooks/useAdminTheme.js';
@@ -122,6 +123,9 @@ export default function AdminSettingsPage() {
   const [gallerySavePending, setGallerySavePending] = useState(false);
   const [galleryError, setGalleryError] = useState('');
   const [galleryMessage, setGalleryMessage] = useState('');
+  const [testimonialSavePending, setTestimonialSavePending] = useState(false);
+  const [testimonialError, setTestimonialError] = useState('');
+  const [testimonialMessage, setTestimonialMessage] = useState('');
   const [backupConfig, setBackupConfig] = useState(null);
   const [backupSavePending, setBackupSavePending] = useState(false);
   const [backupSendPending, setBackupSendPending] = useState(false);
@@ -867,6 +871,26 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleSaveTestimonialConfiguration = async (payload) => {
+    setTestimonialSavePending(true);
+    setTestimonialError('');
+    setTestimonialMessage('');
+
+    try {
+      // Testimonials are stored in the same homepage content document as theme and gallery settings.
+      const response = await updateHomePageConfiguration({
+        ...(homePageConfig || {}),
+        ...payload
+      });
+      setHomePageConfig(response);
+      setTestimonialMessage('Testimonial settings updated successfully.');
+    } catch (error) {
+      setTestimonialError(getApiErrorMessage(error, 'Unable to save testimonial settings.'));
+    } finally {
+      setTestimonialSavePending(false);
+    }
+  };
+
   const handleSaveWebsiteConfiguration = async (payload) => {
     setWebsiteSavePending(true);
     setWebsiteError('');
@@ -1564,6 +1588,14 @@ export default function AdminSettingsPage() {
             onRefresh={loadGalleryTab}
             onSave={handleSaveGalleryConfiguration}
             savePending={gallerySavePending}
+          />
+          <TestimonialsSettingsPanel
+            config={homePageConfig}
+            error={testimonialError}
+            message={testimonialMessage}
+            onRefresh={loadGalleryTab}
+            onSave={handleSaveTestimonialConfiguration}
+            savePending={testimonialSavePending}
           />
         </>
         )
